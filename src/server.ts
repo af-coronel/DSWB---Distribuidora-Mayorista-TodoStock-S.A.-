@@ -1,10 +1,10 @@
-import express, { Request, Response } from 'express';
+import express, { type Request, type Response } from 'express';
 
 const app = express ();
 const PORT = process.env.PORT || 3000;
 
 // Middleware para leer JSON
-app.use(express.json)
+app.use(express.json());
 
 // Ruta de prueba
 app.get('/api/health', (req: Request, res: Response) => {
@@ -16,5 +16,5 @@ app.get('/api/health', (req: Request, res: Response) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`🚀 Servidor ejecutándose en http://localhost:${PORT}`);
+    console.log(`Servidor ejecutándose en http://localhost:${PORT}`);
 });
