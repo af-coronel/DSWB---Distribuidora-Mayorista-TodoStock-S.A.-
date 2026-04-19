@@ -1,7 +1,17 @@
 import express, { type Request, type Response } from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 const app = express ();
 const PORT = process.env.PORT || 3000;
+
+// Configuración necesaria para usar __dirname en ECMAScript Modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Configuración de Pug como motor de vistas
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'pug');
 
 // Middleware para leer JSON
 app.use(express.json());
@@ -12,6 +22,15 @@ app.get('/api/health', (req: Request, res: Response) => {
         status: 'success',
         message: 'Servidor de TodoStock S.A. funcionando correctamente.',
         timestamp: new Date().toISOString()
+    });
+});
+
+// NUEVA RUTA: Devuelve una vista compilada con Pug
+app.get('/', (req: Request, res: Response) => {
+    // res.render busca el archivo 'index.pug' en la carpeta de vistas y le inyecta las variables
+    res.render('index', { 
+        title: 'TodoStock S.A.', 
+        message: 'Bienvenido al sistema de gestión mayorista' 
     });
 });
 
