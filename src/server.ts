@@ -1,7 +1,7 @@
 import express, { type Request, type Response } from "express";
 import path from "path";
 import { fileURLToPath } from "url";
-import clientRoutes from "./modules/business-partner/infrastructure/http/routes/ClientRoutes.js";
+import clientRoutes from "./modules/business-partner/infrastructure/http/routes/clientRoutes.js";
 import vendorRoutes from "./modules/business-partner/infrastructure/http/routes/vendorRoutes.js";
 
 const app = express();
