@@ -1,8 +1,14 @@
-import type { RegisterPartner } from "../../../application/index.js";
+import type {
+  FindByCuitPartner,
+  RegisterPartner,
+} from "../../../application/index.js";
 import type { IBusinessPartner } from "../../../domain/interfaces/IBusinessPartner.js";
 import type { Request, Response } from "express";
 export class ClientController {
-  constructor(private registerUseCase: RegisterPartner) {}
+  constructor(
+    private registerUseCase?: RegisterPartner,
+    private findByCuitUseCase?: FindByCuitPartner,
+  ) {}
 
   async create(req: Request, res: Response) {
     try {
@@ -33,14 +39,50 @@ export class ClientController {
         updated_by: "system_admin", // TODO: actualizar con la info del middleware de Auth
       };
 
-      await this.registerUseCase.execute(newClient);
+      await this.registerUseCase?.execute(newClient);
 
       return res.status(201).json({
         message: "Cliente registrado exitosamente",
         cuit: newClient.cuit,
       });
     } catch (error: any) {
-      return res.status(400).json({
+      return res.status(500).json({
+        error: true,
+        message: error.message,
+      });
+    }
+  }
+
+  async getByCuit(req: Request, res: Response) {
+    try {
+      const { cuit } = req.params;
+
+      if (Array.isArray(cuit)) {
+        return res.status(400).json({
+          error: true,
+          message: "El CUIT no puede ser un arreglo",
+        });
+      }
+
+      if (typeof cuit !== "string" || !/^\d{11}$/.test(cuit)) {
+        return res.status(400).json({
+          error: true,
+          message: "CUIT inválido",
+        });
+      }
+
+      const client = await this.findByCuitUseCase?.execute(cuit);
+
+      if (!client || !client.type.includes("CLIENT")) {
+        return res.status(404).json({
+          error: true,
+          message: "Cliente no encontrado",
+        });
+      }
+
+      return res.status(200).json(client);
+    } catch (error: any) {
+      return res.status(500).json({
         error: true,
         message: error.message,
       });
