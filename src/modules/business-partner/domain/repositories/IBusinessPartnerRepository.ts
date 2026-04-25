@@ -7,5 +7,5 @@ export interface IBusinessPartnerRepository {
 
   findAll(type?: "CLIENT" | "VENDOR"): Promise<IBusinessPartner[]>;
 
-  delete(cuit: string): Promise<void>;
+  deleteSoft(cuit: string): Promise<void>;
 }

@@ -1,5 +1,11 @@
 import { RegisterPartner } from "./use-cases/RegisterPartner.js";
 import { FindByCuitPartner } from "./use-cases/FindByCuitPartner.js";
 import { GetAllPartners } from "./use-cases/GetAllPartners.js";
+import { DeleteSoftPartner } from "./use-cases/DeleteSoftPartner.js";
 
-export { RegisterPartner, FindByCuitPartner, GetAllPartners };
+export {
+  RegisterPartner,
+  FindByCuitPartner,
+  GetAllPartners,
+  DeleteSoftPartner,
+};

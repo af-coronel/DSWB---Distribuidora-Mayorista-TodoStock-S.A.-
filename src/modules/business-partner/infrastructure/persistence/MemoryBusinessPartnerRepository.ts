@@ -35,7 +35,10 @@ export class MemoryBusinessPartnerRepository implements IBusinessPartnerReposito
     return all.filter((p) => p.type.includes(type));
   }
 
-  async delete(cuit: string): Promise<void> {
-    this.partners.delete(cuit);
+  async deleteSoft(cuit: string): Promise<void> {
+    const partner = this.partners.get(cuit);
+    if (partner) {
+      this.partners.set(cuit, { ...partner, active: false }); // Soft delete
+    }
   }
 }

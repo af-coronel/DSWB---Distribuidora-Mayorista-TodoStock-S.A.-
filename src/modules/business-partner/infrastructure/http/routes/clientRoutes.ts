@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { ClientController } from "../controllers/ClientController.js";
 import {
+  DeleteSoftPartner,
   FindByCuitPartner,
   GetAllPartners,
   RegisterPartner,
@@ -17,12 +18,14 @@ const partnerRepo = new MemoryBusinessPartnerRepository();
 const registerUseCase = new RegisterPartner(partnerRepo);
 const findByCuitUseCase = new FindByCuitPartner(partnerRepo);
 const getAllPartnersUseCase = new GetAllPartners(partnerRepo);
+const deleteSoftUseCase = new DeleteSoftPartner(partnerRepo);
 
 // 3. Instanciamos el controlador (COMO) y le damos el caso de uso
 const clientController = new ClientController(
   registerUseCase,
   findByCuitUseCase,
   getAllPartnersUseCase,
+  deleteSoftUseCase,
 );
 
 // --- DEFINICIÓN DE ENDPOINTS ---
@@ -31,5 +34,7 @@ router.post("/", (req, res) => clientController.create(req, res));
 router.get("/:cuit", (req, res) => clientController.getByCuit(req, res));
 
 router.get("/", (req, res) => clientController.getAll(req, res));
+
+router.delete("/:cuit", (req, res) => clientController.deleteSoft(req, res));
 
 export default router;
