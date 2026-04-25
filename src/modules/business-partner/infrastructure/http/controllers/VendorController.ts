@@ -1,9 +1,15 @@
 import type { Request, Response } from "express";
 import type { IBusinessPartner } from "../../../domain/index.js";
-import { RegisterPartner } from "../../../application/index.js";
+import {
+  RegisterPartner,
+  FindByCuitPartner,
+} from "../../../application/index.js";
 
 export class VendorController {
-  constructor(private registerUseCase: RegisterPartner) {}
+  constructor(
+    private registerUseCase: RegisterPartner,
+    private findByCuitUseCase: FindByCuitPartner,
+  ) {}
 
   async create(req: Request, res: Response) {
     try {
@@ -46,6 +52,42 @@ export class VendorController {
       });
     } catch (error: any) {
       return res.status(400).json({
+        error: true,
+        message: error.message,
+      });
+    }
+  }
+
+  async getByCuit(req: Request, res: Response) {
+    try {
+      const { cuit } = req.params;
+
+      if (Array.isArray(cuit)) {
+        return res.status(400).json({
+          error: true,
+          message: "El CUIT no puede ser un arreglo",
+        });
+      }
+
+      if (typeof cuit !== "string" || !/^\d{11}$/.test(cuit)) {
+        return res.status(400).json({
+          error: true,
+          message: "CUIT inválido",
+        });
+      }
+
+      const vendor = await this.findByCuitUseCase.execute(cuit);
+
+      if (!vendor || !vendor.type.includes("VENDOR")) {
+        return res.status(404).json({
+          error: true,
+          message: "Proveedor no encontrado",
+        });
+      }
+
+      return res.status(200).json(vendor);
+    } catch (error: any) {
+      return res.status(500).json({
         error: true,
         message: error.message,
       });
