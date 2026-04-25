@@ -4,6 +4,7 @@ import {
   RegisterPartner,
   FindByCuitPartner,
   GetAllPartners,
+  DeleteSoftPartner,
 } from "../../../application/index.js";
 
 export class VendorController {
@@ -11,6 +12,7 @@ export class VendorController {
     private registerUseCase: RegisterPartner,
     private findByCuitUseCase: FindByCuitPartner,
     private getAllPartnersUseCase: GetAllPartners,
+    private deleteSoftUseCase: DeleteSoftPartner,
   ) {}
 
   async create(req: Request, res: Response) {
@@ -110,6 +112,38 @@ export class VendorController {
       return res.status(200).json(onlyVendors);
     } catch (error: any) {
       return res.status(500).json({
+        error: true,
+        message: error.message,
+      });
+    }
+  }
+
+  async deleteSoft(req: Request, res: Response) {
+    try {
+      const { cuit } = req.params;
+
+      // Validaciones pueden pasar a middleware aparte
+      if (Array.isArray(cuit)) {
+        return res.status(400).json({
+          error: true,
+          message: "El CUIT no puede ser un arreglo",
+        });
+      }
+
+      if (typeof cuit !== "string" || !/^\d{11}$/.test(cuit)) {
+        return res.status(400).json({
+          error: true,
+          message: "CUIT inválido",
+        });
+      }
+      // Reutilizamos la lógica del caso de uso general
+      await this.deleteSoftUseCase.execute(cuit);
+
+      return res.status(200).json({
+        message: "Proveedor desactivado correctamente",
+      });
+    } catch (error: any) {
+      return res.status(400).json({
         error: true,
         message: error.message,
       });
