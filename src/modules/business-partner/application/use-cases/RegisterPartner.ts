@@ -1,7 +1,7 @@
 import type { IBusinessPartner } from "../../domain/interfaces/IBusinessPartner.js";
 import type { IBusinessPartnerRepository } from "../../domain/repositories/IBusinessPartnerRepository.js";
 
-export class RegisterBusinessPartner {
+export class RegisterPartner {
   constructor(private partnerRepository: IBusinessPartnerRepository) {}
 
   async execute(data: IBusinessPartner): Promise<void> {

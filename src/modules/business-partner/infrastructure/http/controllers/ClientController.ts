@@ -1,8 +1,8 @@
-import { RegisterBusinessPartner } from "../../../application/use-cases/RegisterBusinessPartner.js";
+import { RegisterPartner } from "../../../application/use-cases/RegisterPartner.js";
 import type { IBusinessPartner } from "../../../domain/interfaces/IBusinessPartner.js";
 import type { Request, Response } from "express";
 export class ClientController {
-  constructor(private registerUseCase: RegisterBusinessPartner) {}
+  constructor(private registerUseCase: RegisterPartner) {}
 
   async create(req: Request, res: Response) {
     try {

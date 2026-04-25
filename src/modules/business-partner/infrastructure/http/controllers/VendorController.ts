@@ -1,9 +1,9 @@
 import type { Request, Response } from "express";
 import type { IBusinessPartner } from "../../../domain/interfaces/IBusinessPartner.js";
-import { RegisterBusinessPartner } from "../../../application/use-cases/RegisterBusinessPartner.js";
+import { RegisterPartner } from "../../../application/use-cases/RegisterPartner.js";
 
 export class VendorController {
-  constructor(private registerUseCase: RegisterBusinessPartner) {}
+  constructor(private registerUseCase: RegisterPartner) {}
 
   async create(req: Request, res: Response) {
     try {
