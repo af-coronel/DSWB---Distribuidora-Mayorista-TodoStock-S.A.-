@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { VendorController } from "../controllers/VendorController.js";
-import { RegisterPartner } from "../../../application/use-cases/RegisterPartner.js";
+import { RegisterPartner } from "../../../application/index.js";
 import { MemoryBusinessPartnerRepository } from "../../persistence/MemoryBusinessPartnerRepository.js";
 
 const router = Router();

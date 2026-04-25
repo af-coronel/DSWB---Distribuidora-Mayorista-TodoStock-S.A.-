@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import type { IBusinessPartner } from "../../../domain/interfaces/IBusinessPartner.js";
-import { RegisterPartner } from "../../../application/use-cases/RegisterPartner.js";
+import { RegisterPartner } from "../../../application/index.js";
 
 export class VendorController {
   constructor(private registerUseCase: RegisterPartner) {}

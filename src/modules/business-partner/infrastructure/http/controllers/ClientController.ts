@@ -1,4 +1,4 @@
-import { RegisterPartner } from "../../../application/use-cases/RegisterPartner.js";
+import type { RegisterPartner } from "../../../application/index.js";
 import type { IBusinessPartner } from "../../../domain/interfaces/IBusinessPartner.js";
 import type { Request, Response } from "express";
 export class ClientController {
