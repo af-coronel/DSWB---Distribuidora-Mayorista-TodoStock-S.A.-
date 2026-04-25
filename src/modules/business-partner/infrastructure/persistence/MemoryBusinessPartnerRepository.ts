@@ -1,5 +1,7 @@
-import type { IBusinessPartner } from "../../domain/interfaces/IBusinessPartner.js";
-import type { IBusinessPartnerRepository } from "../../domain/repositories/IBusinessPartnerRepository.js";
+import type {
+  IBusinessPartner,
+  IBusinessPartnerRepository,
+} from "../../domain/index.js";
 
 export class MemoryBusinessPartnerRepository implements IBusinessPartnerRepository {
   // Usamos un Map con el CUIT como clave para mayor velocidad

@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import type { IBusinessPartner } from "../../../domain/interfaces/IBusinessPartner.js";
+import type { IBusinessPartner } from "../../../domain/index.js";
 import { RegisterPartner } from "../../../application/index.js";
 
 export class VendorController {

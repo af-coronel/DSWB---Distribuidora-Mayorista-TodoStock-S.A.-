@@ -1,9 +1,9 @@
+import type { Request, Response } from "express";
 import type {
   FindByCuitPartner,
   RegisterPartner,
 } from "../../../application/index.js";
-import type { IBusinessPartner } from "../../../domain/interfaces/IBusinessPartner.js";
-import type { Request, Response } from "express";
+import type { IBusinessPartner } from "../../../domain/index.js";
 export class ClientController {
   constructor(
     private registerUseCase: RegisterPartner,

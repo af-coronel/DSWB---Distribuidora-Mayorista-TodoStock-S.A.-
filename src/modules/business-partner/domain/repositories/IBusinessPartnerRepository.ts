@@ -1,4 +1,4 @@
-import type { IBusinessPartner } from "../interfaces/IBusinessPartner.js";
+import type { IBusinessPartner } from "../index.js";
 
 export interface IBusinessPartnerRepository {
   save(partner: IBusinessPartner): Promise<void>;
