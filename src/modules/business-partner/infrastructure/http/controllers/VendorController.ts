@@ -3,12 +3,14 @@ import type { IBusinessPartner } from "../../../domain/index.js";
 import {
   RegisterPartner,
   FindByCuitPartner,
+  GetAllPartners,
 } from "../../../application/index.js";
 
 export class VendorController {
   constructor(
     private registerUseCase: RegisterPartner,
     private findByCuitUseCase: FindByCuitPartner,
+    private getAllPartnersUseCase: GetAllPartners,
   ) {}
 
   async create(req: Request, res: Response) {
@@ -86,6 +88,26 @@ export class VendorController {
       }
 
       return res.status(200).json(vendor);
+    } catch (error: any) {
+      return res.status(500).json({
+        error: true,
+        message: error.message,
+      });
+    }
+  }
+
+  async getAll(req: Request, res: Response) {
+    try {
+      const vendors = await this.getAllPartnersUseCase.execute();
+      const onlyVendors = vendors.filter((partner) =>
+        partner.type.includes("VENDOR"),
+      );
+      if (!onlyVendors.length) {
+        return res.status(200).json({
+          message: "Aún no hay proveedores registrados",
+        });
+      }
+      return res.status(200).json(onlyVendors);
     } catch (error: any) {
       return res.status(500).json({
         error: true,

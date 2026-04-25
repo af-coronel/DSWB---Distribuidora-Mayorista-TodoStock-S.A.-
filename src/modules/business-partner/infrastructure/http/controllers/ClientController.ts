@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import type {
   FindByCuitPartner,
+  GetAllPartners,
   RegisterPartner,
 } from "../../../application/index.js";
 import type { IBusinessPartner } from "../../../domain/index.js";
@@ -8,6 +9,7 @@ export class ClientController {
   constructor(
     private registerUseCase: RegisterPartner,
     private findByCuitUseCase: FindByCuitPartner,
+    private getAllPartnersUseCase: GetAllPartners,
   ) {}
 
   async create(req: Request, res: Response) {
@@ -81,6 +83,26 @@ export class ClientController {
       }
 
       return res.status(200).json(client);
+    } catch (error: any) {
+      return res.status(500).json({
+        error: true,
+        message: error.message,
+      });
+    }
+  }
+
+  async getAll(req: Request, res: Response) {
+    try {
+      const clients = await this.getAllPartnersUseCase?.execute();
+      const onlyClients = clients.filter((partner) =>
+        partner.type.includes("CLIENT"),
+      );
+      if (!onlyClients.length) {
+        return res.status(200).json({
+          message: "Aún no hay clientes registrados",
+        });
+      }
+      return res.status(200).json(onlyClients);
     } catch (error: any) {
       return res.status(500).json({
         error: true,
