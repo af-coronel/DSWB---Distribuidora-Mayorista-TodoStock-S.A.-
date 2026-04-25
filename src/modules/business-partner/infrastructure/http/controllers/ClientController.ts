@@ -6,8 +6,8 @@ import type { IBusinessPartner } from "../../../domain/interfaces/IBusinessPartn
 import type { Request, Response } from "express";
 export class ClientController {
   constructor(
-    private registerUseCase?: RegisterPartner,
-    private findByCuitUseCase?: FindByCuitPartner,
+    private registerUseCase: RegisterPartner,
+    private findByCuitUseCase: FindByCuitPartner,
   ) {}
 
   async create(req: Request, res: Response) {
