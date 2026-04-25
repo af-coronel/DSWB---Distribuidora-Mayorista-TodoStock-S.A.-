@@ -1,5 +1,3 @@
-// infrastructure/persistence/MemoryBusinessPartnerRepository.ts
-
 import type { IBusinessPartner } from "../../domain/interfaces/IBusinessPartner.js";
 import type { IBusinessPartnerRepository } from "../../domain/repositories/IBusinessPartnerRepository.js";
 
