@@ -8,7 +8,21 @@ export class MemoryBusinessPartnerRepository implements IBusinessPartnerReposito
   private partners = new Map<string, IBusinessPartner>();
 
   async save(partner: IBusinessPartner): Promise<void> {
-    this.partners.set(partner.cuit, partner);
+    const existing = this.partners.get(partner.cuit);
+    if (existing) {
+      // Fusionamos los tipos y los datos de perfil
+      const merged = {
+        ...existing,
+        ...partner,
+        type: [...new Set([...existing.type, ...partner.type])],
+        customer_data: partner.customer_data || existing.customer_data || null,
+        vendor_data: partner.vendor_data || existing.vendor_data || null,
+        updated_at: new Date(),
+      };
+      this.partners.set(partner.cuit, merged);
+    } else {
+      this.partners.set(partner.cuit, partner);
+    }
   }
 
   async findByCuit(cuit: string): Promise<IBusinessPartner | null> {

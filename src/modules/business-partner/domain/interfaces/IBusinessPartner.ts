@@ -21,8 +21,8 @@ export interface IBusinessPartner {
 
   type: ("CLIENT" | "VENDOR")[];
 
-  customer_data?: ICustomerData;
-  vendor_data?: IVendorData;
+  customer_data?: ICustomerData | null;
+  vendor_data?: IVendorData | null;
 
   created_at: Date;
   updated_at: Date;
