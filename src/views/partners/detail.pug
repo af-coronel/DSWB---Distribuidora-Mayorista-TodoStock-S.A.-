@@ -1,0 +1,35 @@
+doctype html
+html(lang="es")
+  head
+    title TodoStock S.A. - Detalle de Cliente
+    link(rel="stylesheet", href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css")
+  body
+    .container.mt-5
+      .card.shadow
+        .card-header.bg-dark.text-white.d-flex.justify-content-between.align-items-center
+          h3.mb-0 Detalle del Cliente: #{client.legal_name}
+          span.badge(class=client.active ? 'bg-success' : 'bg-danger') #{client.active ? 'Activo' : 'Inactivo'}
+        .card-body
+          .row
+            .col-md-6
+              h5 Información General
+              p: strong CUIT: #{client.cuit}
+              p: strong Email: #{client.email}
+              p: strong Teléfono: #{client.phone || 'No registrado'}
+              p: strong Dirección: #{client.legal_address}
+              p: strong Condición IVA: #{client.vat_condition}
+            .col-md-6
+              h5 Información Comercial
+              .alert.alert-light.border
+                p: strong Límite de Crédito: $#{client.customer_data.credit_limit}
+                p: strong Saldo Actual: $#{client.customer_data.current_balance}
+              
+              h5 Auditoría
+              p.small.text-muted Creado el: #{new Date(client.created_at).toLocaleDateString()}
+              p.small.text-muted Por: #{client.created_by}
+
+        .card-footer.d-flex.justify-content-between
+          a.btn.btn-secondary(href="/api/clients") Volver al listado
+          div
+            button.btn.btn-warning.me-2 Editar
+            button.btn.btn-danger Desactivar
