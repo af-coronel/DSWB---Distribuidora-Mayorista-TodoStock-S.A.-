@@ -6,13 +6,13 @@ import {
   GetAllPartners,
   RegisterPartner,
 } from "../../../application/index.js";
-import { MemoryBusinessPartnerRepository } from "../../persistence/MemoryBusinessPartnerRepository.js";
+import { JsonBusinessPartnerRepository } from "../../persistence/JsonBusinessPartnerRepository.js";
 
 const router = Router();
 
 // --- INYECCIÓN DE DEPENDENCIAS MANUAL ---
 // 1. Instanciamos el repositorio (DONDE)
-const partnerRepo = new MemoryBusinessPartnerRepository();
+const partnerRepo = new JsonBusinessPartnerRepository();
 
 // 2. Instanciamos el caso de uso (QUE) y le damos el repositorio
 const registerUseCase = new RegisterPartner(partnerRepo);

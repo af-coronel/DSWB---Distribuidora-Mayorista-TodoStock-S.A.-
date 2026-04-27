@@ -2,43 +2,39 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import type { IBusinessPartner, IBusinessPartnerRepository } from '../../domain/index.js';
 
+// Módulo 6: Definimos un Diccionario (Objeto) donde la clave es el CUIT y el valor es el Partner
+type PartnerDictionary = Record<string, IBusinessPartner>;
+
 export class JsonBusinessPartnerRepository implements IBusinessPartnerRepository {
   private readonly filePath: string;
 
   constructor() {
-    // process.cwd() obtiene la ruta raíz del proyecto dinámicamente
-    this.filePath = path.join(process.cwd(), 'data', 'partners.json');
+    this.filePath = path.resolve(process.cwd(), 'data', 'partners.json');
   }
 
-  // Método auxiliar privado para leer el archivo de forma asíncrona
-  private async readData(): Promise<IBusinessPartner[]> {
+  private async readData(): Promise<PartnerDictionary> {
     try {
       const data = await fs.readFile(this.filePath, 'utf-8');
       return JSON.parse(data);
     } catch (error: any) {
-      // Si el archivo no existe, devolvemos un array vacío en lugar de romper la app
       if (error.code === 'ENOENT') {
-        return [];
+        return {}; // Ahora devolvemos un Objeto vacío en lugar de un Array
       }
       throw error;
     }
   }
 
-  // Método auxiliar privado para escribir en el archivo de forma asíncrona
-  private async writeData(data: IBusinessPartner[]): Promise<void> {
-    // JSON.stringify con null, 2 para que el archivo sea legible por humanos
+  private async writeData(data: PartnerDictionary): Promise<void> {
     await fs.writeFile(this.filePath, JSON.stringify(data, null, 2), 'utf-8');
   }
 
   async save(partner: IBusinessPartner): Promise<void> {
     const partners = await this.readData();
-    const index = partners.findIndex((p) => p.cuit === partner.cuit);
     
-    // 1. Extraemos el elemento a una variable
-    const existing = partners[index];
+    // Búsqueda directa O(1), ¡exactamente igual que tu "this.partners.get(partner.cuit)"!
+    const existing = partners[partner.cuit]; 
 
-    // 2. Comprobamos no solo que el índice exista, sino que 'existing' no sea undefined
-    if (index !== -1 && existing) {
+    if (existing) {
       const merged: IBusinessPartner = {
         ...existing,
         ...partner,
@@ -47,9 +43,9 @@ export class JsonBusinessPartnerRepository implements IBusinessPartnerRepository
         vendor_data: partner.vendor_data || existing.vendor_data || null,
         updated_at: new Date(),
       };
-      partners[index] = merged;
+      partners[partner.cuit] = merged;
     } else {
-      partners.push(partner);
+      partners[partner.cuit] = partner;
     }
 
     await this.writeData(partners);
@@ -57,23 +53,25 @@ export class JsonBusinessPartnerRepository implements IBusinessPartnerRepository
 
   async findByCuit(cuit: string): Promise<IBusinessPartner | null> {
     const partners = await this.readData();
-    return partners.find((p) => p.cuit === cuit) || null;
+    // Retornamos directamente accediendo por la clave
+    return partners[cuit] || null; 
   }
 
   async findAll(type?: "CLIENT" | "VENDOR"): Promise<IBusinessPartner[]> {
     const partners = await this.readData();
-    if (!type) return partners;
-    return partners.filter((p) => p.type.includes(type));
+    // Object.values() extrae todos los valores del objeto y los convierte en un Array
+    const all = Object.values(partners);
+    if (!type) return all;
+    return all.filter((p) => p.type.includes(type));
   }
 
   async deleteSoft(cuit: string): Promise<void> {
     const partners = await this.readData();
-    const index = partners.findIndex((p) => p.cuit === cuit);
+    const existing = partners[cuit];
     
-    // 3. Misma comprobación de seguridad aquí para evitar el error de [Ln 71]
-    const existing = partners[index];
-    if (index !== -1 && existing) {
-      existing.active = false;
+    if (existing) {
+      // Modificamos solo el active y guardamos
+      partners[cuit] = { ...existing, active: false };
       await this.writeData(partners);
     }
   }

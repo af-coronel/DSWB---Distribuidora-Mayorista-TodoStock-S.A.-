@@ -6,11 +6,11 @@ import {
   GetAllPartners,
   RegisterPartner,
 } from "../../../application/index.js";
-import { MemoryBusinessPartnerRepository } from "../../persistence/MemoryBusinessPartnerRepository.js";
+import { JsonBusinessPartnerRepository } from "../../persistence/JsonBusinessPartnerRepository.js";
 
 const router = Router();
 
-const partnerRepo = new MemoryBusinessPartnerRepository();
+const partnerRepo = new JsonBusinessPartnerRepository ();
 
 const registerUseCase = new RegisterPartner(partnerRepo);
 const findByCuitUseCase = new FindByCuitPartner(partnerRepo);
