@@ -50,7 +50,7 @@ export class ClientController {
         cuit: newClient.cuit,
       });
     } catch (error: any) {
-      return res.status(500).json({
+      return res.status(400).json({
         error: true,
         message: error.message,
       });
