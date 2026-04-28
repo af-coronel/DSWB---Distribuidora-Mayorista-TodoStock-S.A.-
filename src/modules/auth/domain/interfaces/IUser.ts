@@ -1,5 +1,5 @@
 // Definimos los roles permitidos según el requerimiento del caso
-export type UserRole = 'ADMIN' | 'SELLER' | 'WAREHOUSE';
+export type UserRole = 'ADMIN' | 'VENDOR' | 'CLIENT';
 
 export interface IUser {
   id: string;
