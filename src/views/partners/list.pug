@@ -1,0 +1,44 @@
+doctype html
+html(lang="es")
+  head
+    title TodoStock S.A. - Clientes
+    link(rel="stylesheet", href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css")
+  body
+    .container.mt-5
+      .d-flex.justify-content-between.align-items-center
+        h1 Gestión de Clientes
+        // Botón que podrías usar a futuro para ir al formulario de creación
+        a.btn.btn-primary(href="/api/clients/new") + Nuevo Cliente
+
+      hr
+
+      // --- AQUÍ VA EL BLOQUE QUE TE EXPLIQUÉ ---
+      if partners && partners.length > 0
+        table.table.table-striped.table-hover.mt-3
+          thead.table-dark
+            tr
+              th CUIT
+              th Razón Social
+              th Teléfono
+              th Estado
+              th Acciones
+          tbody
+            each partner in partners
+              tr
+                td= partner.cuit
+                td= partner.legal_name
+                td= partner.phone
+                td
+                  if partner.active
+                    span.badge.bg-success Activo
+                  else
+                    span.badge.bg-danger Inactivo
+                td 
+                  // Ejemplo de botones para ver detalle o editar
+                  a.btn.btn-sm.btn-outline-primary.me-2(href=`/api/clients/${partner.cuit}`) Ver
+                  button.btn.btn-sm.btn-outline-danger Desactivar
+      else
+        // Este bloque se muestra si el array de partners viene vacío
+        .alert.alert-info.mt-4
+          h4 No hay clientes registrados
+          p Actualmente no existen socios de negocio con el rol de CLIENTE en el sistema.

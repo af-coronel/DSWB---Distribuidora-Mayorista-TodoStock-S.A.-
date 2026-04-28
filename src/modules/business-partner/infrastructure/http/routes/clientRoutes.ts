@@ -31,6 +31,8 @@ const clientController = new ClientController(
 // --- DEFINICIÓN DE ENDPOINTS ---
 router.post("/", (req, res) => clientController.create(req, res));
 
+router.get("/new", (req, res) => clientController.renderCreateForm(req, res));
+
 router.get("/:cuit", (req, res) => clientController.getByCuit(req, res));
 
 router.get("/", (req, res) => clientController.getAll(req, res));

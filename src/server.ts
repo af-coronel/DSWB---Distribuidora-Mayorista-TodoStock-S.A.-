@@ -19,6 +19,7 @@ app.set("view engine", "pug");
 
 // Middleware para leer JSON
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.use("/api/clients", clientRoutes);
 app.use("/api/vendors", vendorRoutes);

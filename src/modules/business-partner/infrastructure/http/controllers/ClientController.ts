@@ -14,6 +14,9 @@ export class ClientController {
     private deleteSoftUseCase: DeleteSoftPartner,
   ) {}
 
+  async renderCreateForm(req: Request, res: Response) {
+    return res.render("partners/create");
+  }
   async create(req: Request, res: Response) {
     try {
       const {
@@ -24,6 +27,7 @@ export class ClientController {
         legal_address,
         vat_condition,
         customer_data,
+        credit_limit,
       } = req.body;
 
       const newClient: IBusinessPartner = {
@@ -35,7 +39,10 @@ export class ClientController {
         vat_condition,
         active: true,
         type: ["CLIENT"], // Forzamos el tipo
-        customer_data: customer_data || { credit_limit: 0, current_balance: 0 },
+        customer_data: customer_data || {
+          credit_limit: Number(credit_limit) || 0,
+          current_balance: 0,
+        },
         vendor_data: null,
         created_at: new Date(),
         updated_at: new Date(),
@@ -44,6 +51,14 @@ export class ClientController {
       };
 
       await this.registerUseCase?.execute(newClient);
+
+      if (
+        req.headers["content-type"]?.includes(
+          "application/x-www-form-urlencoded",
+        )
+      ) {
+        return res.redirect("/api/clients");
+      }
 
       return res.status(201).json({
         message: "Cliente registrado exitosamente",
@@ -83,8 +98,7 @@ export class ClientController {
           message: "Cliente no encontrado",
         });
       }
-
-      return res.status(200).json(client);
+      return res.render("partners/detail", { client });
     } catch (error: any) {
       return res.status(500).json({
         error: true,
@@ -95,15 +109,25 @@ export class ClientController {
 
   async getAll(req: Request, res: Response) {
     try {
-      const clients = await this.getAllPartnersUseCase?.execute();
+      const clients = await this.getAllPartnersUseCase.execute();
       const onlyClients = clients.filter((partner) =>
         partner.type.includes("CLIENT"),
       );
+      // Si el cliente pide HTML (Navegador)
+      if (req.headers.accept?.includes("text/html")) {
+        return res.render("partners/list", {
+          partners: onlyClients,
+          hasPartners: onlyClients.length > 0,
+        });
+      }
+
+      // Si pide JSON (Postman / App)
       if (!onlyClients.length) {
         return res.status(200).json({
           message: "Aún no hay clientes registrados",
         });
       }
+
       return res.status(200).json(onlyClients);
     } catch (error: any) {
       return res.status(500).json({
