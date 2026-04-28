@@ -1,22 +1,4 @@
 {
-  "30714345678": {
-    "cuit": "30714345678",
-    "phone": "+541144556677",
-    "email": "compras@elsol.com",
-    "active": true,
-    "type": [
-      "CLIENT"
-    ],
-    "customer_data": {
-      "discount_rate": 15,
-      "max_credit": 500000
-    },
-    "vendor_data": null,
-    "created_at": "2026-04-27T02:29:53.661Z",
-    "updated_at": "2026-04-27T02:29:53.661Z",
-    "created_by": "system_admin",
-    "updated_by": "system_admin"
-  },
   "30723345678": {
     "cuit": "30723345678",
     "phone": "+541144556677",
@@ -30,8 +12,26 @@
       "max_credit": 500000
     },
     "vendor_data": null,
-    "created_at": "2026-04-27T02:36:11.878Z",
-    "updated_at": "2026-04-27T02:36:11.878Z",
+    "created_at": "2026-04-27T02:52:53.098Z",
+    "updated_at": "2026-04-27T02:52:53.098Z",
+    "created_by": "system_admin",
+    "updated_by": "system_admin"
+  },
+  "30723349678": {
+    "cuit": "30723349678",
+    "phone": "+541144556677",
+    "email": "tds2026@elsol.com",
+    "active": true,
+    "type": [
+      "CLIENT"
+    ],
+    "customer_data": {
+      "discount_rate": 15,
+      "max_credit": 500000
+    },
+    "vendor_data": null,
+    "created_at": "2026-04-27T02:55:23.346Z",
+    "updated_at": "2026-04-27T02:55:23.346Z",
     "created_by": "system_admin",
     "updated_by": "system_admin"
   }
