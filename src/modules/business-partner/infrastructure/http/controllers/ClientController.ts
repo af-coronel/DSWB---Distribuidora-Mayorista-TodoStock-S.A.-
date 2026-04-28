@@ -117,7 +117,7 @@ export class ClientController {
       if (req.headers.accept?.includes("text/html")) {
         return res.render("partners/list", {
           partners: onlyClients,
-          hasPartners: onlyClients.length > 0,
+          activeTab: "clients",
         });
       }
 

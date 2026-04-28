@@ -104,6 +104,12 @@ export class VendorController {
       const onlyVendors = vendors.filter((partner) =>
         partner.type.includes("VENDOR"),
       );
+      if (req.headers.accept?.includes("text/html")) {
+        return res.render("partners/list", {
+          partners: onlyVendors,
+          activeTab: "vendors", // Identificador para la pestaña
+        });
+      }
       if (!onlyVendors.length) {
         return res.status(200).json({
           message: "Aún no hay proveedores registrados",
