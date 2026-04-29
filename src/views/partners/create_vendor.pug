@@ -1,0 +1,45 @@
+extends ../layout
+
+block content
+  .container.mt-5
+    .row.justify-content-center
+      .col-md-8
+        .card.shadow
+          .card-header.bg-dark.text-white
+            h3.mb-0 Registrar Nuevo Proveedor
+          .card-body
+            form(action="/api/vendors", method="POST")
+              .row.mb-3
+                .col-md-6
+                  label.form-label CUIT
+                  input.form-control(type="text", name="cuit", required)
+                .col-md-6
+                  label.form-label Razón Social
+                  input.form-control(type="text", name="legal_name", required)
+              
+              .row.mb-3
+                .col-md-6
+                  label.form-label Email
+                  input.form-control(type="email", name="email", required)
+                .col-md-6
+                  label.form-label Teléfono
+                  input.form-control(type="text", name="phone")
+
+              hr
+              h5 Datos de Logística
+              .row.mb-3
+                .col-md-6
+                  label.form-label Categoría
+                  select.form-select(name="category")
+                    option(value="Alimentos") Alimentos
+                    option(value="Limpieza") Limpieza
+                    option(value="Bebidas") Bebidas
+                    option(value="Bazar") Bazar
+                    option(value="General") General
+                .col-md-6
+                  label.form-label Lead Time (Días de entrega)
+                  input.form-control(type="number", name="lead_time", value="0")
+
+              .d-flex.justify-content-between.mt-4
+                a.btn.btn-secondary(href="/api/vendors") Cancelar
+                button.btn.btn-dark(type="submit") Guardar Proveedor

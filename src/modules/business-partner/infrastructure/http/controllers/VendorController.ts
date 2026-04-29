@@ -15,6 +15,9 @@ export class VendorController {
     private deleteSoftUseCase: DeleteSoftPartner,
   ) {}
 
+  async renderCreateForm(req: Request, res: Response) {
+    return res.render("partners/create_vendor");
+  }
   async create(req: Request, res: Response) {
     try {
       const {
@@ -25,6 +28,8 @@ export class VendorController {
         legal_address,
         vat_condition,
         vendor_data,
+        lead_time,
+        category,
       } = req.body;
 
       // Construimos el objeto asegurando el rol VENDOR
@@ -39,8 +44,8 @@ export class VendorController {
         type: ["VENDOR"],
         customer_data: null,
         vendor_data: {
-          lead_time: vendor_data?.lead_time || 0,
-          category: vendor_data?.category || "General",
+          lead_time: lead_time || 0,
+          category: category || "General",
         },
         created_at: new Date(),
         updated_at: new Date(),
@@ -49,6 +54,14 @@ export class VendorController {
       };
 
       await this.registerUseCase.execute(newVendor);
+
+      if (
+        req.headers["content-type"]?.includes(
+          "application/x-www-form-urlencoded",
+        )
+      ) {
+        return res.redirect("/api/vendors");
+      }
 
       return res.status(201).json({
         message: "Proveedor registrado exitosamente",

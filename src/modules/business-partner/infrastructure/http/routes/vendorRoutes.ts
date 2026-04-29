@@ -10,7 +10,7 @@ import { JsonBusinessPartnerRepository } from "../../persistence/JsonBusinessPar
 
 const router = Router();
 
-const partnerRepo = new JsonBusinessPartnerRepository ();
+const partnerRepo = new JsonBusinessPartnerRepository();
 
 const registerUseCase = new RegisterPartner(partnerRepo);
 const findByCuitUseCase = new FindByCuitPartner(partnerRepo);
@@ -25,6 +25,8 @@ const vendorController = new VendorController(
 );
 
 router.post("/", (req, res) => vendorController.create(req, res));
+
+router.get("/new", (req, res) => vendorController.renderCreateForm(req, res));
 
 router.get("/:cuit", (req, res) => vendorController.getByCuit(req, res));
 

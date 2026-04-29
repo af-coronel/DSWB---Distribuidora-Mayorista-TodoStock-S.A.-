@@ -15,7 +15,7 @@ export class ClientController {
   ) {}
 
   async renderCreateForm(req: Request, res: Response) {
-    return res.render("partners/create");
+    return res.render("partners/create_clients");
   }
   async create(req: Request, res: Response) {
     try {
