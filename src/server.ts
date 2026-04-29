@@ -3,6 +3,8 @@ import path from "path";
 import { fileURLToPath } from "url";
 import clientRoutes from "./modules/business-partner/infrastructure/http/routes/clientRoutes.js";
 import vendorRoutes from "./modules/business-partner/infrastructure/http/routes/vendorRoutes.js";
+import authRoutes from "./modules/auth/infrastructure/http/routes/authRoutes.js";
+
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -21,6 +23,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use("/api/clients", clientRoutes);
 app.use("/api/vendors", vendorRoutes);
+app.use("/api/auth", authRoutes);
 
 // Ruta de prueba
 app.get("/api/health", (req: Request, res: Response) => {

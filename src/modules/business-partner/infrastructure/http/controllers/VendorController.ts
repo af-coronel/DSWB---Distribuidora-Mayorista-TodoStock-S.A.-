@@ -5,6 +5,7 @@ import {
   FindByCuitPartner,
   GetAllPartners,
   DeleteSoftPartner,
+  UpdatePartner
 } from "../../../application/index.js";
 
 export class VendorController {
@@ -13,6 +14,7 @@ export class VendorController {
     private findByCuitUseCase: FindByCuitPartner,
     private getAllPartnersUseCase: GetAllPartners,
     private deleteSoftUseCase: DeleteSoftPartner,
+    private updateUseCase: UpdatePartner
   ) {}
 
   async renderCreateForm(req: Request, res: Response) {
@@ -32,7 +34,7 @@ export class VendorController {
         category,
       } = req.body;
 
-      // Construimos el objeto asegurando el rol VENDOR
+      // Construimos el objeto forzando el rol VENDOR
       const newVendor: IBusinessPartner = {
         cuit,
         legal_name,
@@ -49,8 +51,8 @@ export class VendorController {
         },
         created_at: new Date(),
         updated_at: new Date(),
-        created_by: "system_admin",
-        updated_by: "system_admin",
+        created_by: req.user?.id || "unknown",
+        updated_by: req.user?.id || "unknown",
       };
 
       await this.registerUseCase.execute(newVendor);
@@ -137,6 +139,29 @@ export class VendorController {
     }
   }
 
+  async update(req: Request, res: Response) {
+    try {
+      const { cuit } = req.params;
+      const userId = req.user?.id || "unknown";
+
+      if (typeof cuit !== "string" || !/^\d{11}$/.test(cuit)) {
+        return res.status(400).json({ error: true, message: "CUIT inválido" });
+      }
+
+      // Le pasamos el CUIT de la URL, el BODY de la petición y el ID del usuario
+      await this.updateUseCase.execute(cuit, req.body, userId);
+
+      return res.status(200).json({
+        message: "Cliente actualizado correctamente",
+      });
+    } catch (error: any) {
+      return res.status(400).json({
+        error: true,
+        message: error.message,
+      });
+    }
+  }
+
   async deleteSoft(req: Request, res: Response) {
     try {
       const { cuit } = req.params;
@@ -155,8 +180,10 @@ export class VendorController {
           message: "CUIT inválido",
         });
       }
+
+      const userId = req.user?.id || "unknown";
       // Reutilizamos la lógica del caso de uso general
-      await this.deleteSoftUseCase.execute(cuit);
+      await this.deleteSoftUseCase.execute(cuit, userId);
 
       return res.status(200).json({
         message: "Proveedor desactivado correctamente",
