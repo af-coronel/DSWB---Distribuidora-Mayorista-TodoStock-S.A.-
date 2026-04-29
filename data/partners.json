@@ -19,7 +19,7 @@
   },
   "30723349678": {
     "cuit": "30723349678",
-    "phone": "+541144556677",
+    "phone": "+54999999999",
     "email": "tds2026@elsol.com",
     "active": true,
     "type": [
@@ -31,9 +31,10 @@
     },
     "vendor_data": null,
     "created_at": "2026-04-27T02:55:23.346Z",
-    "updated_at": "2026-04-27T02:55:23.346Z",
+    "updated_at": "2026-04-29T02:56:51.077Z",
     "created_by": "system_admin",
-    "updated_by": "system_admin"
+    "updated_by": "admin_1",
+    "legal_address": "Nueva Dirección 456"
   },
   "33513467497": {
     "cuit": "33513467497",

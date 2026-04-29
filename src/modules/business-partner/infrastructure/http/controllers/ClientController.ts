@@ -4,6 +4,7 @@ import type {
   FindByCuitPartner,
   GetAllPartners,
   RegisterPartner,
+  UpdatePartner,
 } from "../../../application/index.js";
 import type { IBusinessPartner } from "../../../domain/index.js";
 export class ClientController {
@@ -12,6 +13,7 @@ export class ClientController {
     private findByCuitUseCase: FindByCuitPartner,
     private getAllPartnersUseCase: GetAllPartners,
     private deleteSoftUseCase: DeleteSoftPartner,
+    private updateUseCase: UpdatePartner,
   ) {}
 
   async renderCreateForm(req: Request, res: Response) {
@@ -46,8 +48,8 @@ export class ClientController {
         vendor_data: null,
         created_at: new Date(),
         updated_at: new Date(),
-        created_by: "system_admin", // TODO: actualizar con la info del middleware de Auth
-        updated_by: "system_admin", // TODO: actualizar con la info del middleware de Auth
+        created_by: req.user?.id || "unknown",
+        updated_by: req.user?.id || "unknown",
       };
 
       await this.registerUseCase?.execute(newClient);
@@ -137,11 +139,36 @@ export class ClientController {
     }
   }
 
+  async update(req: Request, res: Response) {
+    try {
+      const { cuit } = req.params;
+      const userId = req.user?.id || "unknown";
+
+      if (typeof cuit !== "string" || !/^\d{11}$/.test(cuit)) {
+        return res.status(400).json({ error: true, message: "CUIT inválido" });
+      }
+
+      // Le pasamos el CUIT de la URL, el BODY de la petición y el ID del usuario
+      await this.updateUseCase.execute(cuit, req.body, userId);
+
+      return res.status(200).json({
+        message: "Cliente actualizado correctamente",
+      });
+    } catch (error: any) {
+      return res.status(400).json({
+        error: true,
+        message: error.message,
+      });
+    }
+  }
+
   async deleteSoft(req: Request, res: Response) {
     try {
       const { cuit } = req.params;
+      
+      // 1. Extraemos el ID del usuario que hizo la petición 
+      const userId = req.user?.id || "unknown";
 
-      // Validaciones pueden pasar a middleware aparte
       if (Array.isArray(cuit)) {
         return res.status(400).json({
           error: true,
@@ -155,8 +182,9 @@ export class ClientController {
           message: "CUIT inválido",
         });
       }
-      // Reutilizamos la lógica del caso de uso general
-      await this.deleteSoftUseCase.execute(cuit);
+
+      // 2. Le pasamos 'cuit' y 'userId' separados por una coma
+      await this.deleteSoftUseCase.execute(cuit, userId);
 
       return res.status(200).json({
         message: "Socio de negocio desactivado correctamente",
