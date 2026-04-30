@@ -1,7 +1,7 @@
-import { Router } from 'express';
-import { JsonUserRepository } from '../../persistence/JsonUserRepository.js';
-import { LoginUser } from '../../../application/index.js';
-import { AuthController } from '../controllers/AuthController.js';
+import { Router } from "express";
+import { JsonUserRepository } from "../../persistence/JsonUserRepository.js";
+import { LoginUser } from "../../../application/index.js";
+import { AuthController } from "../controllers/AuthController.js";
 
 const router = Router();
 
@@ -11,6 +11,9 @@ const loginUseCase = new LoginUser(userRepository);
 const authController = new AuthController(loginUseCase);
 
 // --- ENDPOINTS ---
-router.post('/login', (req, res) => authController.login(req, res));
+
+router.get("/login", (req, res) => authController.renderLogin(req, res));
+
+router.post("/login", (req, res) => authController.login(req, res));
 
 export default router;
