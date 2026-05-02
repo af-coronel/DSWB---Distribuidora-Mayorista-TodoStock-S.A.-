@@ -28,4 +28,24 @@ block content
           a.btn.btn-secondary(href="/api/clients") Volver al listado
           div
             button.btn.btn-warning.me-2 Editar
-            button.btn.btn-danger Desactivar
+            if client.active
+              button.btn.btn-danger(onclick=`togglePartner('${client.cuit}', 'deactivate')`) Desactivar
+            else
+              button.btn.btn-success(onclick=`togglePartner('${client.cuit}', 'activate')`) Activar
+
+    script.
+      async function togglePartner(cuit, action) {
+        const label = action === 'activate' ? 'activar' : 'desactivar';
+        if (!confirm(`¿Está seguro que desea ${label} este cliente?`)) return;
+        try {
+          const res = await fetch(`/api/clients/${cuit}/${action}`, { method: 'PATCH' });
+          const data = await res.json();
+          if (res.ok) {
+            window.location.reload();
+          } else {
+            alert('Error: ' + data.message);
+          }
+        } catch (e) {
+          alert('Error de conexión: ' + e.message);
+        }
+      }

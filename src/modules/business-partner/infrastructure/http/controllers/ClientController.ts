@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import type {
+  ActivatePartner,
   DeleteSoftPartner,
   FindByCuitPartner,
   GetAllPartners,
@@ -14,6 +15,7 @@ export class ClientController {
     private getAllPartnersUseCase: GetAllPartners,
     private deleteSoftUseCase: DeleteSoftPartner,
     private updateUseCase: UpdatePartner,
+    private activateUseCase: ActivatePartner,
   ) {}
 
   async renderCreateForm(req: Request, res: Response) {
@@ -165,8 +167,8 @@ export class ClientController {
   async deleteSoft(req: Request, res: Response) {
     try {
       const { cuit } = req.params;
-      
-      // 1. Extraemos el ID del usuario que hizo la petición 
+
+      // 1. Extraemos el ID del usuario que hizo la petición
       const userId = req.user?.id || "unknown";
 
       if (Array.isArray(cuit)) {
@@ -188,6 +190,38 @@ export class ClientController {
 
       return res.status(200).json({
         message: "Socio de negocio desactivado correctamente",
+      });
+    } catch (error: any) {
+      return res.status(400).json({
+        error: true,
+        message: error.message,
+      });
+    }
+  }
+
+  async activate(req: Request, res: Response) {
+    try {
+      const { cuit } = req.params;
+      const userId = req.user?.id || "unknown";
+
+      if (Array.isArray(cuit)) {
+        return res.status(400).json({
+          error: true,
+          message: "El CUIT no puede ser un arreglo",
+        });
+      }
+
+      if (typeof cuit !== "string" || !/^\d{11}$/.test(cuit)) {
+        return res.status(400).json({
+          error: true,
+          message: "CUIT inválido",
+        });
+      }
+
+      await this.activateUseCase.execute(cuit, userId);
+
+      return res.status(200).json({
+        message: "Cliente activado correctamente",
       });
     } catch (error: any) {
       return res.status(400).json({

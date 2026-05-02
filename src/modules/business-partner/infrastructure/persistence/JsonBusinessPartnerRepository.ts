@@ -1,6 +1,9 @@
-import fs from 'node:fs/promises';
-import path from 'node:path';
-import type { IBusinessPartner, IBusinessPartnerRepository } from '../../domain/index.js';
+import fs from "node:fs/promises";
+import path from "node:path";
+import type {
+  IBusinessPartner,
+  IBusinessPartnerRepository,
+} from "../../domain/index.js";
 
 // Módulo 6: Definimos un Diccionario (Objeto) donde la clave es el CUIT y el valor es el Partner
 type PartnerDictionary = Record<string, IBusinessPartner>;
@@ -9,15 +12,15 @@ export class JsonBusinessPartnerRepository implements IBusinessPartnerRepository
   private readonly filePath: string;
 
   constructor() {
-    this.filePath = path.resolve(process.cwd(), 'data', 'partners.json');
+    this.filePath = path.resolve(process.cwd(), "data", "partners.json");
   }
 
   private async readData(): Promise<PartnerDictionary> {
     try {
-      const data = await fs.readFile(this.filePath, 'utf-8');
+      const data = await fs.readFile(this.filePath, "utf-8");
       return JSON.parse(data);
     } catch (error: any) {
-      if (error.code === 'ENOENT') {
+      if (error.code === "ENOENT") {
         return {}; // Ahora devolvemos un Objeto vacío en lugar de un Array
       }
       throw error;
@@ -25,14 +28,14 @@ export class JsonBusinessPartnerRepository implements IBusinessPartnerRepository
   }
 
   private async writeData(data: PartnerDictionary): Promise<void> {
-    await fs.writeFile(this.filePath, JSON.stringify(data, null, 2), 'utf-8');
+    await fs.writeFile(this.filePath, JSON.stringify(data, null, 2), "utf-8");
   }
 
   async save(partner: IBusinessPartner): Promise<void> {
     const partners = await this.readData();
-    
+
     // Búsqueda directa O(1), ¡exactamente igual que tu "this.partners.get(partner.cuit)"!
-    const existing = partners[partner.cuit]; 
+    const existing = partners[partner.cuit];
 
     if (existing) {
       const merged: IBusinessPartner = {
@@ -54,7 +57,7 @@ export class JsonBusinessPartnerRepository implements IBusinessPartnerRepository
   async findByCuit(cuit: string): Promise<IBusinessPartner | null> {
     const partners = await this.readData();
     // Retornamos directamente accediendo por la clave
-    return partners[cuit] || null; 
+    return partners[cuit] || null;
   }
 
   async findAll(type?: "CLIENT" | "VENDOR"): Promise<IBusinessPartner[]> {
@@ -68,10 +71,20 @@ export class JsonBusinessPartnerRepository implements IBusinessPartnerRepository
   async deleteSoft(cuit: string): Promise<void> {
     const partners = await this.readData();
     const existing = partners[cuit];
-    
+
     if (existing) {
       // Modificamos solo el active y guardamos
       partners[cuit] = { ...existing, active: false };
+      await this.writeData(partners);
+    }
+  }
+
+  async activate(cuit: string): Promise<void> {
+    const partners = await this.readData();
+    const existing = partners[cuit];
+
+    if (existing) {
+      partners[cuit] = { ...existing, active: true };
       await this.writeData(partners);
     }
   }
