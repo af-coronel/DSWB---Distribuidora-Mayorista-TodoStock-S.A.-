@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { VendorController } from "../controllers/VendorController.js";
 import {
+  ActivatePartner,
   DeleteSoftPartner,
   FindByCuitPartner,
   GetAllPartners,
@@ -19,6 +20,7 @@ const findByCuitUseCase = new FindByCuitPartner(partnerRepo);
 const getAllPartnersUseCase = new GetAllPartners(partnerRepo);
 const deleteSoftUseCase = new DeleteSoftPartner(partnerRepo);
 const updatePartnerUseCase = new UpdatePartner(partnerRepo);
+const activatePartnerUseCase = new ActivatePartner(partnerRepo);
 
 const vendorController = new VendorController(
   registerUseCase,
@@ -26,6 +28,7 @@ const vendorController = new VendorController(
   getAllPartnersUseCase,
   deleteSoftUseCase,
   updatePartnerUseCase,
+  activatePartnerUseCase,
 );
 
 // --- DEFINICIÓN DE ENDPOINTS PROTEGIDOS ---
@@ -56,9 +59,25 @@ router.put(
   (req, res) => vendorController.update(req, res),
 );
 
-// Borrar/Desactivar un cliente: Requiere ser ADMIN estricto
+// Borrar/Desactivar un proveedor: Requiere ser ADMIN estricto
 router.delete("/:cuit", authenticate, authorizeRoles(["ADMIN"]), (req, res) =>
   vendorController.deleteSoft(req, res),
+);
+
+// Desactivar un proveedor (PATCH semántico)
+router.patch(
+  "/:cuit/deactivate",
+  authenticate,
+  authorizeRoles(["ADMIN"]),
+  (req, res) => vendorController.deleteSoft(req, res),
+);
+
+// Reactivar un proveedor: Requiere ser ADMIN estricto
+router.patch(
+  "/:cuit/activate",
+  authenticate,
+  authorizeRoles(["ADMIN"]),
+  (req, res) => vendorController.activate(req, res),
 );
 
 export default router;
