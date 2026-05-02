@@ -5,7 +5,8 @@ import {
   FindByCuitPartner,
   GetAllPartners,
   DeleteSoftPartner,
-  UpdatePartner
+  UpdatePartner,
+  ActivatePartner,
 } from "../../../application/index.js";
 
 export class VendorController {
@@ -14,7 +15,8 @@ export class VendorController {
     private findByCuitUseCase: FindByCuitPartner,
     private getAllPartnersUseCase: GetAllPartners,
     private deleteSoftUseCase: DeleteSoftPartner,
-    private updateUseCase: UpdatePartner
+    private updateUseCase: UpdatePartner,
+    private activateUseCase: ActivatePartner,
   ) {}
 
   async renderCreateForm(req: Request, res: Response) {
@@ -187,6 +189,38 @@ export class VendorController {
 
       return res.status(200).json({
         message: "Proveedor desactivado correctamente",
+      });
+    } catch (error: any) {
+      return res.status(400).json({
+        error: true,
+        message: error.message,
+      });
+    }
+  }
+
+  async activate(req: Request, res: Response) {
+    try {
+      const { cuit } = req.params;
+      const userId = req.user?.id || "unknown";
+
+      if (Array.isArray(cuit)) {
+        return res.status(400).json({
+          error: true,
+          message: "El CUIT no puede ser un arreglo",
+        });
+      }
+
+      if (typeof cuit !== "string" || !/^\d{11}$/.test(cuit)) {
+        return res.status(400).json({
+          error: true,
+          message: "CUIT inválido",
+        });
+      }
+
+      await this.activateUseCase.execute(cuit, userId);
+
+      return res.status(200).json({
+        message: "Proveedor activado correctamente",
       });
     } catch (error: any) {
       return res.status(400).json({

@@ -8,4 +8,6 @@ export interface IBusinessPartnerRepository {
   findAll(type?: "CLIENT" | "VENDOR"): Promise<IBusinessPartner[]>;
 
   deleteSoft(cuit: string): Promise<void>;
+
+  activate(cuit: string): Promise<void>;
 }

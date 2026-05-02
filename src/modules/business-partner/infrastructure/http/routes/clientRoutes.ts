@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { ClientController } from "../controllers/ClientController.js";
 import {
+  ActivatePartner,
   DeleteSoftPartner,
   FindByCuitPartner,
   GetAllPartners,
@@ -9,7 +10,7 @@ import {
 } from "../../../application/index.js";
 import { JsonBusinessPartnerRepository } from "../../persistence/JsonBusinessPartnerRepository.js";
 import { authenticate } from "../../../../auth/infrastructure/http/middleware/authMiddleware.js";
-import{ authorizeRoles } from "../../../../auth/infrastructure/http/middleware/roleMiddleware.js"
+import { authorizeRoles } from "../../../../auth/infrastructure/http/middleware/roleMiddleware.js";
 
 const router = Router();
 
@@ -23,6 +24,7 @@ const findByCuitUseCase = new FindByCuitPartner(partnerRepo);
 const getAllPartnersUseCase = new GetAllPartners(partnerRepo);
 const deleteSoftUseCase = new DeleteSoftPartner(partnerRepo);
 const updatePartnerUseCase = new UpdatePartner(partnerRepo);
+const activatePartnerUseCase = new ActivatePartner(partnerRepo);
 
 // 3. Instanciamos el controlador (COMO) y le damos el caso de uso
 const clientController = new ClientController(
@@ -31,26 +33,59 @@ const clientController = new ClientController(
   getAllPartnersUseCase,
   deleteSoftUseCase,
   updatePartnerUseCase,
+  activatePartnerUseCase,
 );
 
 // --- DEFINICIÓN DE ENDPOINTS ---
 
 // Crear un cliente: Requiere estar logueado Y ser ADMIN o CLIENT
-router.post("/", authenticate, authorizeRoles(['ADMIN', 'CLIENT']), (req, res) => clientController.create(req, res));
+router.post(
+  "/",
+  authenticate,
+  authorizeRoles(["ADMIN", "CLIENT"]),
+  (req, res) => clientController.create(req, res),
+);
 
 // Ver el formulario HTML (Añadimos seguridad basica)
-router.get("/new", authenticate, (req, res) => clientController.renderCreateForm(req, res));
+router.get("/new", authenticate, (req, res) =>
+  clientController.renderCreateForm(req, res),
+);
 
 // Obtener un cliente: Solo requiere estar logueado (cualquier empleado puede verlo)
-router.get("/:cuit", authenticate, (req, res) => clientController.getByCuit(req, res));
+router.get("/:cuit", authenticate, (req, res) =>
+  clientController.getByCuit(req, res),
+);
 
 // Obtener todos los clientes
 router.get("/", authenticate, (req, res) => clientController.getAll(req, res));
 
 // Modificar un cliente: Requiere estar logueado Y ser ADMIN o CLIENT
-router.put("/:cuit", authenticate, authorizeRoles(['ADMIN', 'CLIENT']), (req, res) => clientController.update(req, res)); 
+router.put(
+  "/:cuit",
+  authenticate,
+  authorizeRoles(["ADMIN", "CLIENT"]),
+  (req, res) => clientController.update(req, res),
+);
 
 // Borrar/Desactivar un cliente: Requiere ser ADMIN estricto
-router.delete("/:cuit", authenticate, authorizeRoles(['ADMIN']), (req, res) => clientController.deleteSoft(req, res));
+router.delete("/:cuit", authenticate, authorizeRoles(["ADMIN"]), (req, res) =>
+  clientController.deleteSoft(req, res),
+);
+
+// Desactivar un cliente (PATCH semántico)
+router.patch(
+  "/:cuit/deactivate",
+  authenticate,
+  authorizeRoles(["ADMIN"]),
+  (req, res) => clientController.deleteSoft(req, res),
+);
+
+// Reactivar un cliente: Requiere ser ADMIN estricto
+router.patch(
+  "/:cuit/activate",
+  authenticate,
+  authorizeRoles(["ADMIN"]),
+  (req, res) => clientController.activate(req, res),
+);
 
 export default router;

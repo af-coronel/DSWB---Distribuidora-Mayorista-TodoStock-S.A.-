@@ -29,7 +29,31 @@ block content
               td 
                 // Ajustamos la ruta del "Ver" para que use la tab activa
                 a.btn.btn-sm.btn-outline-primary.me-2(href=`/api/${activeTab}/${partner.cuit}`) Ver
-                button.btn.btn-sm.btn-outline-danger Desactivar
+                if partner.active
+                  button.btn.btn-sm.btn-outline-danger(
+                    onclick=`togglePartner('${partner.cuit}', 'deactivate', '${activeTab}')`
+                  ) Desactivar
+                else
+                  button.btn.btn-sm.btn-outline-success(
+                    onclick=`togglePartner('${partner.cuit}', 'activate', '${activeTab}')`
+                  ) Activar
     else
       .alert.alert-info
         | No se encontraron #{activeTab === 'clients' ? 'clientes' : 'proveedores'} registrados.
+
+  script.
+    async function togglePartner(cuit, action, tab) {
+      const label = action === 'activate' ? 'activar' : 'desactivar';
+      if (!confirm(`¿Está seguro que desea ${label} este socio de negocio?`)) return;
+      try {
+        const res = await fetch(`/api/${tab}/${cuit}/${action}`, { method: 'PATCH' });
+        const data = await res.json();
+        if (res.ok) {
+          window.location.reload();
+        } else {
+          alert('Error: ' + data.message);
+        }
+      } catch (e) {
+        alert('Error de conexión: ' + e.message);
+      }
+    }
