@@ -25,7 +25,7 @@ app.use(cookieParser());
 
 app.use("/api/clients", clientRoutes);
 app.use("/api/vendors", vendorRoutes);
-app.use("/api/auth", authRoutes);
+app.use("/", authRoutes);
 
 // Ruta de prueba
 app.get("/api/health", (req: Request, res: Response) => {
@@ -33,15 +33,6 @@ app.get("/api/health", (req: Request, res: Response) => {
     status: "success",
     message: "Servidor de TodoStock S.A. funcionando correctamente.",
     timestamp: new Date().toISOString(),
-  });
-});
-
-// NUEVA RUTA: Devuelve una vista compilada con Pug
-app.get("/", (req: Request, res: Response) => {
-  // res.render busca el archivo 'index.pug' en la carpeta de vistas y le inyecta las variables
-  res.render("index", {
-    title: "TodoStock S.A.",
-    message: "Bienvenido al sistema de gestión mayorista",
   });
 });
 
