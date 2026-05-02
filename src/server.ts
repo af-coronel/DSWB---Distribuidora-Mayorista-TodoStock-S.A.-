@@ -39,7 +39,7 @@ app.get("/api/health", (req: Request, res: Response) => {
 // NUEVA RUTA: Devuelve una vista compilada con Pug
 app.get("/", (req: Request, res: Response) => {
   // res.render busca el archivo 'index.pug' en la carpeta de vistas y le inyecta las variables
-  res.render("index", {
+  res.render("server", {
     title: "TodoStock S.A.",
     message: "Bienvenido al sistema de gestión mayorista",
   });
