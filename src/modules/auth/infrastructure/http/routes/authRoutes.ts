@@ -1,12 +1,12 @@
 import { Router } from "express";
-import { JsonUserRepository } from "../../persistence/JsonUserRepository.js";
+import { MongoUserRepository } from "../../persistence/MongoUserRepository.js";
 import { LoginUser } from "../../../application/index.js";
 import { AuthController } from "../controllers/AuthController.js";
 
 const router = Router();
 
 // --- INYECCIÓN DE DEPENDENCIAS ---
-const userRepository = new JsonUserRepository();
+const userRepository = new MongoUserRepository();
 const loginUseCase = new LoginUser(userRepository);
 const authController = new AuthController(loginUseCase);
 

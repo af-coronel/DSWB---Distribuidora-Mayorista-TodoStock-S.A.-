@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "nodemon --exec tsx src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "migrate": "tsx scripts/migrate.ts"
   },
   "keywords": [],
   "author": "",
@@ -14,7 +15,10 @@
   "type": "module",
   "dependencies": {
     "cookie-parser": "^1.4.7",
+    "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "mongodb": "^7.2.0",
+    "mongoose": "^9.6.2",
     "pug": "^3.0.4"
   },
   "devDependencies": {

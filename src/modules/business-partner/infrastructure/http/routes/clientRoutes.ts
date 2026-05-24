@@ -8,7 +8,7 @@ import {
   RegisterPartner,
   UpdatePartner,
 } from "../../../application/index.js";
-import { JsonBusinessPartnerRepository } from "../../persistence/JsonBusinessPartnerRepository.js";
+import { MongoBusinessPartnerRepository } from "../../persistence/MongoBusinessPartnerRepository.js";
 import { authenticate } from "../../../../auth/infrastructure/http/middleware/authMiddleware.js";
 import { authorizeRoles } from "../../../../auth/infrastructure/http/middleware/roleMiddleware.js";
 
@@ -16,7 +16,7 @@ const router = Router();
 
 // --- INYECCIÓN DE DEPENDENCIAS MANUAL ---
 // 1. Instanciamos el repositorio (DONDE)
-const partnerRepo = new JsonBusinessPartnerRepository();
+const partnerRepo = new MongoBusinessPartnerRepository();
 
 // 2. Instanciamos el caso de uso (QUE) y le damos el repositorio
 const registerUseCase = new RegisterPartner(partnerRepo);
