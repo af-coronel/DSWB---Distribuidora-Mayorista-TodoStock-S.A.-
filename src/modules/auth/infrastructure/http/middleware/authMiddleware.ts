@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
-import { JsonUserRepository } from "../../persistence/JsonUserRepository.js";
+import { MongoUserRepository } from "../../persistence/MongoUserRepository.js";
 import type { IUser } from "../../../domain/interfaces/IUser.js";
 
 // Truco avanzado de TypeScript: Extendemos la interfaz Request de Express
@@ -41,7 +41,7 @@ export const authenticate = async (
     }
 
     // 3. Verificamos que el usuario realmente exista en la base de datos JSON
-    const userRepository = new JsonUserRepository();
+    const userRepository = new MongoUserRepository();
     const user = await userRepository.findById(userId);
 
     if (!user || !user.active) {
