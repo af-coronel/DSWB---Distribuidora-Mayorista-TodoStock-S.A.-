@@ -8,12 +8,12 @@ import {
   RegisterPartner,
   UpdatePartner,
 } from "../../../application/index.js";
-import { JsonBusinessPartnerRepository } from "../../persistence/JsonBusinessPartnerRepository.js";
+import { MongoBusinessPartnerRepository } from "../../persistence/MongoBusinessPartnerRepository.js";
 import { authorizeRoles } from "../../../../auth/infrastructure/http/middleware/roleMiddleware.js";
 import { authenticate } from "../../../../auth/infrastructure/http/middleware/authMiddleware.js";
 const router = Router();
 
-const partnerRepo = new JsonBusinessPartnerRepository();
+const partnerRepo = new MongoBusinessPartnerRepository();
 
 const registerUseCase = new RegisterPartner(partnerRepo);
 const findByCuitUseCase = new FindByCuitPartner(partnerRepo);
