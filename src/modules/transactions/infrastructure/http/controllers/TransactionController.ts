@@ -109,6 +109,11 @@ export class TransactionController {
     const request = req as AuthenticatedRequest;
     try {
       const { order_id, transaction_type } = req.body;
+
+      if (!transaction_type || !["PAYMENT", "COLLECTION"].includes(transaction_type)) {
+        throw new Error("El tipo de transacción es requerido (PAYMENT o COLLECTION).");
+      }
+
       const transaction = await this.createTransactionUseCase.execute(
         order_id,
         transaction_type as TransactionType,

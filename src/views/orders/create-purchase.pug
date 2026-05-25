@@ -24,7 +24,7 @@ block content
             .card-header.bg-dark.text-white
               h4.mb-0 Datos de la orden
             .card-body
-              form(action="/api/orders/purchase", method="POST")
+              form(action="/api/orders/purchase", method="POST", onsubmit="return validateForm(event)")
 
                 .row.mb-3
                   .col-md-6
@@ -98,6 +98,20 @@ block content
       if (rows.length > 1) {
         row.remove();
         reindexItems();
+      } else {
+        btn.disabled = true;
+        btn.textContent = 'Mínimo 1 ítem';
+        setTimeout(() => { btn.disabled = false; btn.textContent = 'Quitar'; }, 1500);
+      }
+    }
+
+    function validateForm(event) {
+      const selects = document.querySelectorAll('.product-select');
+      const hasItem = Array.from(selects).some(s => s.value !== '');
+      if (!hasItem) {
+        event.preventDefault();
+        alert('Debe agregar al menos un ítem con producto seleccionado.');
+        return false;
       }
     }
 

@@ -279,41 +279,45 @@ export class ClientController {
         const { cuit } = req.params;
 
         if (typeof cuit === "string") {
-          const currentClient = await this.findByCuitUseCase.execute(cuit);
+          try {
+            const currentClient = await this.findByCuitUseCase.execute(cuit);
 
-          if (currentClient && currentClient.type.includes("CLIENT")) {
-            const partner: IBusinessPartner = {
-              ...currentClient,
-              legal_name: req.body.legal_name ?? currentClient.legal_name,
-              phone: req.body.phone ?? currentClient.phone,
-              email: req.body.email ?? currentClient.email,
-              legal_address:
-                req.body.legal_address ?? currentClient.legal_address,
-              vat_condition:
-                req.body.vat_condition ?? currentClient.vat_condition,
-              customer_data: {
-                credit_limit:
-                  typeof req.body.credit_limit !== "undefined"
-                    ? Number(req.body.credit_limit) || 0
-                    : currentClient.customer_data?.credit_limit || 0,
-                current_balance:
-                  currentClient.customer_data?.current_balance || 0,
-              },
-            };
+            if (currentClient && currentClient.type.includes("CLIENT")) {
+              const partner: IBusinessPartner = {
+                ...currentClient,
+                legal_name: req.body.legal_name ?? currentClient.legal_name,
+                phone: req.body.phone ?? currentClient.phone,
+                email: req.body.email ?? currentClient.email,
+                legal_address:
+                  req.body.legal_address ?? currentClient.legal_address,
+                vat_condition:
+                  req.body.vat_condition ?? currentClient.vat_condition,
+                customer_data: {
+                  credit_limit:
+                    typeof req.body.credit_limit !== "undefined"
+                      ? Number(req.body.credit_limit) || 0
+                      : currentClient.customer_data?.credit_limit || 0,
+                  current_balance:
+                    currentClient.customer_data?.current_balance || 0,
+                },
+              };
 
-            if (
-              partner.customer_data &&
-              typeof currentClient.customer_data?.payment_terms !== "undefined"
-            ) {
-              partner.customer_data.payment_terms =
-                currentClient.customer_data.payment_terms;
+              if (
+                partner.customer_data &&
+                typeof currentClient.customer_data?.payment_terms !== "undefined"
+              ) {
+                partner.customer_data.payment_terms =
+                  currentClient.customer_data.payment_terms;
+              }
+
+              return res.status(400).render("partners/edit", {
+                partner,
+                activeTab: "clients",
+                errorMessage: error.message,
+              });
             }
-
-            return res.status(400).render("partners/edit", {
-              partner,
-              activeTab: "clients",
-              errorMessage: error.message,
-            });
+          } catch {
+            return res.redirect(`/api/clients/${cuit}?error=${encodeURIComponent(error.message)}`);
           }
         }
       }
