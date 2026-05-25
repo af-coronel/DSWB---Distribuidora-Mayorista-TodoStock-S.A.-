@@ -1,0 +1,23 @@
+extends ../layout
+
+block content
+  .container.mt-5
+    .row.justify-content-center
+      .col-md-6.text-center
+        .card.shadow-sm.border-0
+          .card-body.py-5
+            i.bi.bi-exclamation-triangle.display-1.text-danger.mb-3
+            h1.display-4.fw-bold.text-dark 500
+            h4.mb-3.text-secondary Error interno del servidor
+            if errorMessage
+              .alert.alert-warning.text-start.mb-4
+                i.bi.bi-info-circle.me-2
+                = errorMessage
+            else
+              p.text-muted.mb-4
+                | Algo salió mal de nuestro lado.
+                br
+                | Ya fuimos notificados. Intentá de nuevo en unos minutos.
+            a.btn.btn-dark.px-4(href="/api/clients")
+              i.bi.bi-house.me-2
+              | Volver al inicio

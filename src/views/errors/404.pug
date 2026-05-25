@@ -1,0 +1,18 @@
+extends ../layout
+
+block content
+  .container.mt-5
+    .row.justify-content-center
+      .col-md-6.text-center
+        .card.shadow-sm.border-0
+          .card-body.py-5
+            i.bi.bi-search.display-1.text-muted.mb-3
+            h1.display-4.fw-bold.text-dark 404
+            h4.mb-3.text-secondary Página no encontrada
+            p.text-muted.mb-4
+              | La página que buscás no existe o fue movida.
+              br
+              | Revisá la URL o volvé al inicio.
+            a.btn.btn-dark.px-4(href="/api/clients")
+              i.bi.bi-house.me-2
+              | Volver al inicio

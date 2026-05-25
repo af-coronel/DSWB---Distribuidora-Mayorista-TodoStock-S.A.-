@@ -37,6 +37,9 @@ export const authenticate = async (
     const userId = token?.split("-for-")[1];
 
     if (!userId) {
+      if (req.headers.accept?.includes("text/html")) {
+        return res.redirect("/api/auth/login");
+      }
       return res.status(401).json({ error: true, message: "Token inválido." });
     }
 
@@ -45,9 +48,10 @@ export const authenticate = async (
     const user = await userRepository.findById(userId);
 
     if (!user || !user.active) {
-      return res
-        .status(401)
-        .json({ error: true, message: "Usuario incorrecto" });
+      if (req.headers.accept?.includes("text/html")) {
+        return res.redirect("/api/auth/login");
+      }
+      return res.status(401).json({ error: true, message: "Usuario incorrecto" });
     }
 
     // 4. Inyectamos el usuario real en la petición para que el Controlador lo use.
@@ -56,8 +60,9 @@ export const authenticate = async (
     // 5. next() abre paso al siguiente middleware.
     next();
   } catch (error) {
-    return res
-      .status(500)
-      .json({ error: true, message: "Error en el servidor" });
+    if (req.headers.accept?.includes("text/html")) {
+      return res.redirect("/api/auth/login");
+    }
+    return res.status(500).json({ error: true, message: "Error en el servidor" });
   }
 };
