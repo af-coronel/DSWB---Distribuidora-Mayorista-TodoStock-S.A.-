@@ -30,5 +30,9 @@ body
         a.nav-link(class=activeTab === 'products' ? 'active font-weight-bold' : '', href="/api/products")
           i.bi.bi-box-seam.me-2
           | Productos
+      li.nav-item
+        a.nav-link(class=activeTab === 'orders' ? 'active font-weight-bold' : '', href="/api/orders")
+          i.bi.bi-cart-check.me-2
+          | Órdenes
 
 block content

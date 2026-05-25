@@ -1,0 +1,51 @@
+extends ../layout
+
+block content
+  .container.mt-5
+    .d-flex.justify-content-between.align-items-center.mb-3
+      h2 Órdenes
+      .d-flex.gap-2
+        a.btn.btn-outline-primary(href="/api/orders/purchase/new")
+          i.bi.bi-plus-circle.me-1
+          | Nueva Compra
+        a.btn.btn-outline-success(href="/api/orders/sale/new")
+          i.bi.bi-plus-circle.me-1
+          | Nueva Venta
+
+    ul.nav.nav-pills.mb-3
+      li.nav-item
+        a.nav-link(class=activeOrderType === 'ALL' ? 'active' : '', href="/api/orders") Todas
+      li.nav-item
+        a.nav-link(class=activeOrderType === 'PURCHASE' ? 'active' : '', href="/api/orders?type=PURCHASE") Compras
+      li.nav-item
+        a.nav-link(class=activeOrderType === 'SALE' ? 'active' : '', href="/api/orders?type=SALE") Ventas
+
+    if orders && orders.length > 0
+      table.table.table-striped.table-hover
+        thead.table-dark
+          tr
+            th Tipo
+            th Estado
+            th Socio (CUIT)
+            th Ítems
+            th Total
+            th Fecha creación
+            th
+        tbody
+          each order in orders
+            - const badge = statusBadge[order.status] || 'secondary'
+            - const label = statusLabel[order.status] || order.status
+            tr
+              td
+                span.badge(class=order.order_type === 'PURCHASE' ? 'bg-primary' : 'bg-success')
+                  = order.order_type === 'PURCHASE' ? 'Compra' : 'Venta'
+              td
+                span.badge(class=`bg-${badge}`) #{label}
+              td= order.partner_cuit
+              td= order.items.length
+              td= `$ ${order.total_amount.toFixed(2)}`
+              td= new Date(order.created_at).toLocaleDateString('es-AR')
+              td
+                a.btn.btn-sm.btn-outline-secondary(href=`/api/orders/${order.id}`) Ver detalle
+    else
+      .alert.alert-info Aún no hay órdenes registradas.

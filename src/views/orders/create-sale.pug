@@ -1,0 +1,109 @@
+extends ../layout
+
+block content
+  .container.mt-5
+    .d-flex.justify-content-between.align-items-center.mb-3
+      h2 Nueva Orden de Venta
+      a.btn.btn-outline-secondary(href="/api/orders") Volver al listado
+
+    if errorMessage
+      .alert.alert-danger= errorMessage
+
+    if !clients || clients.length === 0
+      .alert.alert-warning
+        | No hay clientes activos.
+        a(href="/api/clients/new") Crear cliente
+
+    else if !products || products.length === 0
+      .alert.alert-warning No hay productos registrados para agregar a la orden.
+
+    else
+      .row.justify-content-center
+        .col-md-10
+          .card.shadow
+            .card-header.bg-dark.text-white
+              h4.mb-0 Datos de la orden
+            .card-body
+              form(action="/api/orders/sale", method="POST")
+
+                .row.mb-3
+                  .col-md-6
+                    label.form-label Cliente
+                    select.form-select(name="partner_cuit", required)
+                      option(value="") Seleccionar cliente
+                      each client in clients
+                        option(value=client.cuit)= `${client.legal_name} — ${client.cuit}`
+                  .col-md-6
+                    label.form-label Fecha estimada de entrega (opcional)
+                    input.form-control(type="date", name="scheduled_date")
+
+                .mb-3
+                  label.form-label Notas (opcional)
+                  textarea.form-control(name="notes", rows="2")
+
+                hr
+                .d-flex.justify-content-between.align-items-center.mb-2
+                  h5.mb-0 Ítems
+                  button.btn.btn-sm.btn-outline-primary(type="button", onclick="addItem()") + Agregar ítem
+
+                #items-container
+                  .item-row.row.mb-2.align-items-end(data-index="0")
+                    .col-md-7
+                      label.form-label Producto
+                      select.form-select.product-select(name="items[0][product_id]", required)
+                        option(value="") Seleccionar producto
+                        each product in products
+                          option(value=product.id, data-price=product.customer_price)= `${product.name} — $${product.customer_price}`
+                    .col-md-3
+                      label.form-label Cantidad
+                      input.form-control(type="number", name="items[0][quantity]", min="1", value="1", required)
+                    .col-md-2.d-flex.align-items-end
+                      button.btn.btn-outline-danger.w-100(type="button", onclick="removeItem(this)") Quitar
+
+                .d-flex.justify-content-between.mt-4
+                  a.btn.btn-secondary(href="/api/orders") Cancelar
+                  button.btn.btn-dark(type="submit") Crear Orden de Venta
+
+  script.
+    let itemIndex = 1;
+    const productOptions = document.querySelector('.product-select').innerHTML;
+
+    function addItem() {
+      const container = document.getElementById('items-container');
+      const row = document.createElement('div');
+      row.className = 'item-row row mb-2 align-items-end';
+      row.dataset.index = itemIndex;
+      row.innerHTML = `
+        <div class="col-md-7">
+          <label class="form-label">Producto</label>
+          <select class="form-select product-select" name="items[${itemIndex}][product_id]" required>
+            ${productOptions}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Cantidad</label>
+          <input class="form-control" type="number" name="items[${itemIndex}][quantity]" min="1" value="1" required>
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+          <button class="btn btn-outline-danger w-100" type="button" onclick="removeItem(this)">Quitar</button>
+        </div>
+      `;
+      container.appendChild(row);
+      itemIndex++;
+    }
+
+    function removeItem(btn) {
+      const row = btn.closest('.item-row');
+      const rows = document.querySelectorAll('.item-row');
+      if (rows.length > 1) {
+        row.remove();
+        reindexItems();
+      }
+    }
+
+    function reindexItems() {
+      document.querySelectorAll('.item-row').forEach((row, i) => {
+        row.querySelector('[name$="[product_id]"]').name = `items[${i}][product_id]`;
+        row.querySelector('[name$="[quantity]"]').name = `items[${i}][quantity]`;
+      });
+    }
