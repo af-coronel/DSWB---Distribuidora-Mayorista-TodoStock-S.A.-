@@ -33,6 +33,16 @@ export class AuditPurchaseOrder {
       );
     }
 
+    const orderProductIds = new Set(order.items.map((i) => i.product_id));
+
+    for (const auditItem of auditItems) {
+      if (!orderProductIds.has(auditItem.product_id)) {
+        throw new Error(
+          `El producto "${auditItem.product_id}" no pertenece a esta orden de compra.`,
+        );
+      }
+    }
+
     const now = new Date();
     const expirationMap = new Map(auditItems.map((i) => [i.product_id, i.expiration_date]));
 
