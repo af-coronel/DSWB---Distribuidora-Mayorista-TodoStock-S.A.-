@@ -1,6 +1,7 @@
 import type { IBusinessPartnerRepository } from "../../../business-partner/domain/index.js";
 import type { IProductRepository } from "../../../products/domain/index.js";
 import type { IOrder, IOrderItem, IOrderRepository } from "../../domain/index.js";
+import type { ReserveStock } from "../../../inventory/application/index.js";
 
 export interface CreateSaleOrderItemInput {
   product_id: string;
@@ -12,6 +13,7 @@ export class CreateSaleOrder {
     private readonly orderRepository: IOrderRepository,
     private readonly partnerRepository: IBusinessPartnerRepository,
     private readonly productRepository: IProductRepository,
+    private readonly reserveStockUseCase: ReserveStock,
   ) {}
 
   async execute(
@@ -62,6 +64,10 @@ export class CreateSaleOrder {
         quantity,
         unit_price: product.customer_price,
       });
+    }
+
+    for (const item of items) {
+      await this.reserveStockUseCase.execute(item.product_id, item.quantity, createdBy);
     }
 
     const total = items.reduce((sum, item) => sum + item.quantity * item.unit_price, 0);

@@ -1,7 +1,7 @@
 import type { IOrderRepository } from "../../domain/index.js";
 import type { ReleaseReservedStock } from "../../../inventory/application/index.js";
 
-const CANCELLABLE_SALE_STATUSES = ["PENDING_PAYMENT", "PENDING_ASSEMBLY"] as const;
+const CANCELLABLE_SALE_STATUSES = ["PENDING_PAYMENT", "PENDING_ASSEMBLY", "DISPATCHING"] as const;
 
 export class CancelSaleOrder {
   constructor(
@@ -26,7 +26,8 @@ export class CancelSaleOrder {
       );
     }
 
-    if (order.status === "PENDING_ASSEMBLY") {
+    // Solo libera reserva si todavía no se confirmó el pago (stock aún no fue descontado)
+    if (order.status === "PENDING_PAYMENT") {
       for (const item of order.items) {
         await this.releaseReservedStockUseCase.execute(item.product_id, item.quantity, updatedBy);
       }

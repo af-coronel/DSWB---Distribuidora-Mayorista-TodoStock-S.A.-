@@ -1,10 +1,10 @@
 import type { IOrderRepository } from "../../domain/index.js";
-import type { ReserveStock } from "../../../inventory/application/index.js";
+import type { ConfirmSale } from "../../../inventory/application/index.js";
 
 export class ConfirmSalePayment {
   constructor(
     private readonly orderRepository: IOrderRepository,
-    private readonly reserveStockUseCase: ReserveStock,
+    private readonly confirmSaleUseCase: ConfirmSale,
   ) {}
 
   async execute(orderId: string, updatedBy: string): Promise<void> {
@@ -25,7 +25,7 @@ export class ConfirmSalePayment {
     }
 
     for (const item of order.items) {
-      await this.reserveStockUseCase.execute(item.product_id, item.quantity, updatedBy);
+      await this.confirmSaleUseCase.execute(item.product_id, item.quantity, updatedBy);
     }
 
     await this.orderRepository.updateStatus(orderId, "PENDING_ASSEMBLY", updatedBy, new Date());
