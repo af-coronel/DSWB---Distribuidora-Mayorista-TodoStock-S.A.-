@@ -5,5 +5,7 @@ export interface IInventoryRepository {
 
   update(lot: IInventoryLot): Promise<void>;
 
+  findAll(): Promise<IInventoryLot[]>;
+
   findByProductId(productId: string): Promise<IInventoryLot[]>;
 }

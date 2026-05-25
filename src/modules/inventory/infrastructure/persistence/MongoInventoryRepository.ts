@@ -31,6 +31,11 @@ export class MongoInventoryRepository implements IInventoryRepository {
     });
   }
 
+  async findAll(): Promise<IInventoryLot[]> {
+    const docs = await InventoryLotModel.find().sort({ created_at: -1 });
+    return docs.map((doc: InventoryLotDocument) => doc.toObject() as IInventoryLot);
+  }
+
   async findByProductId(productId: string): Promise<IInventoryLot[]> {
     const docs = await InventoryLotModel.find({ product_id: productId }).sort({
       expiration_date: 1,
