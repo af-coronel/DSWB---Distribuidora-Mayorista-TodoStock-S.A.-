@@ -302,7 +302,7 @@ export class ProductController {
     try {
       const products = await this.getAllProductsUseCase.execute();
 
-      if (req.headers.accept?.includes("text/html")) {
+      if (req.headers.accept?.includes("text/html") || req.headers["hx-request"] === "true") {
         const productsView = await this.enrichProductsWithVendorName(products);
         const viewMode = this.getListViewMode(req.query.view);
         const searchTerm =
@@ -333,7 +333,7 @@ export class ProductController {
           startIndex + pageSize,
         );
 
-        return res.render("products/list", {
+        const viewData = {
           products: paginatedProducts,
           activeTab: "products",
           viewMode,
@@ -342,7 +342,14 @@ export class ProductController {
           totalPages,
           totalItems,
           pageSize,
-        });
+        };
+
+        const view =
+          req.headers["hx-request"] === "true"
+            ? "products/_table"
+            : "products/list";
+
+        return res.render(view, viewData);
       }
 
       if (!products.length) {

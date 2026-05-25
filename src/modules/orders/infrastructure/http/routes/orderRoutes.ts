@@ -23,7 +23,7 @@ import {
   ConfirmSale,
   CreateInventoryLot,
 } from "../../../../inventory/application/index.js";
-import { CreateTransaction } from "../../../../transactions/application/index.js";
+import { CreateTransaction, CancelTransaction } from "../../../../transactions/application/index.js";
 import { OrderController } from "../controllers/OrderController.js";
 import { MongoOrderRepository } from "../../persistence/MongoOrderRepository.js";
 import { MongoBusinessPartnerRepository } from "../../../../business-partner/infrastructure/persistence/MongoBusinessPartnerRepository.js";
@@ -44,13 +44,14 @@ const releaseReservedStock = new ReleaseReservedStock(inventoryRepository, produ
 const confirmSale = new ConfirmSale(inventoryRepository, productRepository);
 const createInventoryLot = new CreateInventoryLot(inventoryRepository, productRepository);
 const createTransaction = new CreateTransaction(transactionRepository, orderRepository);
+const cancelTransaction = new CancelTransaction(transactionRepository);
 
 const orderController = new OrderController(
   new CreatePurchaseOrder(orderRepository, partnerRepository, productRepository, createTransaction),
   new ConfirmPurchaseOrder(orderRepository),
   new ReceivePurchaseOrder(orderRepository),
   new AuditPurchaseOrder(orderRepository, createInventoryLot),
-  new CancelPurchaseOrder(orderRepository),
+  new CancelPurchaseOrder(orderRepository, transactionRepository, cancelTransaction),
   new CreateSaleOrder(orderRepository, partnerRepository, productRepository, reserveStock, createTransaction),
   new ConfirmSalePayment(orderRepository, confirmSale),
   new DispatchSaleOrder(orderRepository),
