@@ -29,19 +29,6 @@ export class CompleteTransaction {
       );
     }
 
-    if (transaction.transaction_type === "PAYMENT") {
-      if (!posNumber?.trim()) {
-        throw new Error(
-          "El número de POS es obligatorio para completar una orden de pago.",
-        );
-      }
-      if (!documentNumber?.trim()) {
-        throw new Error(
-          "El número de documento es obligatorio para completar una orden de pago.",
-        );
-      }
-    }
-
     await this.transactionRepository.update({
       ...transaction,
       status: "COMPLETED",

@@ -123,12 +123,9 @@ export class TransactionController {
     const request = req as AuthenticatedRequest;
     try {
       const { id } = req.params as { id: string };
-      const { pos_number, document_number } = req.body;
       await this.completeTransactionUseCase.execute(
         id,
         request.user?.id || "unknown",
-        pos_number,
-        document_number,
       );
       if (isFormRequest(req)) return res.redirect(`/api/transactions/${id}`);
       return res.status(200).json({ message: "Transacción completada" });
