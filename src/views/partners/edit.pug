@@ -4,7 +4,10 @@ block content
   - const vendorData = partner.vendor_data || {}
   .container.mt-5
     if errorMessage
-      .alert.alert-danger= errorMessage
+      .alert.alert-danger.alert-dismissible.fade.show
+        i.bi.bi-exclamation-triangle-fill.me-2
+        = errorMessage
+        button.btn-close(type="button", data-bs-dismiss="alert", aria-label="Cerrar")
 
     .row.justify-content-center
       .col-md-8
@@ -19,7 +22,7 @@ block content
                   input.form-control(type="text", value=partner.cuit, disabled)
                 .col-md-6
                   label.form-label Razón Social
-                  input.form-control(type="text", name="legal_name", value=partner.legal_name, required)
+                  input.form-control(type="text", name="legal_name", value=partner.legal_name, required, minlength="2", maxlength="150")
 
               .row.mb-3
                 .col-md-6
@@ -27,7 +30,7 @@ block content
                   input.form-control(type="email", name="email", value=partner.email, required)
                 .col-md-6
                   label.form-label Teléfono
-                  input.form-control(type="text", name="phone", value=partner.phone, required)
+                  input.form-control(type="tel", name="phone", value=partner.phone, required, maxlength="20")
 
               .mb-3
                 label.form-label Dirección Legal
@@ -62,7 +65,7 @@ block content
                       option(value="General", selected=!vendorData.category || vendorData.category === 'General') General
                   .col-md-6
                     label.form-label Lead Time (Días de entrega)
-                    input.form-control(type="number", name="lead_time", value=vendorData.lead_time || 0, min="0")
+                    input.form-control(type="number", name="lead_time", value=vendorData.lead_time || 0, min="0", step="1")
 
               .d-flex.justify-content-between.mt-4
                 a.btn.btn-secondary(href=`/api/${activeTab}/${partner.cuit}`) Cancelar

@@ -4,14 +4,18 @@ block content
   .container.mt-5
 
     if errorMessage
-      .alert.alert-danger= errorMessage
+      .alert.alert-danger.alert-dismissible.fade.show
+        i.bi.bi-exclamation-triangle-fill.me-2
+        = errorMessage
+        button.btn-close(type="button", data-bs-dismiss="alert", aria-label="Cerrar")
       a.btn.btn-secondary(href="/api/transactions") Volver al listado
 
     else if transaction
       if flashError
-        .alert.alert-warning
-          i.bi.bi-exclamation-triangle.me-2
+        .alert.alert-warning.alert-dismissible.fade.show
+          i.bi.bi-exclamation-triangle-fill.me-2
           = flashError
+          button.btn-close(type="button", data-bs-dismiss="alert", aria-label="Cerrar")
 
       .d-flex.justify-content-between.align-items-center.mb-3
         h2
@@ -62,15 +66,21 @@ block content
                       input.form-control.form-control-sm(
                         type="text",
                         name="pos_number",
-                        placeholder="Número de POS",
-                        required
+                        placeholder="Ej: 0001",
+                        required,
+                        maxlength="20",
+                        pattern="[A-Za-z0-9-]{1,20}",
+                        title="Solo letras, números y guiones (máx. 20 caracteres)"
                       )
                     .mb-2
                       input.form-control.form-control-sm(
                         type="text",
                         name="document_number",
-                        placeholder="Número de documento",
-                        required
+                        placeholder="Ej: 00010001",
+                        required,
+                        maxlength="20",
+                        pattern="[0-9]{1,20}",
+                        title="Solo números (máx. 20 dígitos)"
                       )
                     button.btn.btn-success.w-100(type="submit") Registrar pago
 
@@ -78,7 +88,7 @@ block content
                   form(action=`/api/transactions/${transaction.id}/complete`, method="POST")
                     button.btn.btn-success.w-100(type="submit") Confirmar cobro
 
-                form(action=`/api/transactions/${transaction.id}/cancel`, method="POST")
+                form(action=`/api/transactions/${transaction.id}/cancel`, method="POST", onsubmit="return confirm('¿Confirmás la cancelación de esta transacción? Esta acción no se puede deshacer.')")
                   button.btn.btn-outline-danger.w-100(type="submit") Cancelar transacción
 
               else

@@ -4,14 +4,18 @@ block content
   .container.mt-5
 
     if errorMessage
-      .alert.alert-danger= errorMessage
+      .alert.alert-danger.alert-dismissible.fade.show
+        i.bi.bi-exclamation-triangle-fill.me-2
+        = errorMessage
+        button.btn-close(type="button", data-bs-dismiss="alert", aria-label="Cerrar")
       a.btn.btn-secondary(href="/api/orders") Volver al listado
 
     else if order
       if flashError
-        .alert.alert-warning
-          i.bi.bi-exclamation-triangle.me-2
+        .alert.alert-warning.alert-dismissible.fade.show
+          i.bi.bi-exclamation-triangle-fill.me-2
           = flashError
+          button.btn-close(type="button", data-bs-dismiss="alert", aria-label="Cerrar")
 
       .d-flex.justify-content-between.align-items-center.mb-3
         h2
@@ -63,12 +67,12 @@ block content
                 if order.status === 'PENDING_BUDGET'
                   form(action=`/api/orders/purchase/${order.id}/confirm`, method="POST")
                     button.btn.btn-primary.w-100(type="submit") Confirmar presupuesto
-                  form(action=`/api/orders/purchase/${order.id}/cancel`, method="POST")
+                  form(action=`/api/orders/purchase/${order.id}/cancel`, method="POST", onsubmit="return confirm('¿Confirmás la cancelación de esta orden? Esta acción no se puede deshacer.')")
                     button.btn.btn-outline-danger.w-100(type="submit") Cancelar orden
                 else if order.status === 'CONFIRMED'
                   form(action=`/api/orders/purchase/${order.id}/receive`, method="POST")
                     button.btn.btn-success.w-100(type="submit") Marcar como recibida
-                  form(action=`/api/orders/purchase/${order.id}/cancel`, method="POST")
+                  form(action=`/api/orders/purchase/${order.id}/cancel`, method="POST", onsubmit="return confirm('¿Confirmás la cancelación de esta orden? Esta acción no se puede deshacer.')")
                     button.btn.btn-outline-danger.w-100(type="submit") Cancelar orden
                 else if order.status === 'RECEIVED'
                   a.btn.btn-warning.w-100(href=`/api/orders/purchase/${order.id}/audit`) Auditar orden
@@ -79,17 +83,17 @@ block content
                 if order.status === 'PENDING_PAYMENT'
                   form(action=`/api/orders/sale/${order.id}/confirm-payment`, method="POST")
                     button.btn.btn-primary.w-100(type="submit") Confirmar pago
-                  form(action=`/api/orders/sale/${order.id}/cancel`, method="POST")
+                  form(action=`/api/orders/sale/${order.id}/cancel`, method="POST", onsubmit="return confirm('¿Confirmás la cancelación de esta orden? Esta acción no se puede deshacer.')")
                     button.btn.btn-outline-danger.w-100(type="submit") Cancelar orden
                 else if order.status === 'PENDING_ASSEMBLY'
                   form(action=`/api/orders/sale/${order.id}/dispatch`, method="POST")
                     button.btn.btn-info.w-100.text-white(type="submit") Confirmar armado
-                  form(action=`/api/orders/sale/${order.id}/cancel`, method="POST")
+                  form(action=`/api/orders/sale/${order.id}/cancel`, method="POST", onsubmit="return confirm('¿Confirmás la cancelación de esta orden? Esta acción no se puede deshacer.')")
                     button.btn.btn-outline-danger.w-100(type="submit") Cancelar orden
                 else if order.status === 'DISPATCHING'
                   form(action=`/api/orders/sale/${order.id}/deliver`, method="POST")
                     button.btn.btn-success.w-100(type="submit") Confirmar entrega
-                  form(action=`/api/orders/sale/${order.id}/cancel`, method="POST")
+                  form(action=`/api/orders/sale/${order.id}/cancel`, method="POST", onsubmit="return confirm('¿Confirmás la cancelación de esta orden? Esta acción no se puede deshacer.')")
                     button.btn.btn-outline-danger.w-100(type="submit") Cancelar orden
                 else
                   p.text-muted.mb-0.text-center Sin acciones disponibles

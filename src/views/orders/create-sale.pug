@@ -1,18 +1,24 @@
 extends ../layout
 
 block content
+  - const form = formData || {}
+  - const savedItems = (form.items && Array.isArray(form.items)) ? form.items : null
   .container.mt-5
     .d-flex.justify-content-between.align-items-center.mb-3
       h2 Nueva Orden de Venta
       a.btn.btn-outline-secondary(href="/api/orders") Volver al listado
 
     if errorMessage
-      .alert.alert-danger= errorMessage
+      .alert.alert-danger.alert-dismissible.fade.show
+        i.bi.bi-exclamation-triangle-fill.me-2
+        = errorMessage
+        button.btn-close(type="button", data-bs-dismiss="alert", aria-label="Cerrar")
 
     if !clients || clients.length === 0
-      .alert.alert-warning
-        | No hay clientes activos.
-        a(href="/api/clients/new") Crear cliente
+      .alert.alert-warning.d-flex.align-items-center.gap-2
+        i.bi.bi-exclamation-triangle-fill
+        span No hay clientes activos.
+        a.btn.btn-sm.btn-primary.ms-auto(href="/api/clients/new") Crear cliente
 
     else if !products || products.length === 0
       .alert.alert-warning No hay productos registrados para agregar a la orden.
@@ -32,77 +38,153 @@ block content
                     select.form-select(name="partner_cuit", required)
                       option(value="") Seleccionar cliente
                       each client in clients
-                        option(value=client.cuit)= `${client.legal_name} — ${client.cuit}`
+                        option(value=client.cuit, selected=(form.partner_cuit === client.cuit))= `${client.legal_name} — ${client.cuit}`
                   .col-md-6
                     label.form-label Fecha estimada de entrega (opcional)
-                    input.form-control(type="date", name="scheduled_date")
+                    input.form-control(type="date", name="scheduled_date", value=form.scheduled_date || "")
 
                 .mb-3
                   label.form-label Notas (opcional)
-                  textarea.form-control(name="notes", rows="2")
+                  textarea.form-control(name="notes", rows="2")= form.notes || ""
 
                 hr
                 .d-flex.justify-content-between.align-items-center.mb-2
                   h5.mb-0 Ítems
-                  button.btn.btn-sm.btn-outline-primary(type="button", onclick="addItem()") + Agregar ítem
+                  button.btn.btn-sm.btn-outline-primary(type="button", onclick="addItem()")
+                    i.bi.bi-plus-circle.me-1
+                    | Agregar ítem
 
-                #items-container
-                  .item-row.row.mb-2.align-items-end(data-index="0")
-                    .col-md-7
-                      label.form-label Producto
-                      select.form-select.product-select(name="items[0][product_id]", required)
-                        option(value="") Seleccionar producto
-                        each product in products
-                          option(value=product.id, data-price=product.customer_price)= `${product.name} — $${product.customer_price}`
-                    .col-md-3
-                      label.form-label Cantidad
-                      input.form-control(type="number", name="items[0][quantity]", min="1", value="1", required)
-                    .col-md-2.d-flex.align-items-end
-                      button.btn.btn-outline-danger.w-100(type="button", onclick="removeItem(this)") Quitar
+                .table-responsive
+                  table.table.table-bordered.mb-2
+                    thead.table-dark
+                      tr
+                        th.col-5 Producto
+                        th.col-2.text-center Cantidad
+                        th.col-2.text-end Precio unit.
+                        th.col-2.text-end Subtotal
+                        th.col-1
+                    tbody#items-container
+
+                      if savedItems
+                        each item, index in savedItems
+                          tr.item-row(data-index=index)
+                            td
+                              select.form-select.form-select-sm.product-select(name=`items[${index}][product_id]`, required, onchange="updateRow(this)")
+                                option(value="") Seleccionar producto
+                                each product in products
+                                  option(value=product.id, data-price=product.customer_price, selected=(item.product_id === product.id))= product.name
+                            td.text-center
+                              input.form-control.form-control-sm(type="number", name=`items[${index}][quantity]`, min="1", max="9999", value=item.quantity || 1, required, oninput="updateRow(this.closest('tr').querySelector('.product-select'))")
+                            td.text-end.unit-price —
+                            td.text-end.subtotal —
+                            td.text-center
+                              button.btn.btn-sm.btn-outline-danger(type="button", onclick="removeItem(this)")
+                                i.bi.bi-trash
+
+                      else
+                        tr.item-row(data-index="0")
+                          td
+                            select.form-select.form-select-sm.product-select(name="items[0][product_id]", required, onchange="updateRow(this)")
+                              option(value="") Seleccionar producto
+                              each product in products
+                                option(value=product.id, data-price=product.customer_price)= product.name
+                          td.text-center
+                            input.form-control.form-control-sm(type="number", name="items[0][quantity]", min="1", max="9999", value="1", required, oninput="updateRow(this.closest('tr').querySelector('.product-select'))")
+                          td.text-end.unit-price —
+                          td.text-end.subtotal —
+                          td.text-center
+                            button.btn.btn-sm.btn-outline-danger(type="button", onclick="removeItem(this)")
+                              i.bi.bi-trash
+
+                  .d-flex.justify-content-end
+                    strong.me-2 Total estimado:
+                    span#grand-total.fw-bold —
 
                 .d-flex.justify-content-between.mt-4
                   a.btn.btn-secondary(href="/api/orders") Cancelar
-                  button.btn.btn-dark(type="submit") Crear Orden de Venta
+                  button.btn.btn-dark(type="submit")
+                    i.bi.bi-check2-circle.me-1
+                    | Crear Orden de Venta
 
+block scripts
   script.
-    let itemIndex = 1;
-    const productOptions = document.querySelector('.product-select').innerHTML;
+    let itemIndex = #{savedItems ? savedItems.length : 1};
+    const allProducts = !{JSON.stringify((products || []).map(p => ({ id: p.id, name: p.name, price: p.customer_price })))};
+
+    function buildOptions(selectedId) {
+      return allProducts.map(p =>
+        `<option value="${p.id}" data-price="${p.price}"${p.id === selectedId ? ' selected' : ''}>${p.name}</option>`
+      ).join('');
+    }
 
     function addItem() {
-      const container = document.getElementById('items-container');
-      const row = document.createElement('div');
-      row.className = 'item-row row mb-2 align-items-end';
-      row.dataset.index = itemIndex;
-      row.innerHTML = `
-        <div class="col-md-7">
-          <label class="form-label">Producto</label>
-          <select class="form-select product-select" name="items[${itemIndex}][product_id]" required>
-            ${productOptions}
+      const tbody = document.getElementById('items-container');
+      const tr = document.createElement('tr');
+      tr.className = 'item-row';
+      tr.dataset.index = itemIndex;
+      tr.innerHTML = `
+        <td>
+          <select class="form-select form-select-sm product-select" name="items[${itemIndex}][product_id]" required onchange="updateRow(this)">
+            <option value="">Seleccionar producto</option>
+            ${buildOptions(null)}
           </select>
-        </div>
-        <div class="col-md-3">
-          <label class="form-label">Cantidad</label>
-          <input class="form-control" type="number" name="items[${itemIndex}][quantity]" min="1" value="1" required>
-        </div>
-        <div class="col-md-2 d-flex align-items-end">
-          <button class="btn btn-outline-danger w-100" type="button" onclick="removeItem(this)">Quitar</button>
-        </div>
+        </td>
+        <td class="text-center">
+          <input class="form-control form-control-sm" type="number" name="items[${itemIndex}][quantity]"
+            min="1" max="9999" value="1" required oninput="updateRow(this.closest('tr').querySelector('.product-select'))">
+        </td>
+        <td class="text-end unit-price">—</td>
+        <td class="text-end subtotal">—</td>
+        <td class="text-center">
+          <button class="btn btn-sm btn-outline-danger" type="button" onclick="removeItem(this)">
+            <i class="bi bi-trash"></i>
+          </button>
+        </td>
       `;
-      container.appendChild(row);
+      tbody.appendChild(tr);
       itemIndex++;
     }
 
     function removeItem(btn) {
-      const row = btn.closest('.item-row');
       const rows = document.querySelectorAll('.item-row');
       if (rows.length > 1) {
-        row.remove();
+        btn.closest('tr').remove();
         reindexItems();
+        recalcTotal();
       } else {
         btn.disabled = true;
-        btn.textContent = 'Mínimo 1 ítem';
-        setTimeout(() => { btn.disabled = false; btn.textContent = 'Quitar'; }, 1500);
+        btn.innerHTML = '<i class="bi bi-dash-circle"></i>';
+        setTimeout(() => { btn.disabled = false; btn.innerHTML = '<i class="bi bi-trash"></i>'; }, 1500);
       }
+    }
+
+    function reindexItems() {
+      document.querySelectorAll('.item-row').forEach((row, i) => {
+        row.querySelector('[name$="[product_id]"]').name = `items[${i}][product_id]`;
+        row.querySelector('[name$="[quantity]"]').name = `items[${i}][quantity]`;
+      });
+    }
+
+    function updateRow(select) {
+      const row = select.closest('tr');
+      const opt = select.options[select.selectedIndex];
+      const price = parseFloat(opt?.dataset?.price) || 0;
+      const qty = parseInt(row.querySelector('input[type="number"]')?.value) || 0;
+      row.querySelector('.unit-price').textContent = price > 0 ? `$ ${price.toFixed(2)}` : '—';
+      row.querySelector('.subtotal').textContent = price > 0 && qty > 0 ? `$ ${(price * qty).toFixed(2)}` : '—';
+      recalcTotal();
+    }
+
+    function recalcTotal() {
+      let total = 0;
+      document.querySelectorAll('.item-row').forEach(row => {
+        const select = row.querySelector('.product-select');
+        const opt = select?.options[select.selectedIndex];
+        const price = parseFloat(opt?.dataset?.price) || 0;
+        const qty = parseInt(row.querySelector('input[type="number"]')?.value) || 0;
+        total += price * qty;
+      });
+      document.getElementById('grand-total').textContent = total > 0 ? `$ ${total.toFixed(2)}` : '—';
     }
 
     function validateForm(event) {
@@ -115,9 +197,4 @@ block content
       }
     }
 
-    function reindexItems() {
-      document.querySelectorAll('.item-row').forEach((row, i) => {
-        row.querySelector('[name$="[product_id]"]').name = `items[${i}][product_id]`;
-        row.querySelector('[name$="[quantity]"]').name = `items[${i}][quantity]`;
-      });
-    }
+    document.addEventListener('DOMContentLoaded', recalcTotal);

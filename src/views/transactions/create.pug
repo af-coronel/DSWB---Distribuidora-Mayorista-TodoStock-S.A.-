@@ -7,7 +7,10 @@ block content
       a.btn.btn-outline-secondary(href="/api/transactions") Volver al listado
 
     if errorMessage
-      .alert.alert-danger= errorMessage
+      .alert.alert-danger.alert-dismissible.fade.show
+        i.bi.bi-exclamation-triangle-fill.me-2
+        = errorMessage
+        button.btn-close(type="button", data-bs-dismiss="alert", aria-label="Cerrar")
 
     if !orders || orders.length === 0
       .alert.alert-warning No hay órdenes registradas para asociar a una transacción.

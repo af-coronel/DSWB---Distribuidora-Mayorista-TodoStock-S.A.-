@@ -3,7 +3,10 @@ block content
   - const vendorForm = formData || {}
   .container.mt-5
     if errorMessage
-      .alert.alert-danger= errorMessage
+      .alert.alert-danger.alert-dismissible.fade.show
+        i.bi.bi-exclamation-triangle-fill.me-2
+        = errorMessage
+        button.btn-close(type="button", data-bs-dismiss="alert", aria-label="Cerrar")
 
     .row.justify-content-center
       .col-md-8
@@ -15,10 +18,10 @@ block content
               .row.mb-3
                 .col-md-6
                   label.form-label CUIT
-                  input.form-control(type="text", name="cuit", value=vendorForm.cuit || "", required)
+                  input.form-control(type="text", name="cuit", value=vendorForm.cuit || "", required, pattern="[0-9]{11}", maxlength="11", minlength="11", placeholder="20334445556", title="Ingresá los 11 dígitos del CUIT sin guiones")
                 .col-md-6
                   label.form-label Razón Social
-                  input.form-control(type="text", name="legal_name", value=vendorForm.legal_name || "", required)
+                  input.form-control(type="text", name="legal_name", value=vendorForm.legal_name || "", required, minlength="2", maxlength="150", placeholder="Ej: Proveedor Nacional S.A.")
               
               .row.mb-3
                 .col-md-6
@@ -26,7 +29,7 @@ block content
                   input.form-control(type="email", name="email", value=vendorForm.email || "", required)
                 .col-md-6
                   label.form-label Teléfono
-                  input.form-control(type="text", name="phone", value=vendorForm.phone || "", required)
+                  input.form-control(type="tel", name="phone", value=vendorForm.phone || "", required, placeholder="Ej: 1123456789", maxlength="20")
 
               .mb-3
                 label.form-label Dirección Legal
@@ -53,7 +56,7 @@ block content
                     option(value="General", selected=!vendorForm.category || vendorForm.category === 'General') General
                 .col-md-6
                   label.form-label Lead Time (Días de entrega)
-                  input.form-control(type="number", name="lead_time", value=typeof vendorForm.lead_time !== 'undefined' ? vendorForm.lead_time : "0")
+                  input.form-control(type="number", name="lead_time", value=typeof vendorForm.lead_time !== 'undefined' ? vendorForm.lead_time : "0", min="0", step="1", placeholder="Ej: 7")
 
               .d-flex.justify-content-between.mt-4
                 a.btn.btn-secondary(href="/api/vendors") Cancelar

@@ -145,6 +145,7 @@ export class OrderController {
           activeTab: "orders",
           vendors,
           products,
+          formData: req.body,
           errorMessage: error.message,
         });
       }
@@ -218,6 +219,7 @@ export class OrderController {
           activeTab: "orders",
           clients,
           products,
+          formData: req.body,
           errorMessage: error.message,
         });
       }
