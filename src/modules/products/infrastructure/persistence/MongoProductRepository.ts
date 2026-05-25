@@ -6,6 +6,15 @@ export class MongoProductRepository implements IProductRepository {
     await ProductModel.create(product);
   }
 
+  async findById(productId: string): Promise<IProduct | null> {
+    try {
+      const doc = await ProductModel.findById(productId);
+      return doc ? (doc.toObject() as IProduct) : null;
+    } catch {
+      return null;
+    }
+  }
+
   async update(
     originalName: string,
     vendorCuit: string,
