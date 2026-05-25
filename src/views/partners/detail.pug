@@ -1,51 +1,60 @@
 extends ../layout
 block content
-    .container.mt-5
-      .card.shadow
-        .card-header.bg-dark.text-white.d-flex.justify-content-between.align-items-center
-          h3.mb-0 Detalle del Cliente: #{client.legal_name}
-          span.badge(class=client.active ? 'bg-success' : 'bg-danger') #{client.active ? 'Activo' : 'Inactivo'}
-        .card-body
-          .row
-            .col-md-6
-              h5 Información General
-              p: strong CUIT: #{client.cuit}
-              p: strong Email: #{client.email}
-              p: strong Teléfono: #{client.phone || 'No registrado'}
-              p: strong Dirección: #{client.legal_address}
-              p: strong Condición IVA: #{client.vat_condition}
-            .col-md-6
+  .container.mt-5
+    if successMessage
+      .alert.alert-success= successMessage
+
+    .card.shadow
+      .card-header.bg-dark.text-white.d-flex.justify-content-between.align-items-center
+        h3.mb-0 Detalle del #{activeTab === 'clients' ? 'Cliente' : 'Proveedor'}: #{partner.legal_name}
+        span.badge(class=partner.active ? 'bg-success' : 'bg-danger') #{partner.active ? 'Activo' : 'Inactivo'}
+      .card-body
+        .row
+          .col-md-6
+            h5 Información General
+            p: strong CUIT: #{partner.cuit}
+            p: strong Email: #{partner.email}
+            p: strong Teléfono: #{partner.phone || 'No registrado'}
+            p: strong Dirección: #{partner.legal_address}
+            p: strong Condición IVA: #{partner.vat_condition}
+          .col-md-6
+            if activeTab === 'clients'
               h5 Información Comercial
               .alert.alert-light.border
-                p: strong Límite de Crédito: $#{client.customer_data.credit_limit}
-                p: strong Saldo Actual: $#{client.customer_data.current_balance}
-              
-              h5 Auditoría
-              p.small.text-muted Creado el: #{new Date(client.created_at).toLocaleDateString()}
-              p.small.text-muted Por: #{client.created_by}
-
-        .card-footer.d-flex.justify-content-between
-          a.btn.btn-secondary(href="/api/clients") Volver al listado
-          div
-            button.btn.btn-warning.me-2 Editar
-            if client.active
-              button.btn.btn-danger(onclick=`togglePartner('${client.cuit}', 'deactivate')`) Desactivar
+                p: strong Límite de Crédito: $#{partner.customer_data.credit_limit || 0}
+                p: strong Saldo Actual: $#{partner.customer_data.current_balance || 0}
             else
-              button.btn.btn-success(onclick=`togglePartner('${client.cuit}', 'activate')`) Activar
+              h5 Información Logística
+              .alert.alert-light.border
+                p: strong Categoría: #{partner.vendor_data.category || 'General'}
+                p: strong Lead Time: #{partner.vendor_data.lead_time || 0} días
 
-    script.
-      async function togglePartner(cuit, action) {
-        const label = action === 'activate' ? 'activar' : 'desactivar';
-        if (!confirm(`¿Está seguro que desea ${label} este cliente?`)) return;
-        try {
-          const res = await fetch(`/api/clients/${cuit}/${action}`, { method: 'PATCH' });
-          const data = await res.json();
-          if (res.ok) {
-            window.location.reload();
-          } else {
-            alert('Error: ' + data.message);
-          }
-        } catch (e) {
-          alert('Error de conexión: ' + e.message);
+            h5 Auditoría
+            p.small.text-muted Creado el: #{new Date(partner.created_at).toLocaleDateString()}
+            p.small.text-muted Por: #{partner.created_by}
+
+      .card-footer.d-flex.justify-content-between
+        a.btn.btn-secondary(href=`/api/${activeTab}`) Volver al listado
+        div
+          a.btn.btn-warning.me-2(href=`/api/${activeTab}/${partner.cuit}/edit`) Editar
+          if partner.active
+            button.btn.btn-danger(onclick=`togglePartner('${partner.cuit}', 'deactivate', '${activeTab}')`) Desactivar
+          else
+            button.btn.btn-success(onclick=`togglePartner('${partner.cuit}', 'activate', '${activeTab}')`) Activar
+
+  script.
+    async function togglePartner(cuit, action, tab) {
+      const label = action === 'activate' ? 'activar' : 'desactivar';
+      if (!confirm(`¿Está seguro que desea ${label} este socio de negocio?`)) return;
+      try {
+        const res = await fetch(`/api/${tab}/${cuit}/${action}`, { method: 'PATCH' });
+        const data = await res.json();
+        if (res.ok) {
+          window.location.reload();
+        } else {
+          alert('Error: ' + data.message);
         }
+      } catch (e) {
+        alert('Error de conexión: ' + e.message);
       }
+    }

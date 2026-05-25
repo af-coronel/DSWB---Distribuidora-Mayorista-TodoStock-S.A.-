@@ -56,12 +56,23 @@ router.get("/:cuit", authenticate, (req, res) =>
   clientController.getByCuit(req, res),
 );
 
+router.get("/:cuit/edit", authenticate, (req, res) =>
+  clientController.renderEditForm(req, res),
+);
+
 // Obtener todos los clientes
 router.get("/", authenticate, (req, res) => clientController.getAll(req, res));
 
 // Modificar un cliente: Requiere estar logueado Y ser ADMIN o CLIENT
 router.put(
   "/:cuit",
+  authenticate,
+  authorizeRoles(["ADMIN", "CLIENT"]),
+  (req, res) => clientController.update(req, res),
+);
+
+router.post(
+  "/:cuit/edit",
   authenticate,
   authorizeRoles(["ADMIN", "CLIENT"]),
   (req, res) => clientController.update(req, res),

@@ -1,0 +1,67 @@
+extends ../layout
+block content
+  .container.mt-5
+    if errorMessage
+      .alert.alert-danger= errorMessage
+
+    .row.justify-content-center
+      .col-md-8
+        .card.shadow
+          .card-header.bg-dark.text-white
+            h3.mb-0 Editar #{activeTab === 'clients' ? 'Cliente' : 'Proveedor'}
+          .card-body
+            form(action=`/api/${activeTab}/${partner.cuit}/edit`, method="POST")
+              .row.mb-3
+                .col-md-6
+                  label.form-label CUIT
+                  input.form-control(type="text", value=partner.cuit, disabled)
+                .col-md-6
+                  label.form-label Razón Social
+                  input.form-control(type="text", name="legal_name", value=partner.legal_name, required)
+
+              .row.mb-3
+                .col-md-6
+                  label.form-label Email
+                  input.form-control(type="email", name="email", value=partner.email, required)
+                .col-md-6
+                  label.form-label Teléfono
+                  input.form-control(type="text", name="phone", value=partner.phone, required)
+
+              .mb-3
+                label.form-label Dirección Legal
+                input.form-control(type="text", name="legal_address", value=partner.legal_address, required)
+
+              .mb-3
+                label.form-label Condición de IVA
+                select.form-select(name="vat_condition", required)
+                  option(value="Responsable Inscripto", selected=partner.vat_condition === 'Responsable Inscripto') Responsable Inscripto
+                  option(value="Monotributista", selected=partner.vat_condition === 'Monotributista') Monotributista
+                  option(value="Exento", selected=partner.vat_condition === 'Exento') Exento
+                  option(value="No especificado", selected=partner.vat_condition === 'No especificado') No especificado
+
+              if activeTab === 'clients'
+                hr
+                h5 Datos de Crédito
+                .row.mb-3
+                  .col-md-6
+                    label.form-label Límite de Crédito
+                    input.form-control(type="number", name="credit_limit", value=partner.customer_data.credit_limit || 0, min="0")
+              else
+                hr
+                h5 Datos de Logística
+                .row.mb-3
+                  .col-md-6
+                    label.form-label Categoría
+                    select.form-select(name="category")
+                      option(value="Alimentos", selected=partner.vendor_data.category === 'Alimentos') Alimentos
+                      option(value="Limpieza", selected=partner.vendor_data.category === 'Limpieza') Limpieza
+                      option(value="Bebidas", selected=partner.vendor_data.category === 'Bebidas') Bebidas
+                      option(value="Bazar", selected=partner.vendor_data.category === 'Bazar') Bazar
+                      option(value="General", selected=!partner.vendor_data.category || partner.vendor_data.category === 'General') General
+                  .col-md-6
+                    label.form-label Lead Time (Días de entrega)
+                    input.form-control(type="number", name="lead_time", value=partner.vendor_data.lead_time || 0, min="0")
+
+              .d-flex.justify-content-between.mt-4
+                a.btn.btn-secondary(href=`/api/${activeTab}/${partner.cuit}`) Cancelar
+                button.btn.btn-dark(type="submit") Guardar Cambios
