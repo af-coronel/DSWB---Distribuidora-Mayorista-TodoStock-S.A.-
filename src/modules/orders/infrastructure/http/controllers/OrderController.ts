@@ -618,14 +618,17 @@ export class OrderController {
 
   async getAll(req: Request, res: Response) {
     try {
-      const orderType = req.query.type as OrderType | undefined;
+      const isHtmlRequest = req.headers.accept?.includes("text/html");
+      const orderType =
+        (req.query.type as OrderType | undefined) ||
+        (isHtmlRequest ? "PURCHASE" : undefined);
       const orders = await this.getAllOrdersUseCase.execute(orderType);
 
-      if (req.headers.accept?.includes("text/html")) {
+      if (isHtmlRequest) {
         return res.render("orders/list", {
           activeTab: "orders",
           orders,
-          activeOrderType: orderType || "ALL",
+          activeOrderType: orderType || "PURCHASE",
           statusLabel: STATUS_LABEL,
           statusBadge: STATUS_BADGE,
         });

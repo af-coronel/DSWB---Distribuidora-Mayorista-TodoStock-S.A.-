@@ -8,7 +8,7 @@ block content
         i.bi.bi-exclamation-triangle-fill.me-2
         = errorMessage
         button.btn-close(type="button", data-bs-dismiss="alert", aria-label="Cerrar")
-      a.btn.btn-secondary(href="/api/orders") Volver al listado
+      a.btn.btn-secondary(href=order?.order_type === 'SALE' ? '/api/orders?type=SALE' : '/api/orders?type=PURCHASE') Volver al listado
 
     else if order
       if flashError
@@ -22,7 +22,7 @@ block content
           span.entity-pill.me-2(class=order.order_type === 'PURCHASE' ? 'entity-purchase' : 'entity-sale')
             = order.order_type === 'PURCHASE' ? 'Compra' : 'Venta'
           | Orden ##{order.id.slice(-6).toUpperCase()}
-        a.btn.btn-outline-secondary(href="/api/orders") Volver al listado
+        a.btn.btn-outline-secondary(href=order.order_type === 'SALE' ? '/api/orders?type=SALE' : '/api/orders?type=PURCHASE') Volver al listado
 
       .row.mb-4
         .col-md-8

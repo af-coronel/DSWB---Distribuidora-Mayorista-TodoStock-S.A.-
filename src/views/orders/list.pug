@@ -14,8 +14,6 @@ block content
 
     ul.nav.nav-pills.mb-3
       li.nav-item
-        a.nav-link(class=activeOrderType === 'ALL' ? 'active' : '', href="/api/orders") Todas
-      li.nav-item
         a.nav-link(class=activeOrderType === 'PURCHASE' ? 'active' : '', href="/api/orders?type=PURCHASE") Compras
       li.nav-item
         a.nav-link(class=activeOrderType === 'SALE' ? 'active' : '', href="/api/orders?type=SALE") Ventas
@@ -24,7 +22,6 @@ block content
       table.table.table-striped.table-hover
         thead.table-dark
           tr
-            th Tipo
             th Estado
             th Socio (CUIT)
             th Ítems
@@ -36,9 +33,6 @@ block content
             - const badge = statusBadge[order.status] || 'neutral'
             - const label = statusLabel[order.status] || order.status
             tr
-              td
-                span.entity-pill(class=order.order_type === 'PURCHASE' ? 'entity-purchase' : 'entity-sale')
-                  = order.order_type === 'PURCHASE' ? 'Compra' : 'Venta'
               td
                 span.status-pill(class=`status-${badge}`) #{label}
               td= order.partner_cuit

@@ -47,14 +47,17 @@ export class TransactionController {
 
   async getAll(req: Request, res: Response) {
     try {
-      const type = req.query.type as TransactionType | undefined;
+      const isHtmlRequest = req.headers.accept?.includes("text/html");
+      const type =
+        (req.query.type as TransactionType | undefined) ||
+        (isHtmlRequest ? "PAYMENT" : undefined);
       const transactions = await this.getAllTransactionsUseCase.execute(type);
 
-      if (req.headers.accept?.includes("text/html")) {
+      if (isHtmlRequest) {
         return res.render("transactions/list", {
           activeTab: "transactions",
           transactions,
-          activeType: type || "ALL",
+          activeType: type || "PAYMENT",
           statusLabel: STATUS_LABEL,
           statusBadge: STATUS_BADGE,
           typeLabel: TYPE_LABEL,

@@ -157,7 +157,7 @@ html(lang="es")
                 i.bi.bi-box-seam.flex-shrink-0
                 span.sidebar-text.ms-2 Productos
             li.nav-item
-              a.nav-link(class=activeTab === 'orders' ? 'active' : '', href="/api/orders", title="Órdenes")
+              a.nav-link(class=activeTab === 'orders' ? 'active' : '', href="/api/orders?type=PURCHASE", title="Órdenes")
                 i.bi.bi-cart-check.flex-shrink-0
                 span.sidebar-text.ms-2 Órdenes
             li.nav-item
@@ -165,7 +165,7 @@ html(lang="es")
                 i.bi.bi-archive.flex-shrink-0
                 span.sidebar-text.ms-2 Inventario
             li.nav-item
-              a.nav-link(class=activeTab === 'transactions' ? 'active' : '', href="/api/transactions", title="Finanzas")
+              a.nav-link(class=activeTab === 'transactions' ? 'active' : '', href="/api/transactions?type=PAYMENT", title="Finanzas")
                 i.bi.bi-cash-coin.flex-shrink-0
                 span.sidebar-text.ms-2 Finanzas
 

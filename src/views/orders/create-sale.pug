@@ -6,7 +6,7 @@ block content
   .container.mt-5
     .d-flex.justify-content-between.align-items-center.mb-3
       h2 Nueva Orden de Venta
-      a.btn.btn-outline-secondary(href="/api/orders") Volver al listado
+      a.btn.btn-outline-secondary(href="/api/orders?type=SALE") Volver al listado
 
     if errorMessage
       .alert.alert-danger.alert-dismissible.fade.show
@@ -104,7 +104,7 @@ block content
                     span#grand-total.fw-bold —
 
                 .d-flex.justify-content-between.mt-4
-                  a.btn.btn-secondary(href="/api/orders") Cancelar
+                  a.btn.btn-secondary(href="/api/orders?type=SALE") Cancelar
                   button.btn.btn-dark(type="submit")
                     i.bi.bi-check2-circle.me-1
                     | Crear Orden de Venta

@@ -7,8 +7,6 @@ block content
 
     ul.nav.nav-pills.mb-3
       li.nav-item
-        a.nav-link(class=activeType === 'ALL' ? 'active' : '', href="/api/transactions") Todas
-      li.nav-item
         a.nav-link(class=activeType === 'PAYMENT' ? 'active' : '', href="/api/transactions?type=PAYMENT") Órdenes de Pago
       li.nav-item
         a.nav-link(class=activeType === 'COLLECTION' ? 'active' : '', href="/api/transactions?type=COLLECTION") Órdenes de Cobro
@@ -17,7 +15,6 @@ block content
       table.table.table-striped.table-hover
         thead.table-dark
           tr
-            th Tipo
             th Estado
             th Orden asociada
             th Nro. POS
@@ -29,9 +26,6 @@ block content
             - const badge = statusBadge[tx.status] || 'neutral'
             - const label = (tx.status === 'COMPLETED' && tx.transaction_type === 'COLLECTION') ? 'Cobrada' : (statusLabel[tx.status] || tx.status)
             tr
-              td
-                span.entity-pill(class=tx.transaction_type === 'PAYMENT' ? 'entity-payment' : 'entity-collection')
-                  = typeLabel[tx.transaction_type]
               td
                 span.status-pill(class=`status-${badge}`) #{label}
               td= tx.order_id.slice(-6).toUpperCase()
