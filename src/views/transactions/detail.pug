@@ -52,6 +52,39 @@ block content
                       strong Nro. Documento:&nbsp;
                       = transaction.document_number
 
+          if order
+            .card.shadow-sm.mt-4
+              .card-header.bg-light
+                strong= transaction.transaction_type === 'PAYMENT' ? 'Detalle de lo que se paga' : 'Detalle de lo que se cobra'
+              .card-body
+                .d-flex.justify-content-between.align-items-start.gap-3.flex-wrap.mb-3
+                  div
+                    p.mb-1
+                      strong Orden:&nbsp;
+                      a(href=`/api/orders/${order.id}`)= `#${order.id.slice(-6).toUpperCase()}`
+                    p.mb-0.text-muted= `${order.items.length} ítem${order.items.length === 1 ? '' : 's'} asociados`
+                  .text-end
+                    p.mb-1
+                      strong Total:&nbsp;
+                      = `$ ${order.total_amount.toFixed(2)}`
+                    p.mb-0.text-muted= transaction.transaction_type === 'PAYMENT' ? 'Monto total a pagar' : 'Monto total a cobrar'
+
+                .table-responsive
+                  table.table.table-sm.table-bordered.mb-0
+                    thead.table-light
+                      tr
+                        th Producto
+                        th.text-center Cantidad
+                        th.text-end Precio unitario
+                        th.text-end Subtotal
+                    tbody
+                      each item in order.items
+                        tr
+                          td= item.product_name
+                          td.text-center= item.quantity
+                          td.text-end= `$ ${item.unit_price.toFixed(2)}`
+                          td.text-end= `$ ${(item.quantity * item.unit_price).toFixed(2)}`
+
         .col-md-4
           .card.shadow-sm
             .card-header.bg-light
