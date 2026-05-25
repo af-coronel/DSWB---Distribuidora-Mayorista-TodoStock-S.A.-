@@ -6,13 +6,21 @@ export class CancelTransaction {
   ) {}
 
   async execute(transactionId: string, updatedBy: string): Promise<void> {
-    const transaction = await this.transactionRepository.findById(transactionId);
+    const transaction =
+      await this.transactionRepository.findById(transactionId);
 
     if (!transaction) {
       throw new Error("La transacción no existe.");
     }
 
-    if (transaction.status !== "PENDING") {
+    const cancellableStatuses = [
+      "TO_VERIFY",
+      "PENDING",
+      "VERIFIED",
+      "PENDING_PAYMENT",
+    ] as const;
+
+    if (!cancellableStatuses.includes(transaction.status as any)) {
       throw new Error(
         `No se puede cancelar una transacción en estado "${transaction.status}".`,
       );

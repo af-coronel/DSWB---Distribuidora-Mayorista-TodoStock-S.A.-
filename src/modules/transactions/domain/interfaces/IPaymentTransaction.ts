@@ -1,5 +1,11 @@
 export type TransactionType = "PAYMENT" | "COLLECTION";
-export type TransactionStatus = "PENDING" | "COMPLETED" | "CANCELLED";
+export type TransactionStatus =
+  | "TO_VERIFY"
+  | "VERIFIED"
+  | "PENDING_PAYMENT"
+  | "PENDING"
+  | "COMPLETED"
+  | "CANCELLED";
 
 export interface IPaymentTransaction {
   id?: string;

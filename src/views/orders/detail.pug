@@ -64,12 +64,15 @@ block content
             .card-body.d-grid.gap-2
 
               if order.order_type === 'PURCHASE'
-                if order.status === 'PENDING_BUDGET'
+                if order.status === 'TO_VERIFY_BUDGET' || order.status === 'PENDING_BUDGET'
                   .alert.alert-info.mb-0.small
                     i.bi.bi-info-circle.me-1
                     | La confirmación del presupuesto y la cancelación se gestionan desde&nbsp;
                     a(href="/api/transactions") Finanzas
                     | .
+                else if order.status === 'TO_CONFIRM'
+                  form(action=`/api/orders/purchase/${order.id}/confirm`, method="POST")
+                    button.btn.btn-primary.w-100(type="submit") Confirmar orden (mail proveedor)
                 else if order.status === 'CONFIRMED'
                   form(action=`/api/orders/purchase/${order.id}/receive`, method="POST")
                     button.btn.btn-success.w-100(type="submit") Marcar como recibida
@@ -79,7 +82,7 @@ block content
                   p.text-muted.mb-0.text-center Sin acciones disponibles
 
               else if order.order_type === 'SALE'
-                if order.status === 'PENDING_PAYMENT'
+                if order.status === 'TO_VERIFY_COLLECTION' || order.status === 'PENDING_PAYMENT'
                   .alert.alert-info.mb-0.small
                     i.bi.bi-info-circle.me-1
                     | La confirmación del cobro y la cancelación se gestionan desde&nbsp;

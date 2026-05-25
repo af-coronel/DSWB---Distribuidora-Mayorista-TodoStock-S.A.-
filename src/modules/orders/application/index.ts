@@ -1,5 +1,6 @@
 export { CreatePurchaseOrder } from "./use-cases/CreatePurchaseOrder.js";
 export { ConfirmPurchaseOrder } from "./use-cases/ConfirmPurchaseOrder.js";
+export { VerifyPurchaseBudget } from "./use-cases/VerifyPurchaseBudget.js";
 export { ReceivePurchaseOrder } from "./use-cases/ReceivePurchaseOrder.js";
 export { AuditPurchaseOrder } from "./use-cases/AuditPurchaseOrder.js";
 export { CancelPurchaseOrder } from "./use-cases/CancelPurchaseOrder.js";

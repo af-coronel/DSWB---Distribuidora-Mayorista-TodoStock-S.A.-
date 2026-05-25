@@ -3,6 +3,7 @@ import { authenticate } from "../../../../auth/infrastructure/http/middleware/au
 import { authorizeRoles } from "../../../../auth/infrastructure/http/middleware/roleMiddleware.js";
 import {
   CreatePurchaseOrder,
+  VerifyPurchaseBudget,
   ConfirmPurchaseOrder,
   ReceivePurchaseOrder,
   AuditPurchaseOrder,
@@ -23,7 +24,10 @@ import {
   ConfirmSale,
   CreateInventoryLot,
 } from "../../../../inventory/application/index.js";
-import { CreateTransaction, CancelTransaction } from "../../../../transactions/application/index.js";
+import {
+  CreateTransaction,
+  CancelTransaction,
+} from "../../../../transactions/application/index.js";
 import { OrderController } from "../controllers/OrderController.js";
 import { MongoOrderRepository } from "../../persistence/MongoOrderRepository.js";
 import { MongoBusinessPartnerRepository } from "../../../../business-partner/infrastructure/persistence/MongoBusinessPartnerRepository.js";
@@ -40,19 +44,48 @@ const inventoryRepository = new MongoInventoryRepository();
 const transactionRepository = new MongoTransactionRepository();
 
 const reserveStock = new ReserveStock(inventoryRepository, productRepository);
-const releaseReservedStock = new ReleaseReservedStock(inventoryRepository, productRepository);
+const releaseReservedStock = new ReleaseReservedStock(
+  inventoryRepository,
+  productRepository,
+);
 const confirmSale = new ConfirmSale(inventoryRepository, productRepository);
-const createInventoryLot = new CreateInventoryLot(inventoryRepository, productRepository);
-const createTransaction = new CreateTransaction(transactionRepository, orderRepository);
+const createInventoryLot = new CreateInventoryLot(
+  inventoryRepository,
+  productRepository,
+);
+const createTransaction = new CreateTransaction(
+  transactionRepository,
+  orderRepository,
+);
 const cancelTransaction = new CancelTransaction(transactionRepository);
 
 const orderController = new OrderController(
-  new CreatePurchaseOrder(orderRepository, partnerRepository, productRepository, createTransaction),
+  new CreatePurchaseOrder(
+    orderRepository,
+    partnerRepository,
+    productRepository,
+    createTransaction,
+  ),
+  new VerifyPurchaseBudget(orderRepository, transactionRepository),
   new ConfirmPurchaseOrder(orderRepository),
   new ReceivePurchaseOrder(orderRepository),
-  new AuditPurchaseOrder(orderRepository, createInventoryLot),
-  new CancelPurchaseOrder(orderRepository, transactionRepository, cancelTransaction),
-  new CreateSaleOrder(orderRepository, partnerRepository, productRepository, reserveStock, createTransaction),
+  new AuditPurchaseOrder(
+    orderRepository,
+    createInventoryLot,
+    transactionRepository,
+  ),
+  new CancelPurchaseOrder(
+    orderRepository,
+    transactionRepository,
+    cancelTransaction,
+  ),
+  new CreateSaleOrder(
+    orderRepository,
+    partnerRepository,
+    productRepository,
+    reserveStock,
+    createTransaction,
+  ),
   new ConfirmSalePayment(orderRepository, confirmSale, transactionRepository),
   new DispatchSaleOrder(orderRepository),
   new MarkOrderDelivered(orderRepository),
@@ -73,7 +106,9 @@ router.get("/sale/new", authenticate, (req, res) =>
 
 // --- Consultas ---
 router.get("/", authenticate, (req, res) => orderController.getAll(req, res));
-router.get("/:id", authenticate, (req, res) => orderController.getById(req, res));
+router.get("/:id", authenticate, (req, res) =>
+  orderController.getById(req, res),
+);
 
 // --- Órdenes de compra ---
 router.post(
@@ -81,6 +116,18 @@ router.post(
   authenticate,
   authorizeRoles(["ADMIN", "VENDOR"]),
   (req, res) => orderController.createPurchaseOrder(req, res),
+);
+router.post(
+  "/purchase/:id/verify-budget",
+  authenticate,
+  authorizeRoles(["ADMIN", "VENDOR"]),
+  (req, res) => orderController.verifyPurchaseBudget(req, res),
+);
+router.patch(
+  "/purchase/:id/verify-budget",
+  authenticate,
+  authorizeRoles(["ADMIN", "VENDOR"]),
+  (req, res) => orderController.verifyPurchaseBudget(req, res),
 );
 router.post(
   "/purchase/:id/confirm",

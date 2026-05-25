@@ -20,19 +20,29 @@ export class ConfirmSalePayment {
       throw new Error("La orden no es de tipo venta.");
     }
 
-    if (order.status !== "PENDING_PAYMENT") {
+    if (
+      order.status !== "TO_VERIFY_COLLECTION" &&
+      order.status !== "PENDING_PAYMENT"
+    ) {
       throw new Error(
-        `No se puede confirmar el pago de una orden en estado "${order.status}". Se requiere estado PENDING_PAYMENT.`,
+        `No se puede confirmar el pago de una orden en estado "${order.status}". Se requiere estado TO_VERIFY_COLLECTION.`,
       );
     }
 
     for (const item of order.items) {
-      await this.confirmSaleUseCase.execute(item.product_id, item.quantity, updatedBy);
+      await this.confirmSaleUseCase.execute(
+        item.product_id,
+        item.quantity,
+        updatedBy,
+      );
     }
 
-    const transactions = await this.transactionRepository.findByOrderId(orderId);
+    const transactions =
+      await this.transactionRepository.findByOrderId(orderId);
     const pendingCollection = transactions.find(
-      (t) => t.transaction_type === "COLLECTION" && t.status === "PENDING",
+      (t) =>
+        t.transaction_type === "COLLECTION" &&
+        (t.status === "PENDING" || t.status === "TO_VERIFY"),
     );
     if (pendingCollection) {
       await this.transactionRepository.update({
@@ -43,6 +53,11 @@ export class ConfirmSalePayment {
       });
     }
 
-    await this.orderRepository.updateStatus(orderId, "PENDING_ASSEMBLY", updatedBy, new Date());
+    await this.orderRepository.updateStatus(
+      orderId,
+      "PENDING_ASSEMBLY",
+      updatedBy,
+      new Date(),
+    );
   }
 }

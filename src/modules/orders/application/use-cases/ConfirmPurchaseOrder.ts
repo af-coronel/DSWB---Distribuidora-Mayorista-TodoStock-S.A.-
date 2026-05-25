@@ -1,4 +1,4 @@
-import type { IOrder, IOrderRepository } from "../../domain/index.js";
+import type { IOrderRepository } from "../../domain/index.js";
 
 export class ConfirmPurchaseOrder {
   constructor(private readonly orderRepository: IOrderRepository) {}
@@ -14,12 +14,19 @@ export class ConfirmPurchaseOrder {
       throw new Error("La orden no es de tipo compra.");
     }
 
-    if (order.status !== "PENDING_BUDGET") {
+    const confirmableStatuses = ["TO_CONFIRM"] as const;
+
+    if (!confirmableStatuses.includes(order.status as any)) {
       throw new Error(
-        `No se puede confirmar una orden en estado "${order.status}". Se requiere estado PENDING_BUDGET.`,
+        `No se puede confirmar una orden en estado "${order.status}". Se requiere estado TO_CONFIRM.`,
       );
     }
 
-    await this.orderRepository.updateStatus(orderId, "CONFIRMED", updatedBy, new Date());
+    await this.orderRepository.updateStatus(
+      orderId,
+      "CONFIRMED",
+      updatedBy,
+      new Date(),
+    );
   }
 }

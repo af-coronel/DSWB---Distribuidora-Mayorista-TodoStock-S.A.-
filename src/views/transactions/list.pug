@@ -27,7 +27,7 @@ block content
         tbody
           each tx in transactions
             - const badge = statusBadge[tx.status] || 'secondary'
-            - const label = statusLabel[tx.status] || tx.status
+            - const label = (tx.status === 'COMPLETED' && tx.transaction_type === 'COLLECTION') ? 'Cobrada' : (statusLabel[tx.status] || tx.status)
             tr
               td
                 span.badge(class=tx.transaction_type === 'PAYMENT' ? 'bg-primary' : 'bg-success')

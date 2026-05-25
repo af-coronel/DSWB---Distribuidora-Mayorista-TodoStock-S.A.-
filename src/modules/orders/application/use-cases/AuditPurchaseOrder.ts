@@ -1,5 +1,6 @@
 import type { IOrderRepository } from "../../domain/index.js";
 import type { CreateInventoryLot } from "../../../inventory/application/index.js";
+import type { IPaymentTransactionRepository } from "../../../transactions/domain/index.js";
 
 export interface AuditItemInput {
   product_id: string;
@@ -11,6 +12,7 @@ export class AuditPurchaseOrder {
   constructor(
     private readonly orderRepository: IOrderRepository,
     private readonly createInventoryLotUseCase: CreateInventoryLot,
+    private readonly transactionRepository: IPaymentTransactionRepository,
   ) {}
 
   async execute(
@@ -86,7 +88,32 @@ export class AuditPurchaseOrder {
       }
     }
 
-    await this.orderRepository.updateTotalAmount(orderId, auditedTotal, updatedBy, now);
+    await this.orderRepository.updateTotalAmount(
+      orderId,
+      auditedTotal,
+      updatedBy,
+      now,
+    );
+
+    const transactions =
+      await this.transactionRepository.findByOrderId(orderId);
+    const paymentTransaction = transactions.find(
+      (transaction) =>
+        transaction.transaction_type === "PAYMENT" &&
+        (transaction.status === "VERIFIED" ||
+          transaction.status === "TO_VERIFY" ||
+          transaction.status === "PENDING"),
+    );
+
+    if (paymentTransaction) {
+      await this.transactionRepository.update({
+        ...paymentTransaction,
+        status: "PENDING_PAYMENT",
+        updated_by: updatedBy,
+        updated_at: now,
+      });
+    }
+
     await this.orderRepository.updateStatus(orderId, "AUDITED", updatedBy, now);
   }
 }

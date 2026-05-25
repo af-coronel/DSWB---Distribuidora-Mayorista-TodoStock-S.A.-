@@ -11,12 +11,18 @@ type AuthenticatedRequest = Request & {
 };
 
 const STATUS_LABEL: Record<string, string> = {
-  PENDING: "Pendiente",
-  COMPLETED: "Completada",
+  TO_VERIFY: "A verificar",
+  VERIFIED: "Verificada",
+  PENDING_PAYMENT: "Pendiente de pago",
+  PENDING: "Cobro pendiente",
+  COMPLETED: "Pagada",
   CANCELLED: "Cancelada",
 };
 
 const STATUS_BADGE: Record<string, string> = {
+  TO_VERIFY: "warning",
+  VERIFIED: "info",
+  PENDING_PAYMENT: "primary",
   PENDING: "warning",
   COMPLETED: "success",
   CANCELLED: "danger",
@@ -79,7 +85,11 @@ export class TransactionController {
         activeTab: "transactions",
         transaction,
         order,
-        statusLabel: STATUS_LABEL[transaction.status] || transaction.status,
+        statusLabel:
+          transaction.status === "COMPLETED" &&
+          transaction.transaction_type === "COLLECTION"
+            ? "Cobrada"
+            : STATUS_LABEL[transaction.status] || transaction.status,
         statusBadge: STATUS_BADGE[transaction.status] || "secondary",
         typeLabel: TYPE_LABEL[transaction.transaction_type],
         flashError: (req.query.error as string) || undefined,
@@ -97,7 +107,9 @@ export class TransactionController {
       return this.renderDetail(req, res);
     }
     try {
-      const transaction = await this.getTransactionByIdUseCase.execute(req.params.id as string);
+      const transaction = await this.getTransactionByIdUseCase.execute(
+        req.params.id as string,
+      );
       return res.status(200).json(transaction);
     } catch (error: any) {
       return res.status(404).json({ error: true, message: error.message });
@@ -118,7 +130,10 @@ export class TransactionController {
       if (isFormRequest(req)) return res.redirect(`/api/transactions/${id}`);
       return res.status(200).json({ message: "Transacción completada" });
     } catch (error: any) {
-      if (isFormRequest(req)) return res.redirect(`/api/transactions/${req.params.id}?error=${encodeURIComponent(error.message)}`);
+      if (isFormRequest(req))
+        return res.redirect(
+          `/api/transactions/${req.params.id}?error=${encodeURIComponent(error.message)}`,
+        );
       return res.status(400).json({ error: true, message: error.message });
     }
   }
@@ -127,11 +142,17 @@ export class TransactionController {
     const request = req as AuthenticatedRequest;
     try {
       const { id } = req.params as { id: string };
-      await this.cancelTransactionUseCase.execute(id, request.user?.id || "unknown");
+      await this.cancelTransactionUseCase.execute(
+        id,
+        request.user?.id || "unknown",
+      );
       if (isFormRequest(req)) return res.redirect(`/api/transactions/${id}`);
       return res.status(200).json({ message: "Transacción cancelada" });
     } catch (error: any) {
-      if (isFormRequest(req)) return res.redirect(`/api/transactions/${req.params.id}?error=${encodeURIComponent(error.message)}`);
+      if (isFormRequest(req))
+        return res.redirect(
+          `/api/transactions/${req.params.id}?error=${encodeURIComponent(error.message)}`,
+        );
       return res.status(400).json({ error: true, message: error.message });
     }
   }

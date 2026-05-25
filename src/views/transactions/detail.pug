@@ -60,17 +60,20 @@ block content
 
               if transaction.transaction_type === 'PAYMENT'
                 if order
-                  if order.status === 'PENDING_BUDGET'
-                    form(action=`/api/orders/purchase/${order.id}/confirm`, method="POST")
+                  if (order.status === 'TO_VERIFY_BUDGET' || order.status === 'PENDING_BUDGET') && (transaction.status === 'TO_VERIFY' || transaction.status === 'PENDING')
+                    form(action=`/api/orders/purchase/${order.id}/verify-budget`, method="POST")
+                      input(type="hidden", name="transaction_id", value=transaction.id)
                       button.btn.btn-primary.w-100(type="submit")
                         i.bi.bi-check-circle.me-1
                         | Confirmar presupuesto
-                  if order.status === 'PENDING_BUDGET' || order.status === 'CONFIRMED'
+
+                  if transaction.status !== 'VERIFIED' && (order.status === 'TO_VERIFY_BUDGET' || order.status === 'PENDING_BUDGET' || order.status === 'TO_CONFIRM' || order.status === 'CONFIRMED')
                     form(action=`/api/orders/purchase/${order.id}/cancel`, method="POST", onsubmit="return confirm('¿Confirmás la cancelación de esta orden? Esta acción no se puede deshacer.')")
                       button.btn.btn-outline-danger.w-100(type="submit")
                         i.bi.bi-x-circle.me-1
                         | Cancelar orden
-                  if transaction.status === 'PENDING' && order.status === 'AUDITED'
+
+                  if transaction.status === 'PENDING_PAYMENT' && order.status === 'AUDITED'
                     form(action=`/api/transactions/${transaction.id}/complete`, method="POST")
                       .mb-2
                         input.form-control.form-control-sm(
@@ -95,13 +98,17 @@ block content
                       button.btn.btn-success.w-100(type="submit")
                         i.bi.bi-cash-coin.me-1
                         | Registrar pago
-                  if order.status !== 'PENDING_BUDGET' && order.status !== 'CONFIRMED' && !(transaction.status === 'PENDING' && order.status === 'AUDITED')
+
+                  if transaction.status === 'VERIFIED'
+                    p.text-muted.mb-0.text-center Sin acciones disponibles
+
+                  if transaction.status !== 'VERIFIED' && order.status !== 'TO_VERIFY_BUDGET' && order.status !== 'PENDING_BUDGET' && order.status !== 'TO_CONFIRM' && order.status !== 'CONFIRMED' && !(transaction.status === 'PENDING_PAYMENT' && order.status === 'AUDITED')
                     p.text-muted.mb-0.text-center Sin acciones disponibles
                 else
                   p.text-muted.mb-0.text-center Sin información de orden disponible
 
               else if transaction.transaction_type === 'COLLECTION'
-                if order && order.status === 'PENDING_PAYMENT'
+                if order && (order.status === 'TO_VERIFY_COLLECTION' || order.status === 'PENDING_PAYMENT') && (transaction.status === 'PENDING' || transaction.status === 'TO_VERIFY')
                   form(action=`/api/orders/sale/${order.id}/confirm-payment`, method="POST")
                     button.btn.btn-success.w-100(type="submit")
                       i.bi.bi-check-circle.me-1
