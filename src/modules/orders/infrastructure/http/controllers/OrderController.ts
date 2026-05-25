@@ -57,7 +57,7 @@ const STATUS_BADGE: Record<string, string> = {
 const isFormRequest = (req: Request) =>
   req.headers["content-type"]?.includes("application/x-www-form-urlencoded");
 
-const getFinanceReturnPath = (req: Request): string | null => {
+const getOperationalReturnPath = (req: Request): string | null => {
   const referer = req.get("referer") || req.get("referrer");
 
   if (!referer) {
@@ -67,7 +67,13 @@ const getFinanceReturnPath = (req: Request): string | null => {
   try {
     const url = new URL(referer);
     const path = `${url.pathname}${url.search}`;
-    return path.startsWith("/api/transactions") ? path : null;
+    if (
+      path.startsWith("/api/transactions") ||
+      path.startsWith("/api/inventory")
+    ) {
+      return path;
+    }
+    return null;
   } catch {
     return null;
   }
@@ -139,7 +145,7 @@ export class OrderController {
   }
 
   private getFormSuccessRedirect(req: Request, defaultPath: string) {
-    return getFinanceReturnPath(req) || defaultPath;
+    return getOperationalReturnPath(req) || defaultPath;
   }
 
   private getFormErrorRedirect(
@@ -147,13 +153,28 @@ export class OrderController {
     defaultPath: string,
     errorMessage: string,
   ) {
-    const financePath = getFinanceReturnPath(req);
+    const operationalPath = getOperationalReturnPath(req);
 
-    if (financePath) {
-      return appendErrorToPath(financePath, errorMessage);
+    if (operationalPath) {
+      return appendErrorToPath(operationalPath, errorMessage);
     }
 
     return appendErrorToPath(defaultPath, errorMessage);
+  }
+
+  private getExplicitReturnPath(req: Request) {
+    const returnTo =
+      typeof req.body?.return_to === "string"
+        ? req.body.return_to
+        : typeof req.query.return_to === "string"
+          ? req.query.return_to
+          : undefined;
+
+    if (!returnTo) {
+      return undefined;
+    }
+
+    return returnTo.startsWith("/api/") ? returnTo : undefined;
   }
 
   // --- Vistas HTML ---
@@ -313,14 +334,22 @@ export class OrderController {
         id,
         request.user?.id || "unknown",
       );
-      if (isFormRequest(req)) return res.redirect(`/api/orders/${id}`);
+      if (isFormRequest(req)) {
+        return res.redirect(
+          this.getFormSuccessRedirect(req, `/api/orders/${id}`),
+        );
+      }
       return res
         .status(200)
         .json({ message: "Orden de compra marcada como recibida" });
     } catch (error: any) {
       if (isFormRequest(req))
         return res.redirect(
-          `/api/orders/${req.params.id}?error=${encodeURIComponent(error.message)}`,
+          this.getFormErrorRedirect(
+            req,
+            `/api/orders/${req.params.id}`,
+            error.message,
+          ),
         );
       return res.status(400).json({ error: true, message: error.message });
     }
@@ -429,14 +458,22 @@ export class OrderController {
         id,
         request.user?.id || "unknown",
       );
-      if (isFormRequest(req)) return res.redirect(`/api/orders/${id}`);
+      if (isFormRequest(req)) {
+        return res.redirect(
+          this.getFormSuccessRedirect(req, `/api/orders/${id}`),
+        );
+      }
       return res
         .status(200)
         .json({ message: "Orden de venta marcada como entregada" });
     } catch (error: any) {
       if (isFormRequest(req))
         return res.redirect(
-          `/api/orders/${req.params.id}?error=${encodeURIComponent(error.message)}`,
+          this.getFormErrorRedirect(
+            req,
+            `/api/orders/${req.params.id}`,
+            error.message,
+          ),
         );
       return res.status(400).json({ error: true, message: error.message });
     }
@@ -450,14 +487,22 @@ export class OrderController {
         id,
         request.user?.id || "unknown",
       );
-      if (isFormRequest(req)) return res.redirect(`/api/orders/${id}`);
+      if (isFormRequest(req)) {
+        return res.redirect(
+          this.getFormSuccessRedirect(req, `/api/orders/${id}`),
+        );
+      }
       return res
         .status(200)
         .json({ message: "Orden de venta marcada como a despachar" });
     } catch (error: any) {
       if (isFormRequest(req))
         return res.redirect(
-          `/api/orders/${req.params.id}?error=${encodeURIComponent(error.message)}`,
+          this.getFormErrorRedirect(
+            req,
+            `/api/orders/${req.params.id}`,
+            error.message,
+          ),
         );
       return res.status(400).json({ error: true, message: error.message });
     }
@@ -467,12 +512,16 @@ export class OrderController {
     try {
       const { id } = req.params as { id: string };
       const order = await this.getOrderByIdUseCase.execute(id);
+      const returnTo = this.getExplicitReturnPath(req);
       if (order.status !== "RECEIVED") {
-        return res.redirect(`/api/orders/${id}`);
+        return res.redirect(returnTo || `/api/orders/${id}`);
       }
       return res.render("orders/audit", {
-        activeTab: "orders",
+        activeTab: returnTo?.startsWith("/api/inventory")
+          ? "inventory"
+          : "orders",
         order,
+        returnTo,
       });
     } catch (error: any) {
       return res.status(404).render("orders/audit", {
@@ -504,7 +553,12 @@ export class OrderController {
         request.user?.id || "unknown",
       );
 
-      if (isFormRequest(req)) return res.redirect(`/api/orders/${id}`);
+      if (isFormRequest(req)) {
+        return res.redirect(
+          this.getExplicitReturnPath(req) ||
+            this.getFormSuccessRedirect(req, `/api/orders/${id}`),
+        );
+      }
       return res
         .status(200)
         .json({ message: "Orden de compra auditada correctamente" });
@@ -514,13 +568,19 @@ export class OrderController {
           const order = await this.getOrderByIdUseCase.execute(
             req.params.id as string,
           );
+          const returnTo = this.getExplicitReturnPath(req);
           return res.status(400).render("orders/audit", {
-            activeTab: "orders",
+            activeTab: returnTo?.startsWith("/api/inventory")
+              ? "inventory"
+              : "orders",
             order,
             errorMessage: error.message,
+            returnTo,
           });
         } catch {
-          return res.redirect(`/api/orders/${req.params.id}`);
+          return res.redirect(
+            this.getExplicitReturnPath(req) || `/api/orders/${req.params.id}`,
+          );
         }
       }
       return res.status(400).json({ error: true, message: error.message });
