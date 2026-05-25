@@ -17,33 +17,18 @@ export class CreatePurchaseOrder {
   ) {}
 
   async execute(
-    partnerCuit: string,
     inputItems: CreatePurchaseOrderItemInput[],
     createdBy: string,
     scheduledDate?: Date,
     notes?: string,
-  ): Promise<IOrder> {
-    if (!partnerCuit?.trim()) {
-      throw new Error("El CUIT del proveedor es obligatorio.");
-    }
-
+  ): Promise<IOrder[]> {
     const validItems = (inputItems ?? []).filter(Boolean);
 
     if (validItems.length === 0) {
       throw new Error("La orden debe tener al menos un ítem.");
     }
 
-    const vendor = await this.partnerRepository.findByCuit(partnerCuit);
-
-    if (!vendor || !vendor.active) {
-      throw new Error("El proveedor indicado no existe o está inactivo.");
-    }
-
-    if (!vendor.type.includes("VENDOR")) {
-      throw new Error("El socio indicado no está registrado como proveedor.");
-    }
-
-    const items: IOrderItem[] = [];
+    const grouped = new Map<string, IOrderItem[]>();
 
     for (const input of validItems) {
       const quantity = Number(input.quantity);
@@ -58,33 +43,54 @@ export class CreatePurchaseOrder {
         throw new Error(`El producto con ID "${input.product_id}" no existe.`);
       }
 
-      items.push({
+      const item: IOrderItem = {
         product_id: input.product_id,
         product_name: product.name,
         quantity,
         unit_price: product.vendor_price,
-      });
+      };
+
+      const existing = grouped.get(product.vendor_cuit) ?? [];
+      existing.push(item);
+      grouped.set(product.vendor_cuit, existing);
     }
 
-    const total = items.reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
+    const vendorCuits = Array.from(grouped.keys());
+    for (const cuit of vendorCuits) {
+      const vendor = await this.partnerRepository.findByCuit(cuit);
+      if (!vendor || !vendor.active) {
+        throw new Error(`El proveedor con CUIT "${cuit}" no existe o está inactivo.`);
+      }
+      if (!vendor.type.includes("VENDOR")) {
+        throw new Error(`El socio con CUIT "${cuit}" no está registrado como proveedor.`);
+      }
+    }
+
     const now = new Date();
+    const created: IOrder[] = [];
 
-    const order: IOrder = {
-      order_type: "PURCHASE",
-      status: "PENDING_BUDGET",
-      partner_cuit: partnerCuit,
-      items,
-      total_amount: total,
-      scheduled_date: scheduledDate,
-      notes,
-      created_by: createdBy,
-      created_at: now,
-      updated_by: createdBy,
-      updated_at: now,
-    };
+    for (const [vendorCuit, items] of grouped) {
+      const total = items.reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
 
-    const saved = await this.orderRepository.save(order);
-    await this.createTransactionUseCase.execute(saved.id!, "PAYMENT", createdBy);
-    return saved;
+      const order: IOrder = {
+        order_type: "PURCHASE",
+        status: "PENDING_BUDGET",
+        partner_cuit: vendorCuit,
+        items,
+        total_amount: total,
+        scheduled_date: scheduledDate,
+        notes,
+        created_by: createdBy,
+        created_at: now,
+        updated_by: createdBy,
+        updated_at: now,
+      };
+
+      const saved = await this.orderRepository.save(order);
+      await this.createTransactionUseCase.execute(saved.id!, "PAYMENT", createdBy);
+      created.push(saved);
+    }
+
+    return created;
   }
 }

@@ -72,11 +72,13 @@ export class OrderController {
   async renderCreatePurchaseForm(req: Request, res: Response) {
     const partners = await this.getAllPartnersUseCase.execute();
     const vendors = partners.filter((p) => p.active && p.type.includes("VENDOR"));
+    const vendorMap: Record<string, string> = {};
+    vendors.forEach((v) => { vendorMap[v.cuit] = v.legal_name; });
     const products = await this.getAllProductsUseCase.execute();
 
     return res.render("orders/create-purchase", {
       activeTab: "orders",
-      vendors,
+      vendorMap,
       products,
       errorMessage: undefined,
     });
@@ -124,26 +126,27 @@ export class OrderController {
     const request = req as AuthenticatedRequest;
 
     try {
-      const { partner_cuit, items, scheduled_date, notes } = req.body;
+      const { items, scheduled_date, notes } = req.body;
 
-      const order = await this.createPurchaseOrderUseCase.execute(
-        partner_cuit,
+      const orders = await this.createPurchaseOrderUseCase.execute(
         items as CreatePurchaseOrderItemInput[],
         request.user?.id || "unknown",
         scheduled_date ? new Date(scheduled_date) : undefined,
         notes,
       );
 
-      if (isFormRequest(req)) return res.redirect(`/api/orders/${order.id}`);
-      return res.status(201).json({ message: "Orden de compra creada", item: order });
+      if (isFormRequest(req)) return res.redirect("/api/orders?type=PURCHASE");
+      return res.status(201).json({ message: "Órdenes de compra creadas", items: orders });
     } catch (error: any) {
       if (isFormRequest(req)) {
         const partners = await this.getAllPartnersUseCase.execute();
         const vendors = partners.filter((p) => p.active && p.type.includes("VENDOR"));
+        const vendorMap: Record<string, string> = {};
+        vendors.forEach((v) => { vendorMap[v.cuit] = v.legal_name; });
         const products = await this.getAllProductsUseCase.execute();
         return res.status(400).render("orders/create-purchase", {
           activeTab: "orders",
-          vendors,
+          vendorMap,
           products,
           formData: req.body,
           errorMessage: error.message,
