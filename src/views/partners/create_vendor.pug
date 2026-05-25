@@ -22,7 +22,19 @@ block content
                   input.form-control(type="email", name="email", required)
                 .col-md-6
                   label.form-label Teléfono
-                  input.form-control(type="text", name="phone")
+                  input.form-control(type="text", name="phone", required)
+
+              .mb-3
+                label.form-label Dirección Legal
+                input.form-control(type="text", name="legal_address", required)
+
+              .mb-3
+                label.form-label Condición de IVA
+                select.form-select(name="vat_condition", required)
+                  option(value="") Seleccionar condición
+                  option(value="Responsable Inscripto") Responsable Inscripto
+                  option(value="Monotributista") Monotributista
+                  option(value="Exento") Exento
 
               hr
               h5 Datos de Logística
