@@ -15,6 +15,7 @@ import type { GetAllOrders } from "../../../application/use-cases/GetAllOrders.j
 import type { GetOrderById } from "../../../application/use-cases/GetOrderById.js";
 import type { GetAllPartners } from "../../../../business-partner/application/index.js";
 import type { GetAllProducts } from "../../../../products/application/index.js";
+import type { GetAvailableStockByProduct } from "../../../../inventory/application/index.js";
 import type { CreatePurchaseOrderItemInput } from "../../../application/use-cases/CreatePurchaseOrder.js";
 import type { CreateSaleOrderItemInput } from "../../../application/use-cases/CreateSaleOrder.js";
 import type { OrderType } from "../../../domain/index.js";
@@ -56,6 +57,27 @@ const STATUS_BADGE: Record<string, string> = {
 const isFormRequest = (req: Request) =>
   req.headers["content-type"]?.includes("application/x-www-form-urlencoded");
 
+const getFinanceReturnPath = (req: Request): string | null => {
+  const referer = req.get("referer") || req.get("referrer");
+
+  if (!referer) {
+    return null;
+  }
+
+  try {
+    const url = new URL(referer);
+    const path = `${url.pathname}${url.search}`;
+    return path.startsWith("/api/transactions") ? path : null;
+  } catch {
+    return null;
+  }
+};
+
+const appendErrorToPath = (path: string, message: string) => {
+  const separator = path.includes("?") ? "&" : "?";
+  return `${path}${separator}error=${encodeURIComponent(message)}`;
+};
+
 export class OrderController {
   constructor(
     private readonly createPurchaseOrderUseCase: CreatePurchaseOrder,
@@ -73,7 +95,45 @@ export class OrderController {
     private readonly getOrderByIdUseCase: GetOrderById,
     private readonly getAllPartnersUseCase: GetAllPartners,
     private readonly getAllProductsUseCase: GetAllProducts,
+    private readonly getAvailableStockByProductUseCase: GetAvailableStockByProduct,
   ) {}
+
+  private async getSaleProductsWithStock() {
+    const products = await this.getAllProductsUseCase.execute();
+    const stockByProduct = await Promise.all(
+      products.map(async (product) => ({
+        product,
+        availableStock: await this.getAvailableStockByProductUseCase.execute(
+          product.id!,
+        ),
+      })),
+    );
+
+    return stockByProduct
+      .filter(({ availableStock }) => availableStock > 0)
+      .map(({ product, availableStock }) => ({
+        ...product,
+        available_stock: availableStock,
+      }));
+  }
+
+  private getFormSuccessRedirect(req: Request, defaultPath: string) {
+    return getFinanceReturnPath(req) || defaultPath;
+  }
+
+  private getFormErrorRedirect(
+    req: Request,
+    defaultPath: string,
+    errorMessage: string,
+  ) {
+    const financePath = getFinanceReturnPath(req);
+
+    if (financePath) {
+      return appendErrorToPath(financePath, errorMessage);
+    }
+
+    return appendErrorToPath(defaultPath, errorMessage);
+  }
 
   // --- Vistas HTML ---
 
@@ -105,7 +165,7 @@ export class OrderController {
     const clients = partners.filter(
       (p) => p.active && p.type.includes("CLIENT"),
     );
-    const products = await this.getAllProductsUseCase.execute();
+    const products = await this.getSaleProductsWithStock();
 
     return res.render("orders/create-sale", {
       activeTab: "orders",
@@ -213,14 +273,16 @@ export class OrderController {
       );
 
       if (isFormRequest(req)) {
-        return res.redirect(`/api/transactions`);
+        return res.redirect(
+          this.getFormSuccessRedirect(req, `/api/transactions`),
+        );
       }
 
       return res.status(200).json({ message: "Presupuesto verificado" });
     } catch (error: any) {
       if (isFormRequest(req)) {
         return res.redirect(
-          `/api/transactions?error=${encodeURIComponent(error.message)}`,
+          this.getFormErrorRedirect(req, `/api/transactions`, error.message),
         );
       }
       return res.status(400).json({ error: true, message: error.message });
@@ -256,12 +318,20 @@ export class OrderController {
         id,
         request.user?.id || "unknown",
       );
-      if (isFormRequest(req)) return res.redirect(`/api/orders/${id}`);
+      if (isFormRequest(req)) {
+        return res.redirect(
+          this.getFormSuccessRedirect(req, `/api/orders/${id}`),
+        );
+      }
       return res.status(200).json({ message: "Orden de compra cancelada" });
     } catch (error: any) {
       if (isFormRequest(req))
         return res.redirect(
-          `/api/orders/${req.params.id}?error=${encodeURIComponent(error.message)}`,
+          this.getFormErrorRedirect(
+            req,
+            `/api/orders/${req.params.id}`,
+            error.message,
+          ),
         );
       return res.status(400).json({ error: true, message: error.message });
     }
@@ -293,7 +363,7 @@ export class OrderController {
         const clients = partners.filter(
           (p) => p.active && p.type.includes("CLIENT"),
         );
-        const products = await this.getAllProductsUseCase.execute();
+        const products = await this.getSaleProductsWithStock();
         return res.status(400).render("orders/create-sale", {
           activeTab: "orders",
           clients,
@@ -314,14 +384,22 @@ export class OrderController {
         id,
         request.user?.id || "unknown",
       );
-      if (isFormRequest(req)) return res.redirect(`/api/orders/${id}`);
+      if (isFormRequest(req)) {
+        return res.redirect(
+          this.getFormSuccessRedirect(req, `/api/orders/${id}`),
+        );
+      }
       return res
         .status(200)
         .json({ message: "Pago de orden de venta confirmado" });
     } catch (error: any) {
       if (isFormRequest(req))
         return res.redirect(
-          `/api/orders/${req.params.id}?error=${encodeURIComponent(error.message)}`,
+          this.getFormErrorRedirect(
+            req,
+            `/api/orders/${req.params.id}`,
+            error.message,
+          ),
         );
       return res.status(400).json({ error: true, message: error.message });
     }
@@ -441,12 +519,20 @@ export class OrderController {
         id,
         request.user?.id || "unknown",
       );
-      if (isFormRequest(req)) return res.redirect(`/api/orders/${id}`);
+      if (isFormRequest(req)) {
+        return res.redirect(
+          this.getFormSuccessRedirect(req, `/api/orders/${id}`),
+        );
+      }
       return res.status(200).json({ message: "Orden de venta cancelada" });
     } catch (error: any) {
       if (isFormRequest(req))
         return res.redirect(
-          `/api/orders/${req.params.id}?error=${encodeURIComponent(error.message)}`,
+          this.getFormErrorRedirect(
+            req,
+            `/api/orders/${req.params.id}`,
+            error.message,
+          ),
         );
       return res.status(400).json({ error: true, message: error.message });
     }
