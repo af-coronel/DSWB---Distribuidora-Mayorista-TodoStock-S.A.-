@@ -3,6 +3,7 @@ import type { CompleteTransaction } from "../../../application/use-cases/Complet
 import type { CancelTransaction } from "../../../application/use-cases/CancelTransaction.js";
 import type { GetAllTransactions } from "../../../application/use-cases/GetAllTransactions.js";
 import type { GetTransactionById } from "../../../application/use-cases/GetTransactionById.js";
+import type { GetOrderById } from "../../../../orders/application/use-cases/GetOrderById.js";
 import type { TransactionType } from "../../../domain/index.js";
 
 type AuthenticatedRequest = Request & {
@@ -35,6 +36,7 @@ export class TransactionController {
     private readonly cancelTransactionUseCase: CancelTransaction,
     private readonly getAllTransactionsUseCase: GetAllTransactions,
     private readonly getTransactionByIdUseCase: GetTransactionById,
+    private readonly getOrderByIdUseCase: GetOrderById,
   ) {}
 
   async getAll(req: Request, res: Response) {
@@ -64,9 +66,19 @@ export class TransactionController {
       const { id } = req.params as { id: string };
       const transaction = await this.getTransactionByIdUseCase.execute(id);
 
+      let order = null;
+      if (transaction.order_id) {
+        try {
+          order = await this.getOrderByIdUseCase.execute(transaction.order_id);
+        } catch {
+          // orden no encontrada, se muestra la transacción sin acciones de orden
+        }
+      }
+
       return res.render("transactions/detail", {
         activeTab: "transactions",
         transaction,
+        order,
         statusLabel: STATUS_LABEL[transaction.status] || transaction.status,
         statusBadge: STATUS_BADGE[transaction.status] || "secondary",
         typeLabel: TYPE_LABEL[transaction.transaction_type],

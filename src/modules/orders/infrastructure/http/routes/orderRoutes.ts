@@ -53,7 +53,7 @@ const orderController = new OrderController(
   new AuditPurchaseOrder(orderRepository, createInventoryLot),
   new CancelPurchaseOrder(orderRepository, transactionRepository, cancelTransaction),
   new CreateSaleOrder(orderRepository, partnerRepository, productRepository, reserveStock, createTransaction),
-  new ConfirmSalePayment(orderRepository, confirmSale),
+  new ConfirmSalePayment(orderRepository, confirmSale, transactionRepository),
   new DispatchSaleOrder(orderRepository),
   new MarkOrderDelivered(orderRepository),
   new CancelSaleOrder(orderRepository, releaseReservedStock),
