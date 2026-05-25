@@ -1,7 +1,11 @@
 import type { IOrderRepository } from "../../domain/index.js";
+import type { ConfirmSale } from "../../../inventory/application/index.js";
 
 export class MarkOrderDelivered {
-  constructor(private readonly orderRepository: IOrderRepository) {}
+  constructor(
+    private readonly orderRepository: IOrderRepository,
+    private readonly confirmSaleUseCase: ConfirmSale,
+  ) {}
 
   async execute(orderId: string, updatedBy: string): Promise<void> {
     const order = await this.orderRepository.findById(orderId);
@@ -20,7 +24,9 @@ export class MarkOrderDelivered {
       );
     }
 
-    // TODO: integrar con inventory — decrementar stock real (FEFO/FIFO) por cada ítem de la orden
+    for (const item of order.items) {
+      await this.confirmSaleUseCase.execute(item.product_id, item.quantity, updatedBy);
+    }
 
     await this.orderRepository.updateStatus(orderId, "DELIVERED", updatedBy, new Date());
   }

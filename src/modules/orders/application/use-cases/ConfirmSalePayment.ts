@@ -1,7 +1,11 @@
 import type { IOrderRepository } from "../../domain/index.js";
+import type { ReserveStock } from "../../../inventory/application/index.js";
 
 export class ConfirmSalePayment {
-  constructor(private readonly orderRepository: IOrderRepository) {}
+  constructor(
+    private readonly orderRepository: IOrderRepository,
+    private readonly reserveStockUseCase: ReserveStock,
+  ) {}
 
   async execute(orderId: string, updatedBy: string): Promise<void> {
     const order = await this.orderRepository.findById(orderId);
@@ -20,7 +24,9 @@ export class ConfirmSalePayment {
       );
     }
 
-    // TODO: integrar con inventory — reservar stock (engaged_stock) por cada ítem de la orden
+    for (const item of order.items) {
+      await this.reserveStockUseCase.execute(item.product_id, item.quantity, updatedBy);
+    }
 
     await this.orderRepository.updateStatus(orderId, "PENDING_ASSEMBLY", updatedBy, new Date());
   }

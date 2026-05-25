@@ -15,16 +15,23 @@ import {
 } from "../../../application/index.js";
 import { GetAllPartners } from "../../../../business-partner/application/index.js";
 import { GetAllProducts } from "../../../../products/application/index.js";
+import {
+  ReserveStock,
+  ReleaseReservedStock,
+  ConfirmSale,
+} from "../../../../inventory/application/index.js";
 import { OrderController } from "../controllers/OrderController.js";
 import { MongoOrderRepository } from "../../persistence/MongoOrderRepository.js";
 import { MongoBusinessPartnerRepository } from "../../../../business-partner/infrastructure/persistence/MongoBusinessPartnerRepository.js";
 import { MongoProductRepository } from "../../../../products/infrastructure/persistence/MongoProductRepository.js";
+import { MongoInventoryRepository } from "../../../../inventory/infrastructure/persistence/MongoInventoryRepository.js";
 
 const router = Router();
 
 const orderRepository = new MongoOrderRepository();
 const partnerRepository = new MongoBusinessPartnerRepository();
 const productRepository = new MongoProductRepository();
+const inventoryRepository = new MongoInventoryRepository();
 
 const orderController = new OrderController(
   new CreatePurchaseOrder(orderRepository, partnerRepository, productRepository),
@@ -32,9 +39,9 @@ const orderController = new OrderController(
   new ReceivePurchaseOrder(orderRepository),
   new CancelPurchaseOrder(orderRepository),
   new CreateSaleOrder(orderRepository, partnerRepository, productRepository),
-  new ConfirmSalePayment(orderRepository),
-  new MarkOrderDelivered(orderRepository),
-  new CancelSaleOrder(orderRepository),
+  new ConfirmSalePayment(orderRepository, new ReserveStock(inventoryRepository, productRepository)),
+  new MarkOrderDelivered(orderRepository, new ConfirmSale(inventoryRepository, productRepository)),
+  new CancelSaleOrder(orderRepository, new ReleaseReservedStock(inventoryRepository, productRepository)),
   new GetAllOrders(orderRepository),
   new GetOrderById(orderRepository),
   new GetAllPartners(partnerRepository),
