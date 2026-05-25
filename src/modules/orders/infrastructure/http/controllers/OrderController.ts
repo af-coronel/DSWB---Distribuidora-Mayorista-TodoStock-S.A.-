@@ -97,7 +97,7 @@ export class OrderController {
 
   async renderDetail(req: Request, res: Response) {
     try {
-      const { id } = req.params;
+      const { id } = req.params as { id: string };
       const order = await this.getOrderByIdUseCase.execute(id);
       const partners = await this.getAllPartnersUseCase.execute();
       const partner = partners.find((p) => p.cuit === order.partner_cuit);
@@ -108,6 +108,7 @@ export class OrderController {
         partnerName: partner?.legal_name || order.partner_cuit,
         statusLabel: STATUS_LABEL[order.status] || order.status,
         statusBadge: STATUS_BADGE[order.status] || "secondary",
+        flashError: (req.query.error as string) || undefined,
       });
     } catch (error: any) {
       return res.status(404).render("orders/detail", {
@@ -154,12 +155,12 @@ export class OrderController {
   async confirmPurchaseOrder(req: Request, res: Response) {
     const request = req as AuthenticatedRequest;
     try {
-      const { id } = req.params;
+      const { id } = req.params as { id: string };
       await this.confirmPurchaseOrderUseCase.execute(id, request.user?.id || "unknown");
       if (isFormRequest(req)) return res.redirect(`/api/orders/${id}`);
       return res.status(200).json({ message: "Orden de compra confirmada" });
     } catch (error: any) {
-      if (isFormRequest(req)) return res.redirect(`/api/orders/${req.params.id}`);
+      if (isFormRequest(req)) return res.redirect(`/api/orders/${req.params.id}?error=${encodeURIComponent(error.message)}`);
       return res.status(400).json({ error: true, message: error.message });
     }
   }
@@ -167,12 +168,12 @@ export class OrderController {
   async receivePurchaseOrder(req: Request, res: Response) {
     const request = req as AuthenticatedRequest;
     try {
-      const { id } = req.params;
+      const { id } = req.params as { id: string };
       await this.receivePurchaseOrderUseCase.execute(id, request.user?.id || "unknown");
       if (isFormRequest(req)) return res.redirect(`/api/orders/${id}`);
       return res.status(200).json({ message: "Orden de compra marcada como recibida" });
     } catch (error: any) {
-      if (isFormRequest(req)) return res.redirect(`/api/orders/${req.params.id}`);
+      if (isFormRequest(req)) return res.redirect(`/api/orders/${req.params.id}?error=${encodeURIComponent(error.message)}`);
       return res.status(400).json({ error: true, message: error.message });
     }
   }
@@ -180,12 +181,12 @@ export class OrderController {
   async cancelPurchaseOrder(req: Request, res: Response) {
     const request = req as AuthenticatedRequest;
     try {
-      const { id } = req.params;
+      const { id } = req.params as { id: string };
       await this.cancelPurchaseOrderUseCase.execute(id, request.user?.id || "unknown");
       if (isFormRequest(req)) return res.redirect(`/api/orders/${id}`);
       return res.status(200).json({ message: "Orden de compra cancelada" });
     } catch (error: any) {
-      if (isFormRequest(req)) return res.redirect(`/api/orders/${req.params.id}`);
+      if (isFormRequest(req)) return res.redirect(`/api/orders/${req.params.id}?error=${encodeURIComponent(error.message)}`);
       return res.status(400).json({ error: true, message: error.message });
     }
   }
@@ -227,12 +228,12 @@ export class OrderController {
   async confirmSalePayment(req: Request, res: Response) {
     const request = req as AuthenticatedRequest;
     try {
-      const { id } = req.params;
+      const { id } = req.params as { id: string };
       await this.confirmSalePaymentUseCase.execute(id, request.user?.id || "unknown");
       if (isFormRequest(req)) return res.redirect(`/api/orders/${id}`);
       return res.status(200).json({ message: "Pago de orden de venta confirmado" });
     } catch (error: any) {
-      if (isFormRequest(req)) return res.redirect(`/api/orders/${req.params.id}`);
+      if (isFormRequest(req)) return res.redirect(`/api/orders/${req.params.id}?error=${encodeURIComponent(error.message)}`);
       return res.status(400).json({ error: true, message: error.message });
     }
   }
@@ -240,12 +241,12 @@ export class OrderController {
   async markOrderDelivered(req: Request, res: Response) {
     const request = req as AuthenticatedRequest;
     try {
-      const { id } = req.params;
+      const { id } = req.params as { id: string };
       await this.markOrderDeliveredUseCase.execute(id, request.user?.id || "unknown");
       if (isFormRequest(req)) return res.redirect(`/api/orders/${id}`);
       return res.status(200).json({ message: "Orden de venta marcada como entregada" });
     } catch (error: any) {
-      if (isFormRequest(req)) return res.redirect(`/api/orders/${req.params.id}`);
+      if (isFormRequest(req)) return res.redirect(`/api/orders/${req.params.id}?error=${encodeURIComponent(error.message)}`);
       return res.status(400).json({ error: true, message: error.message });
     }
   }
@@ -253,19 +254,19 @@ export class OrderController {
   async dispatchSaleOrder(req: Request, res: Response) {
     const request = req as AuthenticatedRequest;
     try {
-      const { id } = req.params;
+      const { id } = req.params as { id: string };
       await this.dispatchSaleOrderUseCase.execute(id, request.user?.id || "unknown");
       if (isFormRequest(req)) return res.redirect(`/api/orders/${id}`);
       return res.status(200).json({ message: "Orden de venta marcada como a despachar" });
     } catch (error: any) {
-      if (isFormRequest(req)) return res.redirect(`/api/orders/${req.params.id}`);
+      if (isFormRequest(req)) return res.redirect(`/api/orders/${req.params.id}?error=${encodeURIComponent(error.message)}`);
       return res.status(400).json({ error: true, message: error.message });
     }
   }
 
   async renderAuditForm(req: Request, res: Response) {
     try {
-      const { id } = req.params;
+      const { id } = req.params as { id: string };
       const order = await this.getOrderByIdUseCase.execute(id);
       if (order.status !== "RECEIVED") {
         return res.redirect(`/api/orders/${id}`);
@@ -285,14 +286,13 @@ export class OrderController {
   async auditPurchaseOrder(req: Request, res: Response) {
     const request = req as AuthenticatedRequest;
     try {
-      const { id } = req.params;
+      const { id } = req.params as { id: string };
       const { items } = req.body;
 
       const validItems = (items ?? []).filter(Boolean);
 
       const auditItems: AuditItemInput[] = validItems.map((item: any) => ({
         product_id: item.product_id,
-        quantity: Number(item.quantity),
         expiration_date: item.expiration_date ? new Date(item.expiration_date) : null,
       }));
 
@@ -303,7 +303,7 @@ export class OrderController {
     } catch (error: any) {
       if (isFormRequest(req)) {
         try {
-          const order = await this.getOrderByIdUseCase.execute(req.params.id);
+          const order = await this.getOrderByIdUseCase.execute(req.params.id as string);
           return res.status(400).render("orders/audit", {
             activeTab: "orders",
             order,
@@ -320,12 +320,12 @@ export class OrderController {
   async cancelSaleOrder(req: Request, res: Response) {
     const request = req as AuthenticatedRequest;
     try {
-      const { id } = req.params;
+      const { id } = req.params as { id: string };
       await this.cancelSaleOrderUseCase.execute(id, request.user?.id || "unknown");
       if (isFormRequest(req)) return res.redirect(`/api/orders/${id}`);
       return res.status(200).json({ message: "Orden de venta cancelada" });
     } catch (error: any) {
-      if (isFormRequest(req)) return res.redirect(`/api/orders/${req.params.id}`);
+      if (isFormRequest(req)) return res.redirect(`/api/orders/${req.params.id}?error=${encodeURIComponent(error.message)}`);
       return res.status(400).json({ error: true, message: error.message });
     }
   }
@@ -358,7 +358,7 @@ export class OrderController {
       return this.renderDetail(req, res);
     }
     try {
-      const { id } = req.params;
+      const { id } = req.params as { id: string };
       const order = await this.getOrderByIdUseCase.execute(id);
       return res.status(200).json(order);
     } catch (error: any) {

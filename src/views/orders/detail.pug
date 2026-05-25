@@ -8,6 +8,11 @@ block content
       a.btn.btn-secondary(href="/api/orders") Volver al listado
 
     else if order
+      if flashError
+        .alert.alert-warning
+          i.bi.bi-exclamation-triangle.me-2
+          = flashError
+
       .d-flex.justify-content-between.align-items-center.mb-3
         h2
           span.badge.me-2(class=order.order_type === 'PURCHASE' ? 'bg-primary' : 'bg-success')

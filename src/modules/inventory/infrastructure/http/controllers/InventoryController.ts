@@ -74,6 +74,7 @@ export class InventoryController {
         return res.status(400).render("inventory/create", {
           activeTab: "inventory",
           products,
+          formData: req.body,
           errorMessage: error.message,
         });
       }

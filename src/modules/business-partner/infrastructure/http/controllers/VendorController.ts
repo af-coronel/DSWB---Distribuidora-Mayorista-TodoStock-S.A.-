@@ -286,35 +286,39 @@ export class VendorController {
         const { cuit } = req.params;
 
         if (typeof cuit === "string") {
-          const currentVendor = await this.findByCuitUseCase.execute(cuit);
+          try {
+            const currentVendor = await this.findByCuitUseCase.execute(cuit);
 
-          if (currentVendor && currentVendor.type.includes("VENDOR")) {
-            const partner = {
-              ...currentVendor,
-              legal_name: req.body.legal_name ?? currentVendor.legal_name,
-              phone: req.body.phone ?? currentVendor.phone,
-              email: req.body.email ?? currentVendor.email,
-              legal_address:
-                req.body.legal_address ?? currentVendor.legal_address,
-              vat_condition:
-                req.body.vat_condition ?? currentVendor.vat_condition,
-              vendor_data: {
-                lead_time:
-                  typeof req.body.lead_time !== "undefined"
-                    ? Number(req.body.lead_time) || 0
-                    : currentVendor.vendor_data?.lead_time || 0,
-                category:
-                  req.body.category ||
-                  currentVendor.vendor_data?.category ||
-                  "General",
-              },
-            };
+            if (currentVendor && currentVendor.type.includes("VENDOR")) {
+              const partner = {
+                ...currentVendor,
+                legal_name: req.body.legal_name ?? currentVendor.legal_name,
+                phone: req.body.phone ?? currentVendor.phone,
+                email: req.body.email ?? currentVendor.email,
+                legal_address:
+                  req.body.legal_address ?? currentVendor.legal_address,
+                vat_condition:
+                  req.body.vat_condition ?? currentVendor.vat_condition,
+                vendor_data: {
+                  lead_time:
+                    typeof req.body.lead_time !== "undefined"
+                      ? Number(req.body.lead_time) || 0
+                      : currentVendor.vendor_data?.lead_time || 0,
+                  category:
+                    req.body.category ||
+                    currentVendor.vendor_data?.category ||
+                    "General",
+                },
+              };
 
-            return res.status(400).render("partners/edit", {
-              partner,
-              activeTab: "vendors",
-              errorMessage: error.message,
-            });
+              return res.status(400).render("partners/edit", {
+                partner,
+                activeTab: "vendors",
+                errorMessage: error.message,
+              });
+            }
+          } catch {
+            return res.redirect(`/api/vendors/${cuit}?error=${encodeURIComponent(error.message)}`);
           }
         }
       }

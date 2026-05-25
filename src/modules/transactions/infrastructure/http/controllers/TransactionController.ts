@@ -65,7 +65,7 @@ export class TransactionController {
 
   async renderDetail(req: Request, res: Response) {
     try {
-      const { id } = req.params;
+      const { id } = req.params as { id: string };
       const transaction = await this.getTransactionByIdUseCase.execute(id);
 
       return res.render("transactions/detail", {
@@ -74,6 +74,7 @@ export class TransactionController {
         statusLabel: STATUS_LABEL[transaction.status] || transaction.status,
         statusBadge: STATUS_BADGE[transaction.status] || "secondary",
         typeLabel: TYPE_LABEL[transaction.transaction_type],
+        flashError: (req.query.error as string) || undefined,
       });
     } catch (error: any) {
       return res.status(404).render("transactions/detail", {
@@ -88,7 +89,7 @@ export class TransactionController {
       return this.renderDetail(req, res);
     }
     try {
-      const transaction = await this.getTransactionByIdUseCase.execute(req.params.id);
+      const transaction = await this.getTransactionByIdUseCase.execute(req.params.id as string);
       return res.status(200).json(transaction);
     } catch (error: any) {
       return res.status(404).json({ error: true, message: error.message });
@@ -108,6 +109,11 @@ export class TransactionController {
     const request = req as AuthenticatedRequest;
     try {
       const { order_id, transaction_type } = req.body;
+
+      if (!transaction_type || !["PAYMENT", "COLLECTION"].includes(transaction_type)) {
+        throw new Error("El tipo de transacción es requerido (PAYMENT o COLLECTION).");
+      }
+
       const transaction = await this.createTransactionUseCase.execute(
         order_id,
         transaction_type as TransactionType,
@@ -132,7 +138,7 @@ export class TransactionController {
   async completeTransaction(req: Request, res: Response) {
     const request = req as AuthenticatedRequest;
     try {
-      const { id } = req.params;
+      const { id } = req.params as { id: string };
       const { pos_number, document_number } = req.body;
       await this.completeTransactionUseCase.execute(
         id,
@@ -143,7 +149,7 @@ export class TransactionController {
       if (isFormRequest(req)) return res.redirect(`/api/transactions/${id}`);
       return res.status(200).json({ message: "Transacción completada" });
     } catch (error: any) {
-      if (isFormRequest(req)) return res.redirect(`/api/transactions/${req.params.id}`);
+      if (isFormRequest(req)) return res.redirect(`/api/transactions/${req.params.id}?error=${encodeURIComponent(error.message)}`);
       return res.status(400).json({ error: true, message: error.message });
     }
   }
@@ -151,12 +157,12 @@ export class TransactionController {
   async cancelTransaction(req: Request, res: Response) {
     const request = req as AuthenticatedRequest;
     try {
-      const { id } = req.params;
+      const { id } = req.params as { id: string };
       await this.cancelTransactionUseCase.execute(id, request.user?.id || "unknown");
       if (isFormRequest(req)) return res.redirect(`/api/transactions/${id}`);
       return res.status(200).json({ message: "Transacción cancelada" });
     } catch (error: any) {
-      if (isFormRequest(req)) return res.redirect(`/api/transactions/${req.params.id}`);
+      if (isFormRequest(req)) return res.redirect(`/api/transactions/${req.params.id}?error=${encodeURIComponent(error.message)}`);
       return res.status(400).json({ error: true, message: error.message });
     }
   }

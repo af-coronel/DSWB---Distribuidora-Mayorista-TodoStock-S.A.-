@@ -3,7 +3,6 @@ import type { CreateInventoryLot } from "../../../inventory/application/index.js
 
 export interface AuditItemInput {
   product_id: string;
-  quantity: number;
   expiration_date: Date | null;
 }
 
@@ -35,13 +34,14 @@ export class AuditPurchaseOrder {
     }
 
     const now = new Date();
+    const expirationMap = new Map(auditItems.map((i) => [i.product_id, i.expiration_date]));
 
-    for (const auditItem of auditItems) {
+    for (const orderItem of order.items) {
       await this.createInventoryLotUseCase.execute({
-        product_id: auditItem.product_id,
-        stock: auditItem.quantity,
+        product_id: orderItem.product_id,
+        stock: orderItem.quantity,
         engaged_stock: 0,
-        expiration_date: auditItem.expiration_date,
+        expiration_date: expirationMap.get(orderItem.product_id) ?? null,
         created_by: updatedBy,
         created_at: now,
         updated_by: updatedBy,
