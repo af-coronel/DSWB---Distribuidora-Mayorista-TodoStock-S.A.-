@@ -58,8 +58,9 @@ block content
                   table.table.table-bordered.mb-2
                     thead.table-dark
                       tr
-                        th.col-5 Producto
+                        th.col-4 Producto
                         th.col-2.text-center Cantidad
+                        th.col-2.text-center Disponible
                         th.col-2.text-end Precio unit.
                         th.col-2.text-end Subtotal
                         th.col-1
@@ -72,9 +73,10 @@ block content
                               select.form-select.form-select-sm.product-select(name=`items[${index}][product_id]`, required, onchange="updateRow(this)")
                                 option(value="") Seleccionar producto
                                 each product in products
-                                  option(value=product.id, data-price=product.customer_price, selected=(item.product_id === product.id))= product.name
+                                  option(value=product.id, data-price=product.customer_price, data-stock=product.available_stock, selected=(item.product_id === product.id))= `${product.name} (disp.: ${product.available_stock})`
                             td.text-center
                               input.form-control.form-control-sm(type="number", name=`items[${index}][quantity]`, min="1", max="9999", value=item.quantity || 1, required, oninput="updateRow(this.closest('tr').querySelector('.product-select'))")
+                            td.text-center.available-stock —
                             td.text-end.unit-price —
                             td.text-end.subtotal —
                             td.text-center
@@ -87,9 +89,10 @@ block content
                             select.form-select.form-select-sm.product-select(name="items[0][product_id]", required, onchange="updateRow(this)")
                               option(value="") Seleccionar producto
                               each product in products
-                                option(value=product.id, data-price=product.customer_price)= product.name
+                                option(value=product.id, data-price=product.customer_price, data-stock=product.available_stock)= `${product.name} (disp.: ${product.available_stock})`
                           td.text-center
                             input.form-control.form-control-sm(type="number", name="items[0][quantity]", min="1", max="9999", value="1", required, oninput="updateRow(this.closest('tr').querySelector('.product-select'))")
+                          td.text-center.available-stock —
                           td.text-end.unit-price —
                           td.text-end.subtotal —
                           td.text-center
@@ -109,11 +112,11 @@ block content
 block scripts
   script.
     let itemIndex = #{savedItems ? savedItems.length : 1};
-    const allProducts = !{JSON.stringify((products || []).map(p => ({ id: p.id, name: p.name, price: p.customer_price })))};
+    const allProducts = !{JSON.stringify((products || []).map(p => ({ id: p.id, name: p.name, price: p.customer_price, stock: p.available_stock })))};
 
     function buildOptions(selectedId) {
       return allProducts.map(p =>
-        `<option value="${p.id}" data-price="${p.price}"${p.id === selectedId ? ' selected' : ''}>${p.name}</option>`
+        `<option value="${p.id}" data-price="${p.price}" data-stock="${p.stock}"${p.id === selectedId ? ' selected' : ''}>${p.name} (disp.: ${p.stock})</option>`
       ).join('');
     }
 
@@ -133,6 +136,7 @@ block scripts
           <input class="form-control form-control-sm" type="number" name="items[${itemIndex}][quantity]"
             min="1" max="9999" value="1" required oninput="updateRow(this.closest('tr').querySelector('.product-select'))">
         </td>
+        <td class="text-center available-stock">—</td>
         <td class="text-end unit-price">—</td>
         <td class="text-end subtotal">—</td>
         <td class="text-center">
@@ -167,9 +171,25 @@ block scripts
 
     function updateRow(select) {
       const row = select.closest('tr');
+      const quantityInput = row.querySelector('input[type="number"]');
       const opt = select.options[select.selectedIndex];
       const price = parseFloat(opt?.dataset?.price) || 0;
-      const qty = parseInt(row.querySelector('input[type="number"]')?.value) || 0;
+      const stock = parseInt(opt?.dataset?.stock) || 0;
+      const rawQty = parseInt(quantityInput?.value) || 0;
+      const qty = stock > 0 ? Math.min(rawQty, stock) : rawQty;
+
+      quantityInput.max = String(stock || 9999);
+      if (stock > 0 && rawQty > stock) {
+        quantityInput.value = String(stock);
+      }
+
+      if (quantityInput) {
+        quantityInput.setCustomValidity(stock > 0 && Number(quantityInput.value) > stock
+          ? `La cantidad no puede superar el stock disponible (${stock}).`
+          : '');
+      }
+
+      row.querySelector('.available-stock').textContent = stock > 0 ? String(stock) : '—';
       row.querySelector('.unit-price').textContent = price > 0 ? `$ ${price.toFixed(2)}` : '—';
       row.querySelector('.subtotal').textContent = price > 0 && qty > 0 ? `$ ${(price * qty).toFixed(2)}` : '—';
       recalcTotal();
@@ -181,8 +201,9 @@ block scripts
         const select = row.querySelector('.product-select');
         const opt = select?.options[select.selectedIndex];
         const price = parseFloat(opt?.dataset?.price) || 0;
+        const stock = parseInt(opt?.dataset?.stock) || 0;
         const qty = parseInt(row.querySelector('input[type="number"]')?.value) || 0;
-        total += price * qty;
+        total += price * Math.min(qty, stock || qty);
       });
       document.getElementById('grand-total').textContent = total > 0 ? `$ ${total.toFixed(2)}` : '—';
     }
@@ -195,6 +216,23 @@ block scripts
         alert('Debe agregar al menos un ítem con producto seleccionado.');
         return false;
       }
+
+      const invalidQuantity = Array.from(document.querySelectorAll('.item-row')).some(row => {
+        const select = row.querySelector('.product-select');
+        const opt = select?.options[select.selectedIndex];
+        const stock = parseInt(opt?.dataset?.stock) || 0;
+        const qty = parseInt(row.querySelector('input[type="number"]')?.value) || 0;
+        return stock > 0 && qty > stock;
+      });
+
+      if (invalidQuantity) {
+        event.preventDefault();
+        alert('La cantidad solicitada no puede superar el stock disponible.');
+        return false;
+      }
     }
 
-    document.addEventListener('DOMContentLoaded', recalcTotal);
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.product-select').forEach(select => updateRow(select));
+      recalcTotal();
+    });

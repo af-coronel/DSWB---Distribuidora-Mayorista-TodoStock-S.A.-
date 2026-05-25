@@ -23,6 +23,7 @@ import {
   ReleaseReservedStock,
   ConfirmSale,
   CreateInventoryLot,
+  GetAvailableStockByProduct,
 } from "../../../../inventory/application/index.js";
 import {
   CreateTransaction,
@@ -94,6 +95,7 @@ const orderController = new OrderController(
   new GetOrderById(orderRepository),
   new GetAllPartners(partnerRepository),
   new GetAllProducts(productRepository),
+  new GetAvailableStockByProduct(inventoryRepository, productRepository),
 );
 
 // --- Vistas HTML ---
