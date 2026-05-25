@@ -15,5 +15,6 @@ const authController = new AuthController(loginUseCase);
 router.get("/", (req, res) => authController.renderLogin(req, res));
 
 router.post("/api/auth/login", (req, res) => authController.login(req, res));
+router.post("/api/auth/logout", (req, res) => authController.logout(req, res));
 
 export default router;
