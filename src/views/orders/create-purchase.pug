@@ -14,16 +14,16 @@ block content
         = errorMessage
         button.btn-close(type="button", data-bs-dismiss="alert", aria-label="Cerrar")
 
-    if !vendors || vendors.length === 0
-      .alert.alert-warning.d-flex.align-items-center.gap-2
-        i.bi.bi-exclamation-triangle-fill
-        span No hay proveedores activos.
-        a.btn.btn-sm.btn-primary.ms-auto(href="/api/vendors/new") Crear proveedor
-
-    else if !products || products.length === 0
-      .alert.alert-warning No hay productos registrados para agregar a la orden.
+    if !products || products.length === 0
+      .alert.alert-warning No hay productos disponibles. Verificá que los proveedores estén activos.
 
     else
+      .alert.alert-info.d-flex.align-items-start.gap-2
+        i.bi.bi-info-circle-fill.mt-1
+        div
+          strong El sistema genera una orden por proveedor.
+          |  Si los ítems pertenecen a proveedores distintos, se crearán múltiples órdenes de compra y sus respectivas órdenes de pago.
+
       .row.justify-content-center
         .col-md-10
           .card.shadow
@@ -32,22 +32,6 @@ block content
             .card-body
               form(action="/api/orders/purchase", method="POST", onsubmit="return validateForm(event)")
 
-                .row.mb-3
-                  .col-md-6
-                    label.form-label Proveedor
-                    select.form-select(name="partner_cuit", required)
-                      option(value="") Seleccionar proveedor
-                      each vendor in vendors
-                        option(value=vendor.cuit, selected=(form.partner_cuit === vendor.cuit))= `${vendor.legal_name} — ${vendor.cuit}`
-                  .col-md-6
-                    label.form-label Fecha estimada de recepción (opcional)
-                    input.form-control(type="date", name="scheduled_date", value=form.scheduled_date || "")
-
-                .mb-3
-                  label.form-label Notas (opcional)
-                  textarea.form-control(name="notes", rows="2")= form.notes || ""
-
-                hr
                 .d-flex.justify-content-between.align-items-center.mb-2
                   h5.mb-0 Ítems
                   button.btn.btn-sm.btn-outline-primary(type="button", onclick="addItem()")
@@ -58,7 +42,7 @@ block content
                   table.table.table-bordered.mb-2
                     thead.table-dark
                       tr
-                        th.col-5 Producto
+                        th.col-5 Producto (Proveedor)
                         th.col-2.text-center Cantidad
                         th.col-2.text-end Precio unit.
                         th.col-2.text-end Subtotal
@@ -72,7 +56,8 @@ block content
                               select.form-select.form-select-sm.product-select(name=`items[${index}][product_id]`, required, onchange="updateRow(this)")
                                 option(value="") Seleccionar producto
                                 each product in products
-                                  option(value=product.id, data-price=product.vendor_price, selected=(item.product_id === product.id))= product.name
+                                  option(value=product.id, data-price=product.vendor_price, selected=(item.product_id === product.id))
+                                    = `${product.name} — ${vendorMap[product.vendor_cuit] || product.vendor_cuit}`
                             td.text-center
                               input.form-control.form-control-sm(type="number", name=`items[${index}][quantity]`, min="1", max="9999", value=item.quantity || 1, required, oninput="updateRow(this.closest('tr').querySelector('.product-select'))")
                             td.text-end.unit-price —
@@ -87,7 +72,8 @@ block content
                             select.form-select.form-select-sm.product-select(name="items[0][product_id]", required, onchange="updateRow(this)")
                               option(value="") Seleccionar producto
                               each product in products
-                                option(value=product.id, data-price=product.vendor_price)= product.name
+                                option(value=product.id, data-price=product.vendor_price)
+                                  = `${product.name} — ${vendorMap[product.vendor_cuit] || product.vendor_cuit}`
                           td.text-center
                             input.form-control.form-control-sm(type="number", name="items[0][quantity]", min="1", max="9999", value="1", required, oninput="updateRow(this.closest('tr').querySelector('.product-select'))")
                           td.text-end.unit-price —
@@ -100,6 +86,12 @@ block content
                     strong.me-2 Total estimado:
                     span#grand-total.fw-bold —
 
+                hr
+
+                .mb-3
+                  label.form-label Notas (opcional)
+                  textarea.form-control(name="notes", rows="2")= form.notes || ""
+
                 .d-flex.justify-content-between.mt-4
                   a.btn.btn-secondary(href="/api/orders") Cancelar
                   button.btn.btn-dark(type="submit")
@@ -109,11 +101,11 @@ block content
 block scripts
   script.
     let itemIndex = #{savedItems ? savedItems.length : 1};
-    const allProducts = !{JSON.stringify((products || []).map(p => ({ id: p.id, name: p.name, price: p.vendor_price })))};
+    const allProducts = !{JSON.stringify((products || []).map(p => ({ id: p.id, name: p.name, price: p.vendor_price, vendor: vendorMap[p.vendor_cuit] || p.vendor_cuit })))};
 
     function buildOptions(selectedId) {
       return allProducts.map(p =>
-        `<option value="${p.id}" data-price="${p.price}"${p.id === selectedId ? ' selected' : ''}>${p.name}</option>`
+        `<option value="${p.id}" data-price="${p.price}"${p.id === selectedId ? ' selected' : ''}>${p.name} — ${p.vendor}</option>`
       ).join('');
     }
 
