@@ -1,6 +1,7 @@
 import type { IBusinessPartnerRepository } from "../../../business-partner/domain/index.js";
 import type { IProductRepository } from "../../../products/domain/index.js";
 import type { IOrder, IOrderItem, IOrderRepository } from "../../domain/index.js";
+import type { CreateTransaction } from "../../../transactions/application/index.js";
 
 export interface CreatePurchaseOrderItemInput {
   product_id: string;
@@ -12,6 +13,7 @@ export class CreatePurchaseOrder {
     private readonly orderRepository: IOrderRepository,
     private readonly partnerRepository: IBusinessPartnerRepository,
     private readonly productRepository: IProductRepository,
+    private readonly createTransactionUseCase: CreateTransaction,
   ) {}
 
   async execute(
@@ -81,6 +83,8 @@ export class CreatePurchaseOrder {
       updated_at: now,
     };
 
-    return this.orderRepository.save(order);
+    const saved = await this.orderRepository.save(order);
+    await this.createTransactionUseCase.execute(saved.id!, "PAYMENT", createdBy);
+    return saved;
   }
 }

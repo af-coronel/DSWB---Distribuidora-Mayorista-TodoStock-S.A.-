@@ -2,6 +2,7 @@ import type { IBusinessPartnerRepository } from "../../../business-partner/domai
 import type { IProductRepository } from "../../../products/domain/index.js";
 import type { IOrder, IOrderItem, IOrderRepository } from "../../domain/index.js";
 import type { ReserveStock } from "../../../inventory/application/index.js";
+import type { CreateTransaction } from "../../../transactions/application/index.js";
 
 export interface CreateSaleOrderItemInput {
   product_id: string;
@@ -14,6 +15,7 @@ export class CreateSaleOrder {
     private readonly partnerRepository: IBusinessPartnerRepository,
     private readonly productRepository: IProductRepository,
     private readonly reserveStockUseCase: ReserveStock,
+    private readonly createTransactionUseCase: CreateTransaction,
   ) {}
 
   async execute(
@@ -87,6 +89,8 @@ export class CreateSaleOrder {
       updated_at: now,
     };
 
-    return this.orderRepository.save(order);
+    const saved = await this.orderRepository.save(order);
+    await this.createTransactionUseCase.execute(saved.id!, "COLLECTION", createdBy);
+    return saved;
   }
 }

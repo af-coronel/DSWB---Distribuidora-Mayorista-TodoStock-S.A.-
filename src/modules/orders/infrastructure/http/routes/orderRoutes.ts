@@ -23,11 +23,13 @@ import {
   ConfirmSale,
   CreateInventoryLot,
 } from "../../../../inventory/application/index.js";
+import { CreateTransaction } from "../../../../transactions/application/index.js";
 import { OrderController } from "../controllers/OrderController.js";
 import { MongoOrderRepository } from "../../persistence/MongoOrderRepository.js";
 import { MongoBusinessPartnerRepository } from "../../../../business-partner/infrastructure/persistence/MongoBusinessPartnerRepository.js";
 import { MongoProductRepository } from "../../../../products/infrastructure/persistence/MongoProductRepository.js";
 import { MongoInventoryRepository } from "../../../../inventory/infrastructure/persistence/MongoInventoryRepository.js";
+import { MongoTransactionRepository } from "../../../../transactions/infrastructure/persistence/MongoTransactionRepository.js";
 
 const router = Router();
 
@@ -35,19 +37,21 @@ const orderRepository = new MongoOrderRepository();
 const partnerRepository = new MongoBusinessPartnerRepository();
 const productRepository = new MongoProductRepository();
 const inventoryRepository = new MongoInventoryRepository();
+const transactionRepository = new MongoTransactionRepository();
 
 const reserveStock = new ReserveStock(inventoryRepository, productRepository);
 const releaseReservedStock = new ReleaseReservedStock(inventoryRepository, productRepository);
 const confirmSale = new ConfirmSale(inventoryRepository, productRepository);
 const createInventoryLot = new CreateInventoryLot(inventoryRepository, productRepository);
+const createTransaction = new CreateTransaction(transactionRepository, orderRepository);
 
 const orderController = new OrderController(
-  new CreatePurchaseOrder(orderRepository, partnerRepository, productRepository),
+  new CreatePurchaseOrder(orderRepository, partnerRepository, productRepository, createTransaction),
   new ConfirmPurchaseOrder(orderRepository),
   new ReceivePurchaseOrder(orderRepository),
   new AuditPurchaseOrder(orderRepository, createInventoryLot),
   new CancelPurchaseOrder(orderRepository),
-  new CreateSaleOrder(orderRepository, partnerRepository, productRepository, reserveStock),
+  new CreateSaleOrder(orderRepository, partnerRepository, productRepository, reserveStock, createTransaction),
   new ConfirmSalePayment(orderRepository, confirmSale),
   new DispatchSaleOrder(orderRepository),
   new MarkOrderDelivered(orderRepository),
