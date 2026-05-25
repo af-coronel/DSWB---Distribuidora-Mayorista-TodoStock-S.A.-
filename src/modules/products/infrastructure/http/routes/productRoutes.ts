@@ -2,7 +2,12 @@ import { Router } from "express";
 import { authenticate } from "../../../../auth/infrastructure/http/middleware/authMiddleware.js";
 import { authorizeRoles } from "../../../../auth/infrastructure/http/middleware/roleMiddleware.js";
 import { GetAllPartners } from "../../../../business-partner/application/index.js";
-import { GetAllProducts, RegisterProduct } from "../../../application/index.js";
+import {
+  FindProductByNameAndVendorCuit,
+  GetAllProducts,
+  RegisterProduct,
+  UpdateProduct,
+} from "../../../application/index.js";
 import { ProductController } from "../controllers/ProductController.js";
 import { MongoProductRepository } from "../../persistence/MongoProductRepository.js";
 import { MongoBusinessPartnerRepository } from "../../../../business-partner/infrastructure/persistence/MongoBusinessPartnerRepository.js";
@@ -17,10 +22,15 @@ const registerProductUseCase = new RegisterProduct(
 );
 const getAllProductsUseCase = new GetAllProducts(productRepository);
 const getAllPartnersUseCase = new GetAllPartners(partnerRepository);
+const findProductByNameAndVendorCuitUseCase =
+  new FindProductByNameAndVendorCuit(productRepository);
+const updateProductUseCase = new UpdateProduct(productRepository);
 const productController = new ProductController(
   registerProductUseCase,
   getAllProductsUseCase,
   getAllPartnersUseCase,
+  findProductByNameAndVendorCuitUseCase,
+  updateProductUseCase,
 );
 
 router.get("/new", authenticate, (req, res) =>
@@ -32,6 +42,17 @@ router.post(
   authenticate,
   authorizeRoles(["ADMIN", "VENDOR"]),
   (req, res) => productController.create(req, res),
+);
+
+router.get("/:vendor_cuit/:name/edit", authenticate, (req, res) =>
+  productController.renderEditForm(req, res),
+);
+
+router.post(
+  "/:vendor_cuit/:name/edit",
+  authenticate,
+  authorizeRoles(["ADMIN", "VENDOR"]),
+  (req, res) => productController.update(req, res),
 );
 
 router.get("/", authenticate, (req, res) => productController.getAll(req, res));

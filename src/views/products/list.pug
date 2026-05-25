@@ -15,14 +15,17 @@ block content
             th Precio Proveedor
             th Precio Cliente
             th Categoría
+            th Acciones
         tbody
           each product in products
             tr
               td= product.name
-              td= product.vendor_cuit
+              td= product.vendor_name || product.vendor_cuit
               td= `$ ${product.vendor_price}`
               td= `$ ${product.customer_price}`
               td= product.category
+              td
+                a.btn.btn-sm.btn-outline-primary(href=`/api/products/${product.vendor_cuit}/${encodeURIComponent(product.name)}/edit`) Editar
     else
       .alert.alert-info.d-flex.justify-content-between.align-items-center
         span Aún no hay productos registrados.
