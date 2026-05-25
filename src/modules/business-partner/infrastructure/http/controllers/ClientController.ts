@@ -8,6 +8,13 @@ import type {
   UpdatePartner,
 } from "../../../application/index.js";
 import type { IBusinessPartner } from "../../../domain/index.js";
+
+type AuthenticatedRequest = Request & {
+  user?: {
+    id?: string;
+  };
+};
+
 export class ClientController {
   constructor(
     private registerUseCase: RegisterPartner,
@@ -19,10 +26,46 @@ export class ClientController {
   ) {}
 
   async renderCreateForm(req: Request, res: Response) {
-    return res.render("partners/create_clients");
+    return res.render("partners/create_clients", {
+      errorMessage:
+        typeof req.query.error === "string" ? req.query.error : undefined,
+    });
   }
+
+  async renderEditForm(req: Request, res: Response) {
+    try {
+      const { cuit } = req.params;
+
+      if (typeof cuit !== "string" || !/^\d{11}$/.test(cuit)) {
+        return res.status(400).json({ error: true, message: "CUIT inválido" });
+      }
+
+      const client = await this.findByCuitUseCase.execute(cuit);
+
+      if (!client || !client.type.includes("CLIENT")) {
+        return res.status(404).json({
+          error: true,
+          message: "Cliente no encontrado",
+        });
+      }
+
+      return res.render("partners/edit", {
+        partner: client,
+        activeTab: "clients",
+        errorMessage:
+          typeof req.query.error === "string" ? req.query.error : undefined,
+      });
+    } catch (error: any) {
+      return res.status(500).json({
+        error: true,
+        message: error.message,
+      });
+    }
+  }
+
   async create(req: Request, res: Response) {
     try {
+      const request = req as AuthenticatedRequest;
       const {
         cuit,
         legal_name,
@@ -50,8 +93,8 @@ export class ClientController {
         vendor_data: null,
         created_at: new Date(),
         updated_at: new Date(),
-        created_by: req.user?.id || "unknown",
-        updated_by: req.user?.id || "unknown",
+        created_by: request.user?.id || "unknown",
+        updated_by: request.user?.id || "unknown",
       };
 
       await this.registerUseCase?.execute(newClient);
@@ -61,7 +104,7 @@ export class ClientController {
           "application/x-www-form-urlencoded",
         )
       ) {
-        return res.redirect("/api/clients");
+        return res.redirect("/api/clients?created=1");
       }
 
       return res.status(201).json({
@@ -69,6 +112,17 @@ export class ClientController {
         cuit: newClient.cuit,
       });
     } catch (error: any) {
+      if (
+        req.headers["content-type"]?.includes(
+          "application/x-www-form-urlencoded",
+        )
+      ) {
+        return res.status(400).render("partners/create_clients", {
+          errorMessage: error.message,
+          formData: req.body,
+        });
+      }
+
       return res.status(400).json({
         error: true,
         message: error.message,
@@ -102,7 +156,20 @@ export class ClientController {
           message: "Cliente no encontrado",
         });
       }
-      return res.render("partners/detail", { client });
+      return res.render("partners/detail", {
+        partner: client,
+        activeTab: "clients",
+        successMessage:
+          req.query.updated === "1"
+            ? "Cliente actualizado correctamente."
+            : req.query.activated === "1"
+              ? "Cliente activado correctamente."
+              : req.query.deactivated === "1"
+                ? "Cliente desactivado correctamente."
+                : undefined,
+        errorMessage:
+          typeof req.query.error === "string" ? req.query.error : undefined,
+      });
     } catch (error: any) {
       return res.status(500).json({
         error: true,
@@ -122,6 +189,16 @@ export class ClientController {
         return res.render("partners/list", {
           partners: onlyClients,
           activeTab: "clients",
+          successMessage:
+            req.query.created === "1"
+              ? "Cliente registrado correctamente."
+              : req.query.activated === "1"
+                ? "Cliente activado correctamente."
+                : req.query.deactivated === "1"
+                  ? "Cliente desactivado correctamente."
+                  : undefined,
+          errorMessage:
+            typeof req.query.error === "string" ? req.query.error : undefined,
         });
       }
 
@@ -143,20 +220,104 @@ export class ClientController {
 
   async update(req: Request, res: Response) {
     try {
+      const request = req as AuthenticatedRequest;
       const { cuit } = req.params;
-      const userId = req.user?.id || "unknown";
+      const userId = request.user?.id || "unknown";
 
       if (typeof cuit !== "string" || !/^\d{11}$/.test(cuit)) {
         return res.status(400).json({ error: true, message: "CUIT inválido" });
       }
 
-      // Le pasamos el CUIT de la URL, el BODY de la petición y el ID del usuario
-      await this.updateUseCase.execute(cuit, req.body, userId);
+      const currentClient = await this.findByCuitUseCase.execute(cuit);
+
+      if (!currentClient || !currentClient.type.includes("CLIENT")) {
+        return res.status(404).json({
+          error: true,
+          message: "Cliente no encontrado",
+        });
+      }
+
+      const updatePayload: Partial<IBusinessPartner> = {
+        legal_name: req.body.legal_name,
+        phone: req.body.phone,
+        email: req.body.email,
+        legal_address: req.body.legal_address,
+        vat_condition: req.body.vat_condition,
+      };
+
+      if (typeof req.body.credit_limit !== "undefined") {
+        updatePayload.customer_data = {
+          credit_limit: Number(req.body.credit_limit) || 0,
+          current_balance: currentClient.customer_data?.current_balance || 0,
+        };
+
+        if (typeof currentClient.customer_data?.payment_terms !== "undefined") {
+          updatePayload.customer_data.payment_terms =
+            currentClient.customer_data.payment_terms;
+        }
+      }
+
+      await this.updateUseCase.execute(cuit, updatePayload, userId);
+
+      if (
+        req.headers["content-type"]?.includes(
+          "application/x-www-form-urlencoded",
+        )
+      ) {
+        return res.redirect(`/api/clients/${cuit}?updated=1`);
+      }
 
       return res.status(200).json({
         message: "Cliente actualizado correctamente",
       });
     } catch (error: any) {
+      if (
+        req.headers["content-type"]?.includes(
+          "application/x-www-form-urlencoded",
+        )
+      ) {
+        const { cuit } = req.params;
+
+        if (typeof cuit === "string") {
+          const currentClient = await this.findByCuitUseCase.execute(cuit);
+
+          if (currentClient && currentClient.type.includes("CLIENT")) {
+            const partner: IBusinessPartner = {
+              ...currentClient,
+              legal_name: req.body.legal_name ?? currentClient.legal_name,
+              phone: req.body.phone ?? currentClient.phone,
+              email: req.body.email ?? currentClient.email,
+              legal_address:
+                req.body.legal_address ?? currentClient.legal_address,
+              vat_condition:
+                req.body.vat_condition ?? currentClient.vat_condition,
+              customer_data: {
+                credit_limit:
+                  typeof req.body.credit_limit !== "undefined"
+                    ? Number(req.body.credit_limit) || 0
+                    : currentClient.customer_data?.credit_limit || 0,
+                current_balance:
+                  currentClient.customer_data?.current_balance || 0,
+              },
+            };
+
+            if (
+              partner.customer_data &&
+              typeof currentClient.customer_data?.payment_terms !== "undefined"
+            ) {
+              partner.customer_data.payment_terms =
+                currentClient.customer_data.payment_terms;
+            }
+
+            return res.status(400).render("partners/edit", {
+              partner,
+              activeTab: "clients",
+              errorMessage: error.message,
+            });
+          }
+        }
+      }
+
       return res.status(400).json({
         error: true,
         message: error.message,
@@ -166,10 +327,11 @@ export class ClientController {
 
   async deleteSoft(req: Request, res: Response) {
     try {
+      const request = req as AuthenticatedRequest;
       const { cuit } = req.params;
 
       // 1. Extraemos el ID del usuario que hizo la petición
-      const userId = req.user?.id || "unknown";
+      const userId = request.user?.id || "unknown";
 
       if (Array.isArray(cuit)) {
         return res.status(400).json({
@@ -201,8 +363,9 @@ export class ClientController {
 
   async activate(req: Request, res: Response) {
     try {
+      const request = req as AuthenticatedRequest;
       const { cuit } = req.params;
-      const userId = req.user?.id || "unknown";
+      const userId = request.user?.id || "unknown";
 
       if (Array.isArray(cuit)) {
         return res.status(400).json({

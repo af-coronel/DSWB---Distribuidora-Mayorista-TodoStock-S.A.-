@@ -1,6 +1,10 @@
 extends ../layout
 block content
+  - const vendorForm = formData || {}
   .container.mt-5
+    if errorMessage
+      .alert.alert-danger= errorMessage
+
     .row.justify-content-center
       .col-md-8
         .card.shadow
@@ -11,18 +15,30 @@ block content
               .row.mb-3
                 .col-md-6
                   label.form-label CUIT
-                  input.form-control(type="text", name="cuit", required)
+                  input.form-control(type="text", name="cuit", value=vendorForm.cuit || "", required)
                 .col-md-6
                   label.form-label Razón Social
-                  input.form-control(type="text", name="legal_name", required)
+                  input.form-control(type="text", name="legal_name", value=vendorForm.legal_name || "", required)
               
               .row.mb-3
                 .col-md-6
                   label.form-label Email
-                  input.form-control(type="email", name="email", required)
+                  input.form-control(type="email", name="email", value=vendorForm.email || "", required)
                 .col-md-6
                   label.form-label Teléfono
-                  input.form-control(type="text", name="phone")
+                  input.form-control(type="text", name="phone", value=vendorForm.phone || "", required)
+
+              .mb-3
+                label.form-label Dirección Legal
+                input.form-control(type="text", name="legal_address", value=vendorForm.legal_address || "", required)
+
+              .mb-3
+                label.form-label Condición de IVA
+                select.form-select(name="vat_condition", required)
+                  option(value="") Seleccionar condición
+                  option(value="Responsable Inscripto", selected=vendorForm.vat_condition === 'Responsable Inscripto') Responsable Inscripto
+                  option(value="Monotributista", selected=vendorForm.vat_condition === 'Monotributista') Monotributista
+                  option(value="Exento", selected=vendorForm.vat_condition === 'Exento') Exento
 
               hr
               h5 Datos de Logística
@@ -30,14 +46,14 @@ block content
                 .col-md-6
                   label.form-label Categoría
                   select.form-select(name="category")
-                    option(value="Alimentos") Alimentos
-                    option(value="Limpieza") Limpieza
-                    option(value="Bebidas") Bebidas
-                    option(value="Bazar") Bazar
-                    option(value="General") General
+                    option(value="Alimentos", selected=vendorForm.category === 'Alimentos') Alimentos
+                    option(value="Limpieza", selected=vendorForm.category === 'Limpieza') Limpieza
+                    option(value="Bebidas", selected=vendorForm.category === 'Bebidas') Bebidas
+                    option(value="Bazar", selected=vendorForm.category === 'Bazar') Bazar
+                    option(value="General", selected=!vendorForm.category || vendorForm.category === 'General') General
                 .col-md-6
                   label.form-label Lead Time (Días de entrega)
-                  input.form-control(type="number", name="lead_time", value="0")
+                  input.form-control(type="number", name="lead_time", value=typeof vendorForm.lead_time !== 'undefined' ? vendorForm.lead_time : "0")
 
               .d-flex.justify-content-between.mt-4
                 a.btn.btn-secondary(href="/api/vendors") Cancelar
