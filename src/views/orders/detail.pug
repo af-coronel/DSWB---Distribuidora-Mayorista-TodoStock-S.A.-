@@ -1,0 +1,108 @@
+extends ../layout
+
+block content
+  .container.mt-5
+
+    if errorMessage
+      .alert.alert-danger= errorMessage
+      a.btn.btn-secondary(href="/api/orders") Volver al listado
+
+    else if order
+      .d-flex.justify-content-between.align-items-center.mb-3
+        h2
+          span.badge.me-2(class=order.order_type === 'PURCHASE' ? 'bg-primary' : 'bg-success')
+            = order.order_type === 'PURCHASE' ? 'Compra' : 'Venta'
+          | Orden ##{order.id.slice(-6).toUpperCase()}
+        a.btn.btn-outline-secondary(href="/api/orders") Volver al listado
+
+      .row.mb-4
+        .col-md-8
+          .card.shadow-sm
+            .card-header.bg-light
+              strong Información general
+            .card-body
+              .row
+                .col-md-6
+                  p
+                    strong Estado:&nbsp;
+                    span.badge(class=`bg-${statusBadge}`) #{statusLabel}
+                  p
+                    strong Socio:&nbsp;
+                    = partnerName
+                  p
+                    strong CUIT:&nbsp;
+                    = order.partner_cuit
+                .col-md-6
+                  p
+                    strong Total:&nbsp;
+                    = `$ ${order.total_amount.toFixed(2)}`
+                  p
+                    strong Creada:&nbsp;
+                    = new Date(order.created_at).toLocaleDateString('es-AR')
+                  if order.scheduled_date
+                    p
+                      strong Fecha programada:&nbsp;
+                      = new Date(order.scheduled_date).toLocaleDateString('es-AR')
+              if order.notes
+                p
+                  strong Notas:&nbsp;
+                  = order.notes
+
+        .col-md-4
+          .card.shadow-sm
+            .card-header.bg-light
+              strong Acciones
+            .card-body.d-grid.gap-2
+
+              if order.order_type === 'PURCHASE'
+                if order.status === 'PENDING_BUDGET'
+                  form(action=`/api/orders/purchase/${order.id}/confirm`, method="POST")
+                    button.btn.btn-primary.w-100(type="submit") Confirmar orden
+                  form(action=`/api/orders/purchase/${order.id}/cancel`, method="POST")
+                    button.btn.btn-outline-danger.w-100(type="submit") Cancelar orden
+                else if order.status === 'CONFIRMED'
+                  form(action=`/api/orders/purchase/${order.id}/receive`, method="POST")
+                    button.btn.btn-success.w-100(type="submit") Marcar como recibida
+                  form(action=`/api/orders/purchase/${order.id}/cancel`, method="POST")
+                    button.btn.btn-outline-danger.w-100(type="submit") Cancelar orden
+                else
+                  p.text-muted.mb-0.text-center Sin acciones disponibles
+
+              else if order.order_type === 'SALE'
+                if order.status === 'PENDING_PAYMENT'
+                  form(action=`/api/orders/sale/${order.id}/confirm-payment`, method="POST")
+                    button.btn.btn-primary.w-100(type="submit") Confirmar pago
+                  form(action=`/api/orders/sale/${order.id}/cancel`, method="POST")
+                    button.btn.btn-outline-danger.w-100(type="submit") Cancelar orden
+                else if order.status === 'PENDING_ASSEMBLY'
+                  form(action=`/api/orders/sale/${order.id}/deliver`, method="POST")
+                    button.btn.btn-success.w-100(type="submit") Marcar como entregada
+                  form(action=`/api/orders/sale/${order.id}/cancel`, method="POST")
+                    button.btn.btn-outline-danger.w-100(type="submit") Cancelar orden
+                else
+                  p.text-muted.mb-0.text-center Sin acciones disponibles
+
+      .card.shadow-sm
+        .card-header.bg-light
+          strong Ítems de la orden
+        .card-body
+          table.table.table-bordered.mb-0
+            thead.table-light
+              tr
+                th Producto
+                th.text-center Cantidad
+                th.text-end Precio unitario
+                th.text-end Subtotal
+            tbody
+              each item in order.items
+                tr
+                  td= item.product_name
+                  td.text-center= item.quantity
+                  td.text-end= `$ ${item.unit_price.toFixed(2)}`
+                  td.text-end= `$ ${(item.quantity * item.unit_price).toFixed(2)}`
+            tfoot
+              tr.table-dark
+                td(colspan="3")
+                  strong Total
+                td.text-end
+                  strong= `$ ${order.total_amount.toFixed(2)}`
