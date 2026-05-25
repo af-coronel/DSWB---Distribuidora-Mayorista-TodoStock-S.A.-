@@ -8,62 +8,34 @@ block content
 
     .card.shadow-sm.mb-4
       .card-body
-        form.row.g-3(action="/api/products", method="GET")
+        .row.g-3
           .col-md-5
             label.form-label(for="search") Buscar por nombre
-            input#search.form-control(type="text", name="search", value=searchTerm || "", placeholder="Ej. Detergente")
+            input#search.form-control(
+              type="text"
+              name="search"
+              value=searchTerm || ""
+              placeholder="Ej. Detergente"
+              autocomplete="off"
+              hx-get="/api/products"
+              hx-trigger="input changed delay:300ms"
+              hx-target="#product-table"
+              hx-swap="innerHTML"
+              hx-include="[name='view']"
+            )
           .col-md-4
             label.form-label(for="view") Vista
-            select#view.form-select(name="view")
+            select#view.form-select(
+              name="view"
+              hx-get="/api/products"
+              hx-trigger="change"
+              hx-target="#product-table"
+              hx-swap="innerHTML"
+              hx-include="[name='search']"
+            )
               option(value="all", selected=viewMode === 'all') Todos los productos
-              option(value="public_sale", selected=viewMode === 'public_sale') Venta al publico
+              option(value="public_sale", selected=viewMode === 'public_sale') Venta al público
               option(value="internal_use", selected=viewMode === 'internal_use') Consumo interno
-          .col-md-3.d-flex.align-items-end.gap-2
-            button.btn.btn-dark.w-100(type="submit") Aplicar
-            a.btn.btn-outline-secondary.w-100(href="/api/products") Limpiar
 
-    .d-flex.justify-content-between.align-items-center.mb-3
-      p.text-muted.mb-0
-        | Mostrando #{products.length} de #{totalItems || 0} productos
-      if viewMode === 'public_sale'
-        span.badge.bg-primary-subtle.text-primary Venta al publico
-      else if viewMode === 'internal_use'
-        span.badge.bg-secondary-subtle.text-secondary Consumo interno
-      else
-        span.badge.bg-light.text-dark Todos
-
-    if products && products.length > 0
-      table.table.table-striped.table-hover
-        thead.table-dark
-          tr
-            th Nombre
-            th Proveedor
-            th Precio Proveedor
-            th Precio Cliente
-            th Categoría
-            th Acciones
-        tbody
-          each product in products
-            tr
-              td= product.name
-              td= product.vendor_name || product.vendor_cuit
-              td= `$ ${product.vendor_price}`
-              td= `$ ${product.customer_price}`
-              td= product.category
-              td
-                a.btn.btn-sm.btn-outline-primary(href=`/api/products/${product.vendor_cuit}/${encodeURIComponent(product.name)}/edit`) Editar
-
-      if totalPages > 1
-        nav.mt-4(aria-label="Paginación de productos")
-          ul.pagination.justify-content-center.mb-0
-            li.page-item(class=currentPage === 1 ? 'disabled' : '')
-              a.page-link(href=`/api/products?view=${encodeURIComponent(viewMode || 'all')}&search=${encodeURIComponent(searchTerm || '')}&page=${currentPage - 1}`) Anterior
-            - for (let page = 1; page <= totalPages; page++)
-              li.page-item(class=page === currentPage ? 'active' : '')
-                a.page-link(href=`/api/products?view=${encodeURIComponent(viewMode || 'all')}&search=${encodeURIComponent(searchTerm || '')}&page=${page}`)= page
-            li.page-item(class=currentPage === totalPages ? 'disabled' : '')
-              a.page-link(href=`/api/products?view=${encodeURIComponent(viewMode || 'all')}&search=${encodeURIComponent(searchTerm || '')}&page=${currentPage + 1}`) Siguiente
-    else
-      .alert.alert-info.d-flex.justify-content-between.align-items-center
-        span No hay productos para los filtros seleccionados.
-        a.btn.btn-sm.btn-primary(href="/api/products/new") Crear producto
+    #product-table
+      include _table

@@ -1,0 +1,60 @@
+.d-flex.justify-content-between.align-items-center.mb-3
+  p.text-muted.mb-0
+    | Mostrando #{products.length} de #{totalItems || 0} productos
+  if viewMode === 'public_sale'
+    span.badge.bg-primary-subtle.text-primary Venta al público
+  else if viewMode === 'internal_use'
+    span.badge.bg-secondary-subtle.text-secondary Consumo interno
+  else
+    span.badge.bg-light.text-dark Todos
+
+if products && products.length > 0
+  table.table.table-striped.table-hover
+    thead.table-dark
+      tr
+        th Nombre
+        th Proveedor
+        th Precio Proveedor
+        th Precio Cliente
+        th Categoría
+        th Acciones
+    tbody
+      each product in products
+        tr
+          td= product.name
+          td= product.vendor_name || product.vendor_cuit
+          td= `$ ${product.vendor_price}`
+          td= `$ ${product.customer_price}`
+          td= product.category
+          td
+            a.btn.btn-sm.btn-outline-primary(href=`/api/products/${product.vendor_cuit}/${encodeURIComponent(product.name)}/edit`) Editar
+
+  if totalPages > 1
+    nav.mt-4(aria-label="Paginación de productos")
+      ul.pagination.justify-content-center.mb-0
+        li.page-item(class=currentPage === 1 ? 'disabled' : '')
+          a.page-link(
+            href=`/api/products?view=${encodeURIComponent(viewMode || 'all')}&search=${encodeURIComponent(searchTerm || '')}&page=${currentPage - 1}`
+            hx-get=`/api/products?view=${encodeURIComponent(viewMode || 'all')}&search=${encodeURIComponent(searchTerm || '')}&page=${currentPage - 1}`
+            hx-target="#product-table"
+            hx-swap="innerHTML"
+          ) Anterior
+        - for (let page = 1; page <= totalPages; page++)
+          li.page-item(class=page === currentPage ? 'active' : '')
+            a.page-link(
+              href=`/api/products?view=${encodeURIComponent(viewMode || 'all')}&search=${encodeURIComponent(searchTerm || '')}&page=${page}`
+              hx-get=`/api/products?view=${encodeURIComponent(viewMode || 'all')}&search=${encodeURIComponent(searchTerm || '')}&page=${page}`
+              hx-target="#product-table"
+              hx-swap="innerHTML"
+            )= page
+        li.page-item(class=currentPage === totalPages ? 'disabled' : '')
+          a.page-link(
+            href=`/api/products?view=${encodeURIComponent(viewMode || 'all')}&search=${encodeURIComponent(searchTerm || '')}&page=${currentPage + 1}`
+            hx-get=`/api/products?view=${encodeURIComponent(viewMode || 'all')}&search=${encodeURIComponent(searchTerm || '')}&page=${currentPage + 1}`
+            hx-target="#product-table"
+            hx-swap="innerHTML"
+          ) Siguiente
+else
+  .alert.alert-info.d-flex.justify-content-between.align-items-center
+    span No hay productos para los filtros seleccionados.
+    a.btn.btn-sm.btn-primary(href="/api/products/new") Crear producto
