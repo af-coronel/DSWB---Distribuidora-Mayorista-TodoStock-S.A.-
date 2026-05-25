@@ -7,6 +7,14 @@ export class AuthController {
   async renderLogin(req: Request, res: Response) {
     res.render("auth/login");
   }
+  async logout(req: Request, res: Response) {
+    res.clearCookie("token", { httpOnly: true, secure: false });
+    if (req.headers["accept"]?.includes("text/html")) {
+      return res.redirect("/");
+    }
+    return res.status(200).json({ message: "Sesión cerrada correctamente" });
+  }
+
   async login(req: Request, res: Response) {
     try {
       const { email, passwordHash } = req.body;
