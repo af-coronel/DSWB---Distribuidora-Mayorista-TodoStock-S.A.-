@@ -26,14 +26,14 @@ block content
             th
         tbody
           each tx in transactions
-            - const badge = statusBadge[tx.status] || 'secondary'
+            - const badge = statusBadge[tx.status] || 'neutral'
             - const label = (tx.status === 'COMPLETED' && tx.transaction_type === 'COLLECTION') ? 'Cobrada' : (statusLabel[tx.status] || tx.status)
             tr
               td
-                span.badge(class=tx.transaction_type === 'PAYMENT' ? 'bg-primary' : 'bg-success')
+                span.entity-pill(class=tx.transaction_type === 'PAYMENT' ? 'entity-payment' : 'entity-collection')
                   = typeLabel[tx.transaction_type]
               td
-                span.badge(class=`bg-${badge}`) #{label}
+                span.status-pill(class=`status-${badge}`) #{label}
               td= tx.order_id.slice(-6).toUpperCase()
               td= tx.pos_number || '—'
               td= tx.document_number || '—'

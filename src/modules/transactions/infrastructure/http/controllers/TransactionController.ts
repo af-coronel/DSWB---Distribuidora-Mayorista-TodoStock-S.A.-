@@ -20,12 +20,12 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 const STATUS_BADGE: Record<string, string> = {
-  TO_VERIFY: "warning",
-  VERIFIED: "info",
-  PENDING_PAYMENT: "primary",
-  PENDING: "warning",
-  COMPLETED: "success",
-  CANCELLED: "danger",
+  TO_VERIFY: "attention",
+  VERIFIED: "progress",
+  PENDING_PAYMENT: "progress",
+  PENDING: "attention",
+  COMPLETED: "done",
+  CANCELLED: "cancelled",
 };
 
 const TYPE_LABEL: Record<string, string> = {

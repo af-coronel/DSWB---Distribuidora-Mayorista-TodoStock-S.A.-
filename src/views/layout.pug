@@ -66,6 +66,72 @@ html(lang="es")
         padding-left: 1.75rem;
         padding-right: 1.75rem;
       }
+
+      .status-pill,
+      .entity-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: .25rem;
+        border-radius: 999px;
+        padding: .35rem .7rem;
+        font-size: .78rem;
+        font-weight: 700;
+        letter-spacing: .01em;
+      }
+
+      .status-attention {
+        background: #fff3cd;
+        color: #7a4b00;
+        border: 1px solid #f6d68a;
+      }
+
+      .status-progress {
+        background: #e1effe;
+        color: #114a78;
+        border: 1px solid #b8d7f5;
+      }
+
+      .status-done {
+        background: #dcf5e7;
+        color: #17603a;
+        border: 1px solid #b9e8cd;
+      }
+
+      .status-cancelled {
+        background: #fde2e4;
+        color: #8c2331;
+        border: 1px solid #f5bcc4;
+      }
+
+      .status-neutral {
+        background: #edf1f5;
+        color: #475467;
+        border: 1px solid #d8e0e8;
+      }
+
+      .entity-purchase {
+        background: #eaf2ff;
+        color: #1d4f91;
+        border: 1px solid #c8daf8;
+      }
+
+      .entity-sale {
+        background: #e7f8f2;
+        color: #116149;
+        border: 1px solid #c3eadc;
+      }
+
+      .entity-payment {
+        background: #ebe9ff;
+        color: #4a3fa1;
+        border: 1px solid #d1cbfa;
+      }
+
+      .entity-collection {
+        background: #e8f7ee;
+        color: #1e6a48;
+        border: 1px solid #c6e8d3;
+      }
   body
     if activeTab
       .d-flex

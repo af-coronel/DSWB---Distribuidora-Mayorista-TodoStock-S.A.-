@@ -20,18 +20,18 @@ const ORDER_STATUS_LABEL: Record<string, string> = {
 };
 
 const ORDER_STATUS_BADGE: Record<string, string> = {
-  TO_VERIFY_BUDGET: "warning",
-  PENDING_BUDGET: "warning",
-  TO_CONFIRM: "warning",
-  CONFIRMED: "primary",
-  RECEIVED: "info",
-  AUDITED: "success",
-  TO_VERIFY_COLLECTION: "warning",
-  PENDING_PAYMENT: "warning",
-  PENDING_ASSEMBLY: "info",
-  DISPATCHING: "primary",
-  DELIVERED: "success",
-  CANCELLED: "danger",
+  TO_VERIFY_BUDGET: "attention",
+  PENDING_BUDGET: "attention",
+  TO_CONFIRM: "attention",
+  CONFIRMED: "progress",
+  RECEIVED: "progress",
+  AUDITED: "done",
+  TO_VERIFY_COLLECTION: "attention",
+  PENDING_PAYMENT: "attention",
+  PENDING_ASSEMBLY: "progress",
+  DISPATCHING: "progress",
+  DELIVERED: "done",
+  CANCELLED: "cancelled",
 };
 
 export class InventoryController {

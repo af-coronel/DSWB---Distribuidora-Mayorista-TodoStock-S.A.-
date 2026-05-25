@@ -23,7 +23,7 @@ block content
       if purchaseTasks && purchaseTasks.length > 0
         .row.g-3
           each order in purchaseTasks
-            - const badge = statusBadge[order.status] || 'secondary'
+            - const badge = statusBadge[order.status] || 'neutral'
             - const label = statusLabel[order.status] || order.status
             .col-12
               .card.shadow-sm
@@ -32,7 +32,7 @@ block content
                     div
                       h5.mb-1 Orden ##{order.id.slice(-6).toUpperCase()}
                       p.text-muted.mb-2 #{partnerMap[order.partner_cuit] || order.partner_cuit}
-                      span.badge(class=`bg-${badge}`) #{label}
+                      span.status-pill(class=`status-${badge}`) #{label}
                     div.text-end
                       p.mb-1
                         strong Ítems:&nbsp;
@@ -55,7 +55,7 @@ block content
       if saleTasks && saleTasks.length > 0
         .row.g-3
           each order in saleTasks
-            - const badge = statusBadge[order.status] || 'secondary'
+            - const badge = statusBadge[order.status] || 'neutral'
             - const label = statusLabel[order.status] || order.status
             .col-12
               .card.shadow-sm
@@ -64,7 +64,7 @@ block content
                     div
                       h5.mb-1 Orden ##{order.id.slice(-6).toUpperCase()}
                       p.text-muted.mb-2 #{partnerMap[order.partner_cuit] || order.partner_cuit}
-                      span.badge(class=`bg-${badge}`) #{label}
+                      span.status-pill(class=`status-${badge}`) #{label}
                     div.text-end
                       p.mb-1
                         strong Ítems:&nbsp;

@@ -19,7 +19,7 @@ block content
 
       .d-flex.justify-content-between.align-items-center.mb-3
         h2
-          span.badge.me-2(class=transaction.transaction_type === 'PAYMENT' ? 'bg-primary' : 'bg-success')
+          span.entity-pill.me-2(class=transaction.transaction_type === 'PAYMENT' ? 'entity-payment' : 'entity-collection')
             = typeLabel
           | Transacción ##{transaction.id.slice(-6).toUpperCase()}
         a.btn.btn-outline-secondary(href="/api/transactions") Volver al listado
@@ -34,7 +34,7 @@ block content
                 .col-md-6
                   p
                     strong Estado:&nbsp;
-                    span.badge(class=`bg-${statusBadge}`) #{statusLabel}
+                    span.status-pill(class=`status-${statusBadge}`) #{statusLabel}
                   p
                     strong Orden asociada:&nbsp;
                     a(href=`/api/orders/${transaction.order_id}`)
