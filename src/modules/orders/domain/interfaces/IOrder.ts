@@ -18,6 +18,7 @@ export interface IOrder {
   partner_cuit: string;
   items: IOrderItem[];
   total_amount: number;
+  scheduled_date?: Date;
   notes?: string;
   created_by: string;
   created_at: Date;

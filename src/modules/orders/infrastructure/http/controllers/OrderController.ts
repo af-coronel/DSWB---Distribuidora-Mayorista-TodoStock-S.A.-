@@ -32,12 +32,13 @@ export class OrderController {
   async createPurchaseOrder(req: Request, res: Response) {
     try {
       const request = req as AuthenticatedRequest;
-      const { partner_cuit, items, notes } = req.body;
+      const { partner_cuit, items, scheduled_date, notes } = req.body;
 
       const order = await this.createPurchaseOrderUseCase.execute(
         partner_cuit,
         items as IOrderItem[],
         request.user?.id || "unknown",
+        scheduled_date ? new Date(scheduled_date) : undefined,
         notes,
       );
 
@@ -89,12 +90,13 @@ export class OrderController {
   async createSaleOrder(req: Request, res: Response) {
     try {
       const request = req as AuthenticatedRequest;
-      const { partner_cuit, items, notes } = req.body;
+      const { partner_cuit, items, scheduled_date, notes } = req.body;
 
       const order = await this.createSaleOrderUseCase.execute(
         partner_cuit,
         items as IOrderItem[],
         request.user?.id || "unknown",
+        scheduled_date ? new Date(scheduled_date) : undefined,
         notes,
       );
 

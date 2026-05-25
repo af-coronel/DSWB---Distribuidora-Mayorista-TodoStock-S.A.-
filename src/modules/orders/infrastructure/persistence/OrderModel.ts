@@ -32,6 +32,7 @@ const OrderSchema = new Schema<OrderDocument>(
     partner_cuit: { type: String, required: true },
     items: { type: [OrderItemSchema], required: true },
     total_amount: { type: Number, required: true, min: 0 },
+    scheduled_date: { type: Date, default: null },
     notes: { type: String, default: null },
     created_by: { type: String, required: true },
     created_at: { type: Date, required: true },

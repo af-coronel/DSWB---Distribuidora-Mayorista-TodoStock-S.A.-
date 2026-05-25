@@ -11,6 +11,7 @@ export class CreateSaleOrder {
     partnerCuit: string,
     items: IOrderItem[],
     createdBy: string,
+    scheduledDate?: Date,
     notes?: string,
   ): Promise<IOrder> {
     if (!partnerCuit?.trim()) {
@@ -49,6 +50,7 @@ export class CreateSaleOrder {
       partner_cuit: partnerCuit,
       items,
       total_amount: total,
+      scheduled_date: scheduledDate,
       notes,
       created_by: createdBy,
       created_at: now,
