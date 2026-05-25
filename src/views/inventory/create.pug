@@ -28,11 +28,11 @@ block content
                   select.form-select(name="product_id", required)
                     option(value="") Seleccionar producto
                     each product in products
-                      option(value=product.id)= `${product.name}`
+                      option(value=product.id, selected=(formData && formData.product_id === product.id))= `${product.name}`
 
                 .mb-3
                   label.form-label Stock inicial
-                  input.form-control(type="number", name="stock", min="1", required, placeholder="Ej: 100")
+                  input.form-control(type="number", name="stock", min="1", required, placeholder="Ej: 100", value=(formData ? formData.stock : ''))
 
                 .mb-3
                   label.form-label Fecha de vencimiento (opcional)

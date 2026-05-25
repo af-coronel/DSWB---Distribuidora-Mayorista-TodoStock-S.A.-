@@ -108,6 +108,7 @@ export class OrderController {
         partnerName: partner?.legal_name || order.partner_cuit,
         statusLabel: STATUS_LABEL[order.status] || order.status,
         statusBadge: STATUS_BADGE[order.status] || "secondary",
+        flashError: (req.query.error as string) || undefined,
       });
     } catch (error: any) {
       return res.status(404).render("orders/detail", {
@@ -159,7 +160,7 @@ export class OrderController {
       if (isFormRequest(req)) return res.redirect(`/api/orders/${id}`);
       return res.status(200).json({ message: "Orden de compra confirmada" });
     } catch (error: any) {
-      if (isFormRequest(req)) return res.redirect(`/api/orders/${req.params.id}`);
+      if (isFormRequest(req)) return res.redirect(`/api/orders/${req.params.id}?error=${encodeURIComponent(error.message)}`);
       return res.status(400).json({ error: true, message: error.message });
     }
   }
@@ -172,7 +173,7 @@ export class OrderController {
       if (isFormRequest(req)) return res.redirect(`/api/orders/${id}`);
       return res.status(200).json({ message: "Orden de compra marcada como recibida" });
     } catch (error: any) {
-      if (isFormRequest(req)) return res.redirect(`/api/orders/${req.params.id}`);
+      if (isFormRequest(req)) return res.redirect(`/api/orders/${req.params.id}?error=${encodeURIComponent(error.message)}`);
       return res.status(400).json({ error: true, message: error.message });
     }
   }
@@ -185,7 +186,7 @@ export class OrderController {
       if (isFormRequest(req)) return res.redirect(`/api/orders/${id}`);
       return res.status(200).json({ message: "Orden de compra cancelada" });
     } catch (error: any) {
-      if (isFormRequest(req)) return res.redirect(`/api/orders/${req.params.id}`);
+      if (isFormRequest(req)) return res.redirect(`/api/orders/${req.params.id}?error=${encodeURIComponent(error.message)}`);
       return res.status(400).json({ error: true, message: error.message });
     }
   }
@@ -232,7 +233,7 @@ export class OrderController {
       if (isFormRequest(req)) return res.redirect(`/api/orders/${id}`);
       return res.status(200).json({ message: "Pago de orden de venta confirmado" });
     } catch (error: any) {
-      if (isFormRequest(req)) return res.redirect(`/api/orders/${req.params.id}`);
+      if (isFormRequest(req)) return res.redirect(`/api/orders/${req.params.id}?error=${encodeURIComponent(error.message)}`);
       return res.status(400).json({ error: true, message: error.message });
     }
   }
@@ -245,7 +246,7 @@ export class OrderController {
       if (isFormRequest(req)) return res.redirect(`/api/orders/${id}`);
       return res.status(200).json({ message: "Orden de venta marcada como entregada" });
     } catch (error: any) {
-      if (isFormRequest(req)) return res.redirect(`/api/orders/${req.params.id}`);
+      if (isFormRequest(req)) return res.redirect(`/api/orders/${req.params.id}?error=${encodeURIComponent(error.message)}`);
       return res.status(400).json({ error: true, message: error.message });
     }
   }
@@ -258,7 +259,7 @@ export class OrderController {
       if (isFormRequest(req)) return res.redirect(`/api/orders/${id}`);
       return res.status(200).json({ message: "Orden de venta marcada como a despachar" });
     } catch (error: any) {
-      if (isFormRequest(req)) return res.redirect(`/api/orders/${req.params.id}`);
+      if (isFormRequest(req)) return res.redirect(`/api/orders/${req.params.id}?error=${encodeURIComponent(error.message)}`);
       return res.status(400).json({ error: true, message: error.message });
     }
   }
@@ -324,7 +325,7 @@ export class OrderController {
       if (isFormRequest(req)) return res.redirect(`/api/orders/${id}`);
       return res.status(200).json({ message: "Orden de venta cancelada" });
     } catch (error: any) {
-      if (isFormRequest(req)) return res.redirect(`/api/orders/${req.params.id}`);
+      if (isFormRequest(req)) return res.redirect(`/api/orders/${req.params.id}?error=${encodeURIComponent(error.message)}`);
       return res.status(400).json({ error: true, message: error.message });
     }
   }

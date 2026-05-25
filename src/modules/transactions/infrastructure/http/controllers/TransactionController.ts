@@ -74,6 +74,7 @@ export class TransactionController {
         statusLabel: STATUS_LABEL[transaction.status] || transaction.status,
         statusBadge: STATUS_BADGE[transaction.status] || "secondary",
         typeLabel: TYPE_LABEL[transaction.transaction_type],
+        flashError: (req.query.error as string) || undefined,
       });
     } catch (error: any) {
       return res.status(404).render("transactions/detail", {
@@ -143,7 +144,7 @@ export class TransactionController {
       if (isFormRequest(req)) return res.redirect(`/api/transactions/${id}`);
       return res.status(200).json({ message: "Transacción completada" });
     } catch (error: any) {
-      if (isFormRequest(req)) return res.redirect(`/api/transactions/${req.params.id}`);
+      if (isFormRequest(req)) return res.redirect(`/api/transactions/${req.params.id}?error=${encodeURIComponent(error.message)}`);
       return res.status(400).json({ error: true, message: error.message });
     }
   }
@@ -156,7 +157,7 @@ export class TransactionController {
       if (isFormRequest(req)) return res.redirect(`/api/transactions/${id}`);
       return res.status(200).json({ message: "Transacción cancelada" });
     } catch (error: any) {
-      if (isFormRequest(req)) return res.redirect(`/api/transactions/${req.params.id}`);
+      if (isFormRequest(req)) return res.redirect(`/api/transactions/${req.params.id}?error=${encodeURIComponent(error.message)}`);
       return res.status(400).json({ error: true, message: error.message });
     }
   }
