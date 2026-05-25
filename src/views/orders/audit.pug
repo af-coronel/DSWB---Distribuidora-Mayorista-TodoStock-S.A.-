@@ -14,7 +14,7 @@ block content
 
       .alert.alert-info
         i.bi.bi-info-circle.me-2
-        | Ingresá la fecha de vencimiento de cada lote recibido. Al confirmar, el stock se registrará en el sistema.
+        | Revisá cada ítem e informá la cantidad recibida en buen estado. El total de la orden de pago se recalculará automáticamente.
 
       .card.shadow
         .card-header.bg-dark.text-white
@@ -25,7 +25,8 @@ block content
               thead.table-light
                 tr
                   th Producto
-                  th.text-center Cantidad
+                  th.text-center Cantidad pedida
+                  th.text-center Cantidad recibida en buen estado
                   th Fecha de vencimiento (opcional)
               tbody
                 each item, index in order.items
@@ -33,11 +34,19 @@ block content
                     td
                       = item.product_name
                       input(type="hidden", name=`items[${index}][product_id]`, value=item.product_id)
+                    td.text-center= item.quantity
                     td.text-center
-                      = item.quantity
+                      input.form-control.form-control-sm.text-center(
+                        type="number"
+                        name=`items[${index}][received_quantity]`
+                        value=item.quantity
+                        min="0"
+                        max=item.quantity
+                        required
+                      )
                     td
                       input.form-control.form-control-sm(
-                        type="date",
+                        type="date"
                         name=`items[${index}][expiration_date]`
                       )
 

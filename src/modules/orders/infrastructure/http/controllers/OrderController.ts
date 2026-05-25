@@ -295,6 +295,7 @@ export class OrderController {
 
       const auditItems: AuditItemInput[] = validItems.map((item: any) => ({
         product_id: item.product_id,
+        received_quantity: Number(item.received_quantity),
         expiration_date: item.expiration_date ? new Date(item.expiration_date) : null,
       }));
 
