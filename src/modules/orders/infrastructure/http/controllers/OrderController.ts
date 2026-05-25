@@ -5,8 +5,11 @@ import type { ReceivePurchaseOrder } from "../../../application/use-cases/Receiv
 import type { CancelPurchaseOrder } from "../../../application/use-cases/CancelPurchaseOrder.js";
 import type { CreateSaleOrder } from "../../../application/use-cases/CreateSaleOrder.js";
 import type { ConfirmSalePayment } from "../../../application/use-cases/ConfirmSalePayment.js";
+import type { DispatchSaleOrder } from "../../../application/use-cases/DispatchSaleOrder.js";
 import type { MarkOrderDelivered } from "../../../application/use-cases/MarkOrderDelivered.js";
 import type { CancelSaleOrder } from "../../../application/use-cases/CancelSaleOrder.js";
+import type { AuditPurchaseOrder } from "../../../application/use-cases/AuditPurchaseOrder.js";
+import type { AuditItemInput } from "../../../application/use-cases/AuditPurchaseOrder.js";
 import type { GetAllOrders } from "../../../application/use-cases/GetAllOrders.js";
 import type { GetOrderById } from "../../../application/use-cases/GetOrderById.js";
 import type { GetAllPartners } from "../../../../business-partner/application/index.js";
@@ -23,8 +26,10 @@ const STATUS_LABEL: Record<string, string> = {
   PENDING_BUDGET: "Presupuesto pendiente",
   CONFIRMED: "Confirmada",
   RECEIVED: "Recibida",
+  AUDITED: "Auditada",
   PENDING_PAYMENT: "Pago pendiente",
   PENDING_ASSEMBLY: "En preparación",
+  DISPATCHING: "A despachar",
   DELIVERED: "Entregada",
   CANCELLED: "Cancelada",
 };
@@ -32,9 +37,11 @@ const STATUS_LABEL: Record<string, string> = {
 const STATUS_BADGE: Record<string, string> = {
   PENDING_BUDGET: "warning",
   CONFIRMED: "primary",
-  RECEIVED: "success",
+  RECEIVED: "info",
+  AUDITED: "success",
   PENDING_PAYMENT: "warning",
   PENDING_ASSEMBLY: "info",
+  DISPATCHING: "primary",
   DELIVERED: "success",
   CANCELLED: "danger",
 };
@@ -47,9 +54,11 @@ export class OrderController {
     private readonly createPurchaseOrderUseCase: CreatePurchaseOrder,
     private readonly confirmPurchaseOrderUseCase: ConfirmPurchaseOrder,
     private readonly receivePurchaseOrderUseCase: ReceivePurchaseOrder,
+    private readonly auditPurchaseOrderUseCase: AuditPurchaseOrder,
     private readonly cancelPurchaseOrderUseCase: CancelPurchaseOrder,
     private readonly createSaleOrderUseCase: CreateSaleOrder,
     private readonly confirmSalePaymentUseCase: ConfirmSalePayment,
+    private readonly dispatchSaleOrderUseCase: DispatchSaleOrder,
     private readonly markOrderDeliveredUseCase: MarkOrderDelivered,
     private readonly cancelSaleOrderUseCase: CancelSaleOrder,
     private readonly getAllOrdersUseCase: GetAllOrders,
@@ -237,6 +246,73 @@ export class OrderController {
       return res.status(200).json({ message: "Orden de venta marcada como entregada" });
     } catch (error: any) {
       if (isFormRequest(req)) return res.redirect(`/api/orders/${req.params.id}`);
+      return res.status(400).json({ error: true, message: error.message });
+    }
+  }
+
+  async dispatchSaleOrder(req: Request, res: Response) {
+    const request = req as AuthenticatedRequest;
+    try {
+      const { id } = req.params;
+      await this.dispatchSaleOrderUseCase.execute(id, request.user?.id || "unknown");
+      if (isFormRequest(req)) return res.redirect(`/api/orders/${id}`);
+      return res.status(200).json({ message: "Orden de venta marcada como a despachar" });
+    } catch (error: any) {
+      if (isFormRequest(req)) return res.redirect(`/api/orders/${req.params.id}`);
+      return res.status(400).json({ error: true, message: error.message });
+    }
+  }
+
+  async renderAuditForm(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const order = await this.getOrderByIdUseCase.execute(id);
+      if (order.status !== "RECEIVED") {
+        return res.redirect(`/api/orders/${id}`);
+      }
+      return res.render("orders/audit", {
+        activeTab: "orders",
+        order,
+      });
+    } catch (error: any) {
+      return res.status(404).render("orders/audit", {
+        activeTab: "orders",
+        errorMessage: error.message,
+      });
+    }
+  }
+
+  async auditPurchaseOrder(req: Request, res: Response) {
+    const request = req as AuthenticatedRequest;
+    try {
+      const { id } = req.params;
+      const { items } = req.body;
+
+      const validItems = (items ?? []).filter(Boolean);
+
+      const auditItems: AuditItemInput[] = validItems.map((item: any) => ({
+        product_id: item.product_id,
+        quantity: Number(item.quantity),
+        expiration_date: item.expiration_date ? new Date(item.expiration_date) : null,
+      }));
+
+      await this.auditPurchaseOrderUseCase.execute(id, auditItems, request.user?.id || "unknown");
+
+      if (isFormRequest(req)) return res.redirect(`/api/orders/${id}`);
+      return res.status(200).json({ message: "Orden de compra auditada correctamente" });
+    } catch (error: any) {
+      if (isFormRequest(req)) {
+        try {
+          const order = await this.getOrderByIdUseCase.execute(req.params.id);
+          return res.status(400).render("orders/audit", {
+            activeTab: "orders",
+            order,
+            errorMessage: error.message,
+          });
+        } catch {
+          return res.redirect(`/api/orders/${req.params.id}`);
+        }
+      }
       return res.status(400).json({ error: true, message: error.message });
     }
   }

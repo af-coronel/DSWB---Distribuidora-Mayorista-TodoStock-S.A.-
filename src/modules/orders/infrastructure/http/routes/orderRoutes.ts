@@ -5,9 +5,11 @@ import {
   CreatePurchaseOrder,
   ConfirmPurchaseOrder,
   ReceivePurchaseOrder,
+  AuditPurchaseOrder,
   CancelPurchaseOrder,
   CreateSaleOrder,
   ConfirmSalePayment,
+  DispatchSaleOrder,
   MarkOrderDelivered,
   CancelSaleOrder,
   GetAllOrders,
@@ -19,6 +21,7 @@ import {
   ReserveStock,
   ReleaseReservedStock,
   ConfirmSale,
+  CreateInventoryLot,
 } from "../../../../inventory/application/index.js";
 import { OrderController } from "../controllers/OrderController.js";
 import { MongoOrderRepository } from "../../persistence/MongoOrderRepository.js";
@@ -33,15 +36,22 @@ const partnerRepository = new MongoBusinessPartnerRepository();
 const productRepository = new MongoProductRepository();
 const inventoryRepository = new MongoInventoryRepository();
 
+const reserveStock = new ReserveStock(inventoryRepository, productRepository);
+const releaseReservedStock = new ReleaseReservedStock(inventoryRepository, productRepository);
+const confirmSale = new ConfirmSale(inventoryRepository, productRepository);
+const createInventoryLot = new CreateInventoryLot(inventoryRepository, productRepository);
+
 const orderController = new OrderController(
   new CreatePurchaseOrder(orderRepository, partnerRepository, productRepository),
   new ConfirmPurchaseOrder(orderRepository),
   new ReceivePurchaseOrder(orderRepository),
+  new AuditPurchaseOrder(orderRepository, createInventoryLot),
   new CancelPurchaseOrder(orderRepository),
-  new CreateSaleOrder(orderRepository, partnerRepository, productRepository),
-  new ConfirmSalePayment(orderRepository, new ReserveStock(inventoryRepository, productRepository)),
-  new MarkOrderDelivered(orderRepository, new ConfirmSale(inventoryRepository, productRepository)),
-  new CancelSaleOrder(orderRepository, new ReleaseReservedStock(inventoryRepository, productRepository)),
+  new CreateSaleOrder(orderRepository, partnerRepository, productRepository, reserveStock),
+  new ConfirmSalePayment(orderRepository, confirmSale),
+  new DispatchSaleOrder(orderRepository),
+  new MarkOrderDelivered(orderRepository),
+  new CancelSaleOrder(orderRepository, releaseReservedStock),
   new GetAllOrders(orderRepository),
   new GetOrderById(orderRepository),
   new GetAllPartners(partnerRepository),
@@ -91,6 +101,18 @@ router.patch(
   authorizeRoles(["ADMIN", "VENDOR"]),
   (req, res) => orderController.receivePurchaseOrder(req, res),
 );
+router.get(
+  "/purchase/:id/audit",
+  authenticate,
+  authorizeRoles(["ADMIN", "VENDOR"]),
+  (req, res) => orderController.renderAuditForm(req, res),
+);
+router.post(
+  "/purchase/:id/audit",
+  authenticate,
+  authorizeRoles(["ADMIN", "VENDOR"]),
+  (req, res) => orderController.auditPurchaseOrder(req, res),
+);
 router.post(
   "/purchase/:id/cancel",
   authenticate,
@@ -122,6 +144,18 @@ router.patch(
   authenticate,
   authorizeRoles(["ADMIN", "VENDOR"]),
   (req, res) => orderController.confirmSalePayment(req, res),
+);
+router.post(
+  "/sale/:id/dispatch",
+  authenticate,
+  authorizeRoles(["ADMIN", "VENDOR"]),
+  (req, res) => orderController.dispatchSaleOrder(req, res),
+);
+router.patch(
+  "/sale/:id/dispatch",
+  authenticate,
+  authorizeRoles(["ADMIN", "VENDOR"]),
+  (req, res) => orderController.dispatchSaleOrder(req, res),
 );
 router.post(
   "/sale/:id/deliver",
