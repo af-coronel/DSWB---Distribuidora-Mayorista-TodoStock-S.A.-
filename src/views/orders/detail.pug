@@ -57,7 +57,7 @@ block content
               if order.order_type === 'PURCHASE'
                 if order.status === 'PENDING_BUDGET'
                   form(action=`/api/orders/purchase/${order.id}/confirm`, method="POST")
-                    button.btn.btn-primary.w-100(type="submit") Confirmar orden
+                    button.btn.btn-primary.w-100(type="submit") Confirmar presupuesto
                   form(action=`/api/orders/purchase/${order.id}/cancel`, method="POST")
                     button.btn.btn-outline-danger.w-100(type="submit") Cancelar orden
                 else if order.status === 'CONFIRMED'
@@ -65,6 +65,8 @@ block content
                     button.btn.btn-success.w-100(type="submit") Marcar como recibida
                   form(action=`/api/orders/purchase/${order.id}/cancel`, method="POST")
                     button.btn.btn-outline-danger.w-100(type="submit") Cancelar orden
+                else if order.status === 'RECEIVED'
+                  a.btn.btn-warning.w-100(href=`/api/orders/purchase/${order.id}/audit`) Auditar orden
                 else
                   p.text-muted.mb-0.text-center Sin acciones disponibles
 
@@ -75,8 +77,13 @@ block content
                   form(action=`/api/orders/sale/${order.id}/cancel`, method="POST")
                     button.btn.btn-outline-danger.w-100(type="submit") Cancelar orden
                 else if order.status === 'PENDING_ASSEMBLY'
+                  form(action=`/api/orders/sale/${order.id}/dispatch`, method="POST")
+                    button.btn.btn-info.w-100.text-white(type="submit") Confirmar armado
+                  form(action=`/api/orders/sale/${order.id}/cancel`, method="POST")
+                    button.btn.btn-outline-danger.w-100(type="submit") Cancelar orden
+                else if order.status === 'DISPATCHING'
                   form(action=`/api/orders/sale/${order.id}/deliver`, method="POST")
-                    button.btn.btn-success.w-100(type="submit") Marcar como entregada
+                    button.btn.btn-success.w-100(type="submit") Confirmar entrega
                   form(action=`/api/orders/sale/${order.id}/cancel`, method="POST")
                     button.btn.btn-outline-danger.w-100(type="submit") Cancelar orden
                 else

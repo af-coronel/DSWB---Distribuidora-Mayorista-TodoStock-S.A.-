@@ -1,0 +1,49 @@
+extends ../layout
+
+block content
+  .container.mt-5
+
+    if errorMessage
+      .alert.alert-danger= errorMessage
+      a.btn.btn-secondary(href="/api/orders") Volver al listado
+
+    else if order
+      .d-flex.justify-content-between.align-items-center.mb-3
+        h2 Auditoría — Orden ##{order.id.slice(-6).toUpperCase()}
+        a.btn.btn-outline-secondary(href=`/api/orders/${order.id}`) Volver al detalle
+
+      .alert.alert-info
+        i.bi.bi-info-circle.me-2
+        | Ingresá la fecha de vencimiento de cada lote recibido. Al confirmar, el stock se registrará en el sistema.
+
+      .card.shadow
+        .card-header.bg-dark.text-white
+          strong Ítems recibidos
+        .card-body
+          form(action=`/api/orders/purchase/${order.id}/audit`, method="POST")
+            table.table.table-bordered.mb-4
+              thead.table-light
+                tr
+                  th Producto
+                  th.text-center Cantidad
+                  th Fecha de vencimiento (opcional)
+              tbody
+                each item, index in order.items
+                  tr
+                    td
+                      = item.product_name
+                      input(type="hidden", name=`items[${index}][product_id]`, value=item.product_id)
+                    td.text-center
+                      = item.quantity
+                      input(type="hidden", name=`items[${index}][quantity]`, value=item.quantity)
+                    td
+                      input.form-control.form-control-sm(
+                        type="date",
+                        name=`items[${index}][expiration_date]`
+                      )
+
+            .d-flex.justify-content-between
+              a.btn.btn-secondary(href=`/api/orders/${order.id}`) Cancelar
+              button.btn.btn-warning(type="submit")
+                i.bi.bi-check2-circle.me-1
+                | Confirmar auditoría y registrar stock
