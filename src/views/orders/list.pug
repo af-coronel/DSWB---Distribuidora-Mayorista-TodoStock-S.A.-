@@ -37,7 +37,7 @@ block content
                 span.status-pill(class=`status-${badge}`) #{label}
               td= order.partner_cuit
               td= order.items.length
-              td= `$ ${order.total_amount.toFixed(2)}`
+              td= formatCurrency(order.total_amount)
               td= new Date(order.created_at).toLocaleDateString('es-AR')
               td
                 a.btn.btn-sm.btn-outline-secondary(href=`/api/orders/${order.id}`) Ver detalle

@@ -44,7 +44,7 @@ block content
                 .col-md-6
                   p
                     strong Total:&nbsp;
-                    = `$ ${order.total_amount.toFixed(2)}`
+                    = formatCurrency(order.total_amount)
                   p
                     strong Creada:&nbsp;
                     = new Date(order.created_at).toLocaleDateString('es-AR')
@@ -114,11 +114,11 @@ block content
                 tr
                   td= item.product_name
                   td.text-center= item.quantity
-                  td.text-end= `$ ${item.unit_price.toFixed(2)}`
-                  td.text-end= `$ ${(item.quantity * item.unit_price).toFixed(2)}`
+                  td.text-end= formatCurrency(item.unit_price)
+                  td.text-end= formatCurrency(item.quantity * item.unit_price)
             tfoot
               tr.table-dark
                 td(colspan="3")
                   strong Total
                 td.text-end
-                  strong= `$ ${order.total_amount.toFixed(2)}`
+                  strong= formatCurrency(order.total_amount)

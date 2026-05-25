@@ -39,7 +39,7 @@ block content
                         = order.items.length
                       p.mb-0
                         strong Total:&nbsp;
-                        = `$ ${order.total_amount.toFixed(2)}`
+                        = formatCurrency(order.total_amount)
                   hr
                   .d-flex.justify-content-between.align-items-center.gap-2.flex-wrap
                     a.btn.btn-sm.btn-outline-secondary(href=`/api/orders/${order.id}`) Ver detalle
@@ -71,7 +71,7 @@ block content
                         = order.items.length
                       p.mb-0
                         strong Total:&nbsp;
-                        = `$ ${order.total_amount.toFixed(2)}`
+                        = formatCurrency(order.total_amount)
                   hr
                   .d-flex.justify-content-between.align-items-center.gap-2.flex-wrap
                     a.btn.btn-sm.btn-outline-secondary(href=`/api/orders/${order.id}`) Ver detalle

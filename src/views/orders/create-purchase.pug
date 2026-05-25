@@ -168,8 +168,8 @@ block scripts
       const stock = parseInt(opt?.dataset?.stock) || 0;
       const qty = parseInt(row.querySelector('input[type="number"]')?.value) || 0;
       row.querySelector('.available-stock').textContent = opt?.value ? String(stock) : '—';
-      row.querySelector('.unit-price').textContent = price > 0 ? `$ ${price.toFixed(2)}` : '—';
-      row.querySelector('.subtotal').textContent = price > 0 && qty > 0 ? `$ ${(price * qty).toFixed(2)}` : '—';
+      row.querySelector('.unit-price').textContent = price > 0 ? window.formatCurrency(price) : '—';
+      row.querySelector('.subtotal').textContent = price > 0 && qty > 0 ? window.formatCurrency(price * qty) : '—';
       recalcTotal();
     }
 
@@ -182,7 +182,7 @@ block scripts
         const qty = parseInt(row.querySelector('input[type="number"]')?.value) || 0;
         total += price * qty;
       });
-      document.getElementById('grand-total').textContent = total > 0 ? `$ ${total.toFixed(2)}` : '—';
+      document.getElementById('grand-total').textContent = total > 0 ? window.formatCurrency(total) : '—';
     }
 
     function validateForm(event) {
