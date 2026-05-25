@@ -90,7 +90,7 @@ export class CreateSaleOrder {
 
     const order: IOrder = {
       order_type: "SALE",
-      status: "PENDING_PAYMENT",
+      status: "TO_VERIFY_COLLECTION",
       partner_cuit: partnerCuit,
       items,
       total_amount: total,

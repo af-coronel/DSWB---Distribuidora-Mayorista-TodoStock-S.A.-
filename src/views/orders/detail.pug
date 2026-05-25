@@ -82,7 +82,7 @@ block content
                   p.text-muted.mb-0.text-center Sin acciones disponibles
 
               else if order.order_type === 'SALE'
-                if order.status === 'PENDING_PAYMENT'
+                if order.status === 'TO_VERIFY_COLLECTION' || order.status === 'PENDING_PAYMENT'
                   .alert.alert-info.mb-0.small
                     i.bi.bi-info-circle.me-1
                     | La confirmación del cobro y la cancelación se gestionan desde&nbsp;

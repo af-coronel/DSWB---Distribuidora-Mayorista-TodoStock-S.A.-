@@ -14,7 +14,7 @@ const STATUS_LABEL: Record<string, string> = {
   TO_VERIFY: "A verificar",
   VERIFIED: "Verificada",
   PENDING_PAYMENT: "Pendiente de pago",
-  PENDING: "Pendiente",
+  PENDING: "Cobro pendiente",
   COMPLETED: "Pagada",
   CANCELLED: "Cancelada",
 };

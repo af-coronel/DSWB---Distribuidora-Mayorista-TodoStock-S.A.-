@@ -9,6 +9,7 @@ export type PurchaseStatus =
   | "AUDITED"
   | "CANCELLED";
 export type SaleStatus =
+  | "TO_VERIFY_COLLECTION"
   | "PENDING_PAYMENT"
   | "PENDING_ASSEMBLY"
   | "DISPATCHING"

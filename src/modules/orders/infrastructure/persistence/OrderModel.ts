@@ -25,6 +25,7 @@ const OrderSchema = new Schema<OrderDocument>(
         "CONFIRMED",
         "RECEIVED",
         "AUDITED",
+        "TO_VERIFY_COLLECTION",
         "PENDING_PAYMENT",
         "PENDING_ASSEMBLY",
         "DISPATCHING",

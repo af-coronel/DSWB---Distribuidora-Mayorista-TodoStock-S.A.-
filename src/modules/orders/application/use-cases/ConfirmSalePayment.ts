@@ -20,9 +20,12 @@ export class ConfirmSalePayment {
       throw new Error("La orden no es de tipo venta.");
     }
 
-    if (order.status !== "PENDING_PAYMENT") {
+    if (
+      order.status !== "TO_VERIFY_COLLECTION" &&
+      order.status !== "PENDING_PAYMENT"
+    ) {
       throw new Error(
-        `No se puede confirmar el pago de una orden en estado "${order.status}". Se requiere estado PENDING_PAYMENT.`,
+        `No se puede confirmar el pago de una orden en estado "${order.status}". Se requiere estado TO_VERIFY_COLLECTION.`,
       );
     }
 
@@ -39,7 +42,7 @@ export class ConfirmSalePayment {
     const pendingCollection = transactions.find(
       (t) =>
         t.transaction_type === "COLLECTION" &&
-        (t.status === "TO_VERIFY" || t.status === "PENDING"),
+        (t.status === "PENDING" || t.status === "TO_VERIFY"),
     );
     if (pendingCollection) {
       await this.transactionRepository.update({

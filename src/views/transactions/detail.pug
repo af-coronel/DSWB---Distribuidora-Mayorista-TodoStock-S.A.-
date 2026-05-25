@@ -108,7 +108,7 @@ block content
                   p.text-muted.mb-0.text-center Sin información de orden disponible
 
               else if transaction.transaction_type === 'COLLECTION'
-                if order && order.status === 'PENDING_PAYMENT'
+                if order && (order.status === 'TO_VERIFY_COLLECTION' || order.status === 'PENDING_PAYMENT') && (transaction.status === 'PENDING' || transaction.status === 'TO_VERIFY')
                   form(action=`/api/orders/sale/${order.id}/confirm-payment`, method="POST")
                     button.btn.btn-success.w-100(type="submit")
                       i.bi.bi-check-circle.me-1
