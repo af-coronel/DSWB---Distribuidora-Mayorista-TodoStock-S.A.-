@@ -7,4 +7,5 @@ export interface IOrderRepository {
   findByOrderType(type: OrderType): Promise<IOrder[]>;
   findByPartnerCuit(cuit: string): Promise<IOrder[]>;
   updateStatus(id: string, status: OrderStatus, updatedBy: string, updatedAt: Date): Promise<void>;
+  updateTotalAmount(id: string, total: number, updatedBy: string, updatedAt: Date): Promise<void>;
 }

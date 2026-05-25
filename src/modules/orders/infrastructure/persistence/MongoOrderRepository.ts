@@ -37,4 +37,15 @@ export class MongoOrderRepository implements IOrderRepository {
       $set: { status, updated_by: updatedBy, updated_at: updatedAt },
     });
   }
+
+  async updateTotalAmount(
+    id: string,
+    total: number,
+    updatedBy: string,
+    updatedAt: Date,
+  ): Promise<void> {
+    await OrderModel.findByIdAndUpdate(id, {
+      $set: { total_amount: total, updated_by: updatedBy, updated_at: updatedAt },
+    });
+  }
 }

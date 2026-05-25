@@ -3,6 +3,7 @@ import type { CreateInventoryLot } from "../../../inventory/application/index.js
 
 export interface AuditItemInput {
   product_id: string;
+  received_quantity: number;
   expiration_date: Date | null;
 }
 
@@ -41,24 +42,51 @@ export class AuditPurchaseOrder {
           `El producto "${auditItem.product_id}" no pertenece a esta orden de compra.`,
         );
       }
+
+      if (auditItem.received_quantity < 0) {
+        throw new Error(
+          `La cantidad recibida para el producto "${auditItem.product_id}" no puede ser negativa.`,
+        );
+      }
+    }
+
+    const auditMap = new Map(auditItems.map((i) => [i.product_id, i]));
+
+    for (const orderItem of order.items) {
+      const audit = auditMap.get(orderItem.product_id);
+      const received = audit?.received_quantity ?? orderItem.quantity;
+
+      if (received > orderItem.quantity) {
+        throw new Error(
+          `La cantidad recibida (${received}) para "${orderItem.product_name}" supera la cantidad pedida (${orderItem.quantity}).`,
+        );
+      }
     }
 
     const now = new Date();
-    const expirationMap = new Map(auditItems.map((i) => [i.product_id, i.expiration_date]));
+    let auditedTotal = 0;
 
     for (const orderItem of order.items) {
-      await this.createInventoryLotUseCase.execute({
-        product_id: orderItem.product_id,
-        stock: orderItem.quantity,
-        engaged_stock: 0,
-        expiration_date: expirationMap.get(orderItem.product_id) ?? null,
-        created_by: updatedBy,
-        created_at: now,
-        updated_by: updatedBy,
-        updated_at: now,
-      });
+      const audit = auditMap.get(orderItem.product_id);
+      const received = audit?.received_quantity ?? orderItem.quantity;
+
+      auditedTotal += received * orderItem.unit_price;
+
+      if (received > 0) {
+        await this.createInventoryLotUseCase.execute({
+          product_id: orderItem.product_id,
+          stock: received,
+          engaged_stock: 0,
+          expiration_date: audit?.expiration_date ?? null,
+          created_by: updatedBy,
+          created_at: now,
+          updated_by: updatedBy,
+          updated_at: now,
+        });
+      }
     }
 
-    await this.orderRepository.updateStatus(orderId, "AUDITED", updatedBy, new Date());
+    await this.orderRepository.updateTotalAmount(orderId, auditedTotal, updatedBy, now);
+    await this.orderRepository.updateStatus(orderId, "AUDITED", updatedBy, now);
   }
 }
