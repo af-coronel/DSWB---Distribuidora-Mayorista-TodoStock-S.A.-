@@ -1,0 +1,283 @@
+import type { Request, Response } from "express";
+import { GetAllPartners } from "../../../../business-partner/application/index.js";
+import type { IBusinessPartner } from "../../../../business-partner/domain/index.js";
+import type { IProduct } from "../../../domain/index.js";
+import {
+  FindProductByNameAndVendorCuit,
+  GetAllProducts,
+  RegisterProduct,
+  UpdateProduct,
+} from "../../../application/index.js";
+
+type ProductViewModel = IProduct & {
+  vendor_name?: string;
+};
+
+type AuthenticatedRequest = Request & {
+  user?: {
+    id?: string;
+  };
+};
+
+export class ProductController {
+  constructor(
+    private readonly registerProductUseCase: RegisterProduct,
+    private readonly getAllProductsUseCase: GetAllProducts,
+    private readonly getAllPartnersUseCase: GetAllPartners,
+    private readonly findProductByNameAndVendorCuitUseCase: FindProductByNameAndVendorCuit,
+    private readonly updateProductUseCase: UpdateProduct,
+  ) {}
+
+  private getCategoryOptions(): string[] {
+    return ["Alimentos", "Limpieza", "Bebidas", "Bazar", "General"];
+  }
+
+  private async getVendors(): Promise<IBusinessPartner[]> {
+    const partners = await this.getAllPartnersUseCase.execute();
+    return partners.filter(
+      (partner) => partner.active && partner.type.includes("VENDOR"),
+    );
+  }
+
+  private async getVendorNameByCuit(vendorCuit: string): Promise<string> {
+    const partners = await this.getAllPartnersUseCase.execute();
+    const vendor = partners.find((partner) => partner.cuit === vendorCuit);
+
+    return vendor?.legal_name || vendorCuit;
+  }
+
+  private async enrichProductsWithVendorName(
+    products: IProduct[],
+  ): Promise<ProductViewModel[]> {
+    const partners = await this.getAllPartnersUseCase.execute();
+    const vendorNames = new Map(
+      partners.map((partner) => [partner.cuit, partner.legal_name]),
+    );
+
+    return products.map((product) => ({
+      ...product,
+      vendor_name: vendorNames.get(product.vendor_cuit) || product.vendor_cuit,
+    }));
+  }
+
+  private async renderCreateView(
+    res: Response,
+    formData?: Partial<IProduct>,
+    errorMessage?: string,
+  ) {
+    const vendors = await this.getVendors();
+
+    return res.render("products/create", {
+      activeTab: "products",
+      vendors,
+      categories: this.getCategoryOptions(),
+      formData,
+      errorMessage,
+    });
+  }
+
+  private async renderEditView(
+    res: Response,
+    product: IProduct,
+    formData?: Partial<IProduct>,
+    errorMessage?: string,
+  ) {
+    const vendorName = await this.getVendorNameByCuit(product.vendor_cuit);
+
+    return res.render("products/edit", {
+      activeTab: "products",
+      categories: this.getCategoryOptions(),
+      product,
+      vendorName,
+      formData: formData ?? product,
+      errorMessage,
+      encodedName: encodeURIComponent(product.name),
+    });
+  }
+
+  async renderCreateForm(req: Request, res: Response) {
+    return this.renderCreateView(res);
+  }
+
+  async create(req: Request, res: Response) {
+    try {
+      const request = req as AuthenticatedRequest;
+      const { name, vendor_cuit, vendor_price, customer_price, category } =
+        req.body;
+
+      const newProduct: IProduct = {
+        name,
+        vendor_cuit,
+        vendor_price: Number(vendor_price),
+        customer_price: Number(customer_price),
+        category,
+        created_at: new Date(),
+        updated_at: new Date(),
+        created_by: request.user?.id || "unknown",
+        updated_by: request.user?.id || "unknown",
+      };
+
+      const createdProduct =
+        await this.registerProductUseCase.execute(newProduct);
+
+      if (
+        req.headers["content-type"]?.includes(
+          "application/x-www-form-urlencoded",
+        )
+      ) {
+        return res.redirect("/api/products");
+      }
+
+      return res.status(201).json({
+        message: "Producto registrado exitosamente",
+        item: createdProduct,
+      });
+    } catch (error: any) {
+      if (
+        req.headers["content-type"]?.includes(
+          "application/x-www-form-urlencoded",
+        )
+      ) {
+        return this.renderCreateView(res.status(400), req.body, error.message);
+      }
+
+      return res.status(400).json({
+        error: true,
+        message: error.message,
+      });
+    }
+  }
+
+  async renderEditForm(req: Request, res: Response) {
+    try {
+      const { vendor_cuit, name } = req.params;
+
+      if (typeof vendor_cuit !== "string" || typeof name !== "string") {
+        return res.status(400).json({
+          error: true,
+          message: "Parámetros inválidos para editar el producto.",
+        });
+      }
+
+      const product = await this.findProductByNameAndVendorCuitUseCase.execute(
+        decodeURIComponent(name),
+        vendor_cuit,
+      );
+
+      if (!product) {
+        return res.status(404).json({
+          error: true,
+          message: "Producto no encontrado.",
+        });
+      }
+
+      return this.renderEditView(res, product);
+    } catch (error: any) {
+      return res.status(400).json({
+        error: true,
+        message: error.message,
+      });
+    }
+  }
+
+  async update(req: Request, res: Response) {
+    try {
+      const request = req as AuthenticatedRequest;
+      const { vendor_cuit, name } = req.params;
+      const userId = request.user?.id || "unknown";
+
+      if (typeof vendor_cuit !== "string" || typeof name !== "string") {
+        return res.status(400).json({
+          error: true,
+          message: "Parámetros inválidos para editar el producto.",
+        });
+      }
+
+      const originalName = decodeURIComponent(name);
+
+      await this.updateProductUseCase.execute(
+        originalName,
+        vendor_cuit,
+        {
+          name: req.body.name,
+          vendor_cuit: req.body.vendor_cuit,
+          vendor_price: Number(req.body.vendor_price),
+          customer_price: Number(req.body.customer_price),
+          category: req.body.category,
+        },
+        userId,
+      );
+
+      if (
+        req.headers["content-type"]?.includes(
+          "application/x-www-form-urlencoded",
+        )
+      ) {
+        return res.redirect("/api/products");
+      }
+
+      return res.status(200).json({
+        message: "Producto actualizado correctamente",
+      });
+    } catch (error: any) {
+      if (
+        req.headers["content-type"]?.includes(
+          "application/x-www-form-urlencoded",
+        )
+      ) {
+        const { vendor_cuit, name } = req.params;
+
+        if (typeof vendor_cuit === "string" && typeof name === "string") {
+          const product =
+            await this.findProductByNameAndVendorCuitUseCase.execute(
+              decodeURIComponent(name),
+              vendor_cuit,
+            );
+
+          if (product) {
+            return this.renderEditView(
+              res.status(400),
+              product,
+              req.body,
+              error.message,
+            );
+          }
+        }
+      }
+
+      return res.status(400).json({
+        error: true,
+        message: error.message,
+      });
+    }
+  }
+
+  async getAll(req: Request, res: Response) {
+    try {
+      const products = await this.getAllProductsUseCase.execute();
+
+      if (req.headers.accept?.includes("text/html")) {
+        const productsView = await this.enrichProductsWithVendorName(products);
+
+        return res.render("products/list", {
+          products: productsView,
+          activeTab: "products",
+        });
+      }
+
+      if (!products.length) {
+        return res.status(200).json({
+          message: "Aún no hay productos registrados",
+          items: [],
+        });
+      }
+
+      return res.status(200).json(products);
+    } catch (error: any) {
+      return res.status(500).json({
+        error: true,
+        message: error.message,
+      });
+    }
+  }
+}

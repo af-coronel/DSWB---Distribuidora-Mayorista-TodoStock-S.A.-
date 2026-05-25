@@ -1,0 +1,32 @@
+extends ../layout
+
+block content
+  .container.mt-5
+    .d-flex.justify-content-between.align-items-center.mb-3
+      h2 Lista de Productos
+      a.btn.btn-primary(href="/api/products/new") + Nuevo Producto
+
+    if products && products.length > 0
+      table.table.table-striped.table-hover
+        thead.table-dark
+          tr
+            th Nombre
+            th Proveedor
+            th Precio Proveedor
+            th Precio Cliente
+            th Categoría
+            th Acciones
+        tbody
+          each product in products
+            tr
+              td= product.name
+              td= product.vendor_name || product.vendor_cuit
+              td= `$ ${product.vendor_price}`
+              td= `$ ${product.customer_price}`
+              td= product.category
+              td
+                a.btn.btn-sm.btn-outline-primary(href=`/api/products/${product.vendor_cuit}/${encodeURIComponent(product.name)}/edit`) Editar
+    else
+      .alert.alert-info.d-flex.justify-content-between.align-items-center
+        span Aún no hay productos registrados.
+        a.btn.btn-sm.btn-primary(href="/api/products/new") Crear producto
