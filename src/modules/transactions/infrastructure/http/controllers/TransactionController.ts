@@ -89,7 +89,7 @@ export class TransactionController {
       return this.renderDetail(req, res);
     }
     try {
-      const transaction = await this.getTransactionByIdUseCase.execute(req.params.id);
+      const transaction = await this.getTransactionByIdUseCase.execute(req.params.id as string);
       return res.status(200).json(transaction);
     } catch (error: any) {
       return res.status(404).json({ error: true, message: error.message });

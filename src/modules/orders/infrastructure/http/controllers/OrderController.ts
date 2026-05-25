@@ -303,7 +303,7 @@ export class OrderController {
     } catch (error: any) {
       if (isFormRequest(req)) {
         try {
-          const order = await this.getOrderByIdUseCase.execute(req.params.id);
+          const order = await this.getOrderByIdUseCase.execute(req.params.id as string);
           return res.status(400).render("orders/audit", {
             activeTab: "orders",
             order,
