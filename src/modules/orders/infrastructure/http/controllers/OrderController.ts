@@ -278,14 +278,12 @@ export class OrderController {
   }
 
   async getById(req: Request, res: Response) {
+    if (req.headers.accept?.includes("text/html")) {
+      return this.renderDetail(req, res);
+    }
     try {
       const { id } = req.params;
       const order = await this.getOrderByIdUseCase.execute(id);
-
-      if (req.headers.accept?.includes("text/html")) {
-        return this.renderDetail(req, res);
-      }
-
       return res.status(200).json(order);
     } catch (error: any) {
       return res.status(404).json({ error: true, message: error.message });
