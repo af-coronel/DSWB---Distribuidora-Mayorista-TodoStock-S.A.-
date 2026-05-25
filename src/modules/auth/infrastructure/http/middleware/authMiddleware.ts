@@ -28,7 +28,7 @@ export const authenticate = async (
 
     if (!token) {
       if (req.headers.accept?.includes("text/html")) {
-        return res.redirect("/api/auth/login"); // Al login si es humano
+        return res.redirect("/?sessionExpired=true"); // Al login si es humano
       }
       return res.status(401).json({ error: true, message: "Acceso denegado" }); // JSON si es máquina
     }
@@ -38,7 +38,7 @@ export const authenticate = async (
 
     if (!userId) {
       if (req.headers.accept?.includes("text/html")) {
-        return res.redirect("/api/auth/login");
+        return res.redirect("/?sessionExpired=true");
       }
       return res.status(401).json({ error: true, message: "Token inválido." });
     }
@@ -49,7 +49,7 @@ export const authenticate = async (
 
     if (!user || !user.active) {
       if (req.headers.accept?.includes("text/html")) {
-        return res.redirect("/api/auth/login");
+        return res.redirect("/?sessionExpired=true");
       }
       return res.status(401).json({ error: true, message: "Usuario incorrecto" });
     }
@@ -61,7 +61,7 @@ export const authenticate = async (
     next();
   } catch (error) {
     if (req.headers.accept?.includes("text/html")) {
-      return res.redirect("/api/auth/login");
+      return res.redirect("/?sessionExpired=true");
     }
     return res.status(500).json({ error: true, message: "Error en el servidor" });
   }
