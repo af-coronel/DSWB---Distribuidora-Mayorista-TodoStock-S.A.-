@@ -20,6 +20,8 @@ type AuthenticatedRequest = Request & {
 };
 
 export class ProductController {
+  private readonly publicSaleCategories = new Set(["Limpieza", "Bazar"]);
+
   constructor(
     private readonly registerProductUseCase: RegisterProduct,
     private readonly getAllProductsUseCase: GetAllProducts,
@@ -30,6 +32,30 @@ export class ProductController {
 
   private getCategoryOptions(): string[] {
     return ["Alimentos", "Limpieza", "Bebidas", "Bazar", "General"];
+  }
+
+  private isPublicSaleProduct(product: IProduct): boolean {
+    return this.publicSaleCategories.has(product.category);
+  }
+
+  private getListViewMode(
+    value: unknown,
+  ): "all" | "public_sale" | "internal_use" {
+    if (value === "public_sale" || value === "internal_use") {
+      return value;
+    }
+
+    return "all";
+  }
+
+  private getPageNumber(value: unknown): number {
+    const rawPage = typeof value === "string" ? Number(value) : Number.NaN;
+
+    if (!Number.isInteger(rawPage) || rawPage < 1) {
+      return 1;
+    }
+
+    return rawPage;
   }
 
   private async getVendors(): Promise<IBusinessPartner[]> {
@@ -258,10 +284,44 @@ export class ProductController {
 
       if (req.headers.accept?.includes("text/html")) {
         const productsView = await this.enrichProductsWithVendorName(products);
+        const viewMode = this.getListViewMode(req.query.view);
+        const searchTerm =
+          typeof req.query.search === "string" ? req.query.search.trim() : "";
+        const filteredProducts = productsView.filter((product) => {
+          const matchesView =
+            viewMode === "public_sale"
+              ? this.isPublicSaleProduct(product)
+              : viewMode === "internal_use"
+                ? !this.isPublicSaleProduct(product)
+                : true;
+          const matchesSearch =
+            searchTerm.length === 0 ||
+            product.name.toLowerCase().includes(searchTerm.toLowerCase());
+
+          return matchesView && matchesSearch;
+        });
+        const pageSize = 20;
+        const totalItems = filteredProducts.length;
+        const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+        const currentPage = Math.min(
+          this.getPageNumber(req.query.page),
+          totalPages,
+        );
+        const startIndex = (currentPage - 1) * pageSize;
+        const paginatedProducts = filteredProducts.slice(
+          startIndex,
+          startIndex + pageSize,
+        );
 
         return res.render("products/list", {
-          products: productsView,
+          products: paginatedProducts,
           activeTab: "products",
+          viewMode,
+          searchTerm,
+          currentPage,
+          totalPages,
+          totalItems,
+          pageSize,
         });
       }
 
