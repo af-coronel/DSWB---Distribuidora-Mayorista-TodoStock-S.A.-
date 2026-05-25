@@ -34,5 +34,9 @@ body
         a.nav-link(class=activeTab === 'orders' ? 'active font-weight-bold' : '', href="/api/orders")
           i.bi.bi-cart-check.me-2
           | Órdenes
+      li.nav-item
+        a.nav-link(class=activeTab === 'inventory' ? 'active font-weight-bold' : '', href="/api/inventory")
+          i.bi.bi-archive.me-2
+          | Inventario
 
 block content
