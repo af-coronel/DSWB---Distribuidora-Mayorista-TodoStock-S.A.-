@@ -5,31 +5,111 @@ block content
     .d-flex.justify-content-between.align-items-center.mb-3
       h2 Inventario
 
-    if lots && lots.length > 0
-      table.table.table-striped.table-hover
-        thead.table-dark
-          tr
-            th Producto
-            th.text-center Stock total
-            th.text-center Reservado
-            th.text-center Disponible
-            th.text-center Vencimiento
-            th Creado
-        tbody
-          each lot in lots
-            - const available = lot.stock - lot.engaged_stock
-            - const rowClass = available === 0 ? 'table-danger' : available <= 5 ? 'table-warning' : ''
-            tr(class=rowClass)
-              td= productMap[lot.product_id] || lot.product_id
-              td.text-center= lot.stock
-              td.text-center= lot.engaged_stock
-              td.text-center
-                strong= available
-              td.text-center
-                if lot.expiration_date
-                  = new Date(lot.expiration_date).toLocaleDateString('es-AR')
-                else
-                  span.text-muted Sin vencimiento
-              td= new Date(lot.created_at).toLocaleDateString('es-AR')
+    if flashError
+      .alert.alert-warning.alert-dismissible.fade.show
+        i.bi.bi-exclamation-triangle-fill.me-2
+        = flashError
+        button.btn-close(type="button", data-bs-dismiss="alert", aria-label="Cerrar")
+
+    ul.nav.nav-pills.mb-4
+      li.nav-item
+        a.nav-link(class=inventoryTab === 'purchase' ? 'active' : '', href='/api/inventory?tab=purchase') Recepción y auditoría
+      li.nav-item
+        a.nav-link(class=inventoryTab === 'sale' ? 'active' : '', href='/api/inventory?tab=sale') Armado y despacho
+      li.nav-item
+        a.nav-link(class=inventoryTab === 'stock' ? 'active' : '', href='/api/inventory?tab=stock') Stock total
+
+    if inventoryTab === 'purchase'
+      if purchaseTasks && purchaseTasks.length > 0
+        .row.g-3
+          each order in purchaseTasks
+            - const badge = statusBadge[order.status] || 'neutral'
+            - const label = statusLabel[order.status] || order.status
+            .col-12
+              .card.shadow-sm
+                .card-body
+                  .d-flex.justify-content-between.align-items-start.gap-3.flex-wrap
+                    div
+                      h5.mb-1 Orden ##{order.id.slice(-6).toUpperCase()}
+                      p.text-muted.mb-2 #{partnerMap[order.partner_cuit] || order.partner_cuit}
+                      span.status-pill(class=`status-${badge}`) #{label}
+                    div.text-end
+                      p.mb-1
+                        strong Ítems:&nbsp;
+                        = order.items.length
+                      p.mb-0
+                        strong Total:&nbsp;
+                        = formatCurrency(order.total_amount)
+                  hr
+                  .d-flex.justify-content-between.align-items-center.gap-2.flex-wrap
+                    a.btn.btn-sm.btn-outline-secondary(href=`/api/orders/${order.id}`) Ver detalle
+                    if order.status === 'CONFIRMED'
+                      form(action=`/api/orders/purchase/${order.id}/receive`, method='POST')
+                        button.btn.btn-sm.btn-success(type='submit') Marcar como recibida
+                    else if order.status === 'RECEIVED'
+                      a.btn.btn-sm.btn-warning(href=`/api/orders/purchase/${order.id}/audit?return_to=/api/inventory?tab=purchase`) Auditar orden
+      else
+        .alert.alert-info No hay compras pendientes de recepción o auditoría.
+
+    else if inventoryTab === 'sale'
+      if saleTasks && saleTasks.length > 0
+        .row.g-3
+          each order in saleTasks
+            - const badge = statusBadge[order.status] || 'neutral'
+            - const label = statusLabel[order.status] || order.status
+            .col-12
+              .card.shadow-sm
+                .card-body
+                  .d-flex.justify-content-between.align-items-start.gap-3.flex-wrap
+                    div
+                      h5.mb-1 Orden ##{order.id.slice(-6).toUpperCase()}
+                      p.text-muted.mb-2 #{partnerMap[order.partner_cuit] || order.partner_cuit}
+                      span.status-pill(class=`status-${badge}`) #{label}
+                    div.text-end
+                      p.mb-1
+                        strong Ítems:&nbsp;
+                        = order.items.length
+                      p.mb-0
+                        strong Total:&nbsp;
+                        = formatCurrency(order.total_amount)
+                  hr
+                  .d-flex.justify-content-between.align-items-center.gap-2.flex-wrap
+                    a.btn.btn-sm.btn-outline-secondary(href=`/api/orders/${order.id}`) Ver detalle
+                    if order.status === 'PENDING_ASSEMBLY'
+                      form(action=`/api/orders/sale/${order.id}/dispatch`, method='POST')
+                        button.btn.btn-sm.btn-info.text-white(type='submit') Confirmar armado
+                    else if order.status === 'DISPATCHING'
+                      form(action=`/api/orders/sale/${order.id}/deliver`, method='POST')
+                        button.btn.btn-sm.btn-success(type='submit') Confirmar entrega
+      else
+        .alert.alert-info No hay ventas pendientes de armado o despacho.
+
     else
-      .alert.alert-info Aún no hay lotes de inventario registrados.
+      if lots && lots.length > 0
+        table.table.table-striped.table-hover
+          thead.table-dark
+            tr
+              th Producto
+              th.text-center Stock total
+              th.text-center Reservado
+              th.text-center Disponible
+              th.text-center Vencimiento
+              th Creado
+          tbody
+            each lot in lots
+              - const available = lot.stock - lot.engaged_stock
+              - const rowClass = available === 0 ? 'table-danger' : available <= 5 ? 'table-warning' : ''
+              tr(class=rowClass)
+                td= productMap[lot.product_id] || lot.product_id
+                td.text-center= lot.stock
+                td.text-center= lot.engaged_stock
+                td.text-center
+                  strong= available
+                td.text-center
+                  if lot.expiration_date
+                    = new Date(lot.expiration_date).toLocaleDateString('es-AR')
+                  else
+                    span.text-muted Sin vencimiento
+                td= new Date(lot.created_at).toLocaleDateString('es-AR')
+      else
+        .alert.alert-info Aún no hay lotes de inventario registrados.

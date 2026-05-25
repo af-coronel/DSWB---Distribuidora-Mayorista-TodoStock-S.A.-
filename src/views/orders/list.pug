@@ -14,8 +14,6 @@ block content
 
     ul.nav.nav-pills.mb-3
       li.nav-item
-        a.nav-link(class=activeOrderType === 'ALL' ? 'active' : '', href="/api/orders") Todas
-      li.nav-item
         a.nav-link(class=activeOrderType === 'PURCHASE' ? 'active' : '', href="/api/orders?type=PURCHASE") Compras
       li.nav-item
         a.nav-link(class=activeOrderType === 'SALE' ? 'active' : '', href="/api/orders?type=SALE") Ventas
@@ -24,7 +22,6 @@ block content
       table.table.table-striped.table-hover
         thead.table-dark
           tr
-            th Tipo
             th Estado
             th Socio (CUIT)
             th Ítems
@@ -33,17 +30,14 @@ block content
             th
         tbody
           each order in orders
-            - const badge = statusBadge[order.status] || 'secondary'
+            - const badge = statusBadge[order.status] || 'neutral'
             - const label = statusLabel[order.status] || order.status
             tr
               td
-                span.badge(class=order.order_type === 'PURCHASE' ? 'bg-primary' : 'bg-success')
-                  = order.order_type === 'PURCHASE' ? 'Compra' : 'Venta'
-              td
-                span.badge(class=`bg-${badge}`) #{label}
+                span.status-pill(class=`status-${badge}`) #{label}
               td= order.partner_cuit
               td= order.items.length
-              td= `$ ${order.total_amount.toFixed(2)}`
+              td= formatCurrency(order.total_amount)
               td= new Date(order.created_at).toLocaleDateString('es-AR')
               td
                 a.btn.btn-sm.btn-outline-secondary(href=`/api/orders/${order.id}`) Ver detalle

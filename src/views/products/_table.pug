@@ -23,8 +23,8 @@ if products && products.length > 0
         tr
           td= product.name
           td= product.vendor_name || product.vendor_cuit
-          td= `$ ${product.vendor_price}`
-          td= `$ ${product.customer_price}`
+          td= formatCurrency(product.vendor_price)
+          td= formatCurrency(product.customer_price)
           td= product.category
           td
             a.btn.btn-sm.btn-outline-primary(href=`/api/products/${product.vendor_cuit}/${encodeURIComponent(product.name)}/edit`) Editar

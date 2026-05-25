@@ -6,7 +6,7 @@ block content
   .container.mt-5
     .d-flex.justify-content-between.align-items-center.mb-3
       h2 Nueva Orden de Compra
-      a.btn.btn-outline-secondary(href="/api/orders") Volver al listado
+      a.btn.btn-outline-secondary(href="/api/orders?type=PURCHASE") Volver al listado
 
     if errorMessage
       .alert.alert-danger.alert-dismissible.fade.show
@@ -42,8 +42,9 @@ block content
                   table.table.table-bordered.mb-2
                     thead.table-dark
                       tr
-                        th.col-5 Producto (Proveedor)
+                        th.col-4 Producto (Proveedor)
                         th.col-2.text-center Cantidad
+                        th.col-2.text-center Stock actual
                         th.col-2.text-end Precio unit.
                         th.col-2.text-end Subtotal
                         th.col-1
@@ -56,10 +57,11 @@ block content
                               select.form-select.form-select-sm.product-select(name=`items[${index}][product_id]`, required, onchange="updateRow(this)")
                                 option(value="") Seleccionar producto
                                 each product in products
-                                  option(value=product.id, data-price=product.vendor_price, selected=(item.product_id === product.id))
-                                    = `${product.name} — ${vendorMap[product.vendor_cuit] || product.vendor_cuit}`
+                                  option(value=product.id, data-price=product.vendor_price, data-stock=product.available_stock, selected=(item.product_id === product.id))
+                                    = `${product.name} — ${vendorMap[product.vendor_cuit] || product.vendor_cuit} (stock: ${product.available_stock})`
                             td.text-center
                               input.form-control.form-control-sm(type="number", name=`items[${index}][quantity]`, min="1", max="9999", value=item.quantity || 1, required, oninput="updateRow(this.closest('tr').querySelector('.product-select'))")
+                            td.text-center.available-stock —
                             td.text-end.unit-price —
                             td.text-end.subtotal —
                             td.text-center
@@ -72,10 +74,11 @@ block content
                             select.form-select.form-select-sm.product-select(name="items[0][product_id]", required, onchange="updateRow(this)")
                               option(value="") Seleccionar producto
                               each product in products
-                                option(value=product.id, data-price=product.vendor_price)
-                                  = `${product.name} — ${vendorMap[product.vendor_cuit] || product.vendor_cuit}`
+                                option(value=product.id, data-price=product.vendor_price, data-stock=product.available_stock)
+                                  = `${product.name} — ${vendorMap[product.vendor_cuit] || product.vendor_cuit} (stock: ${product.available_stock})`
                           td.text-center
                             input.form-control.form-control-sm(type="number", name="items[0][quantity]", min="1", max="9999", value="1", required, oninput="updateRow(this.closest('tr').querySelector('.product-select'))")
+                          td.text-center.available-stock —
                           td.text-end.unit-price —
                           td.text-end.subtotal —
                           td.text-center
@@ -93,7 +96,7 @@ block content
                   textarea.form-control(name="notes", rows="2")= form.notes || ""
 
                 .d-flex.justify-content-between.mt-4
-                  a.btn.btn-secondary(href="/api/orders") Cancelar
+                  a.btn.btn-secondary(href="/api/orders?type=PURCHASE") Cancelar
                   button.btn.btn-dark(type="submit")
                     i.bi.bi-check2-circle.me-1
                     | Crear Orden de Compra
@@ -101,11 +104,11 @@ block content
 block scripts
   script.
     let itemIndex = #{savedItems ? savedItems.length : 1};
-    const allProducts = !{JSON.stringify((products || []).map(p => ({ id: p.id, name: p.name, price: p.vendor_price, vendor: vendorMap[p.vendor_cuit] || p.vendor_cuit })))};
+    const allProducts = !{JSON.stringify((products || []).map(p => ({ id: p.id, name: p.name, price: p.vendor_price, vendor: vendorMap[p.vendor_cuit] || p.vendor_cuit, stock: p.available_stock })))};
 
     function buildOptions(selectedId) {
       return allProducts.map(p =>
-        `<option value="${p.id}" data-price="${p.price}"${p.id === selectedId ? ' selected' : ''}>${p.name} — ${p.vendor}</option>`
+        `<option value="${p.id}" data-price="${p.price}" data-stock="${p.stock}"${p.id === selectedId ? ' selected' : ''}>${p.name} — ${p.vendor} (stock: ${p.stock})</option>`
       ).join('');
     }
 
@@ -125,6 +128,7 @@ block scripts
           <input class="form-control form-control-sm" type="number" name="items[${itemIndex}][quantity]"
             min="1" max="9999" value="1" required oninput="updateRow(this.closest('tr').querySelector('.product-select'))">
         </td>
+        <td class="text-center available-stock">—</td>
         <td class="text-end unit-price">—</td>
         <td class="text-end subtotal">—</td>
         <td class="text-center">
@@ -161,9 +165,11 @@ block scripts
       const row = select.closest('tr');
       const opt = select.options[select.selectedIndex];
       const price = parseFloat(opt?.dataset?.price) || 0;
+      const stock = parseInt(opt?.dataset?.stock) || 0;
       const qty = parseInt(row.querySelector('input[type="number"]')?.value) || 0;
-      row.querySelector('.unit-price').textContent = price > 0 ? `$ ${price.toFixed(2)}` : '—';
-      row.querySelector('.subtotal').textContent = price > 0 && qty > 0 ? `$ ${(price * qty).toFixed(2)}` : '—';
+      row.querySelector('.available-stock').textContent = opt?.value ? String(stock) : '—';
+      row.querySelector('.unit-price').textContent = price > 0 ? window.formatCurrency(price) : '—';
+      row.querySelector('.subtotal').textContent = price > 0 && qty > 0 ? window.formatCurrency(price * qty) : '—';
       recalcTotal();
     }
 
@@ -176,7 +182,7 @@ block scripts
         const qty = parseInt(row.querySelector('input[type="number"]')?.value) || 0;
         total += price * qty;
       });
-      document.getElementById('grand-total').textContent = total > 0 ? `$ ${total.toFixed(2)}` : '—';
+      document.getElementById('grand-total').textContent = total > 0 ? window.formatCurrency(total) : '—';
     }
 
     function validateForm(event) {
@@ -189,4 +195,7 @@ block scripts
       }
     }
 
-    document.addEventListener('DOMContentLoaded', recalcTotal);
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.product-select').forEach(select => updateRow(select));
+      recalcTotal();
+    });

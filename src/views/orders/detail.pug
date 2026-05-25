@@ -8,7 +8,7 @@ block content
         i.bi.bi-exclamation-triangle-fill.me-2
         = errorMessage
         button.btn-close(type="button", data-bs-dismiss="alert", aria-label="Cerrar")
-      a.btn.btn-secondary(href="/api/orders") Volver al listado
+      a.btn.btn-secondary(href='/api/orders?type=PURCHASE') Volver al listado
 
     else if order
       if flashError
@@ -19,10 +19,10 @@ block content
 
       .d-flex.justify-content-between.align-items-center.mb-3
         h2
-          span.badge.me-2(class=order.order_type === 'PURCHASE' ? 'bg-primary' : 'bg-success')
+          span.entity-pill.me-2(class=order.order_type === 'PURCHASE' ? 'entity-purchase' : 'entity-sale')
             = order.order_type === 'PURCHASE' ? 'Compra' : 'Venta'
           | Orden ##{order.id.slice(-6).toUpperCase()}
-        a.btn.btn-outline-secondary(href="/api/orders") Volver al listado
+        a.btn.btn-outline-secondary(href=order.order_type === 'SALE' ? '/api/orders?type=SALE' : '/api/orders?type=PURCHASE') Volver al listado
 
       .row.mb-4
         .col-md-8
@@ -34,7 +34,7 @@ block content
                 .col-md-6
                   p
                     strong Estado:&nbsp;
-                    span.badge(class=`bg-${statusBadge}`) #{statusLabel}
+                    span.status-pill(class=`status-${statusBadge}`) #{statusLabel}
                   p
                     strong Socio:&nbsp;
                     = partnerName
@@ -44,7 +44,7 @@ block content
                 .col-md-6
                   p
                     strong Total:&nbsp;
-                    = `$ ${order.total_amount.toFixed(2)}`
+                    = formatCurrency(order.total_amount)
                   p
                     strong Creada:&nbsp;
                     = new Date(order.created_at).toLocaleDateString('es-AR')
@@ -73,11 +73,12 @@ block content
                 else if order.status === 'TO_CONFIRM'
                   form(action=`/api/orders/purchase/${order.id}/confirm`, method="POST")
                     button.btn.btn-primary.w-100(type="submit") Confirmar orden (mail proveedor)
-                else if order.status === 'CONFIRMED'
-                  form(action=`/api/orders/purchase/${order.id}/receive`, method="POST")
-                    button.btn.btn-success.w-100(type="submit") Marcar como recibida
-                else if order.status === 'RECEIVED'
-                  a.btn.btn-warning.w-100(href=`/api/orders/purchase/${order.id}/audit`) Auditar orden
+                else if order.status === 'CONFIRMED' || order.status === 'RECEIVED'
+                  .alert.alert-info.mb-0.small
+                    i.bi.bi-box-seam.me-1
+                    | La recepción y auditoría se gestionan desde&nbsp;
+                    a(href="/api/inventory?tab=purchase") Inventario
+                    | .
                 else
                   p.text-muted.mb-0.text-center Sin acciones disponibles
 
@@ -88,12 +89,12 @@ block content
                     | La confirmación del cobro y la cancelación se gestionan desde&nbsp;
                     a(href="/api/transactions") Finanzas
                     | .
-                else if order.status === 'PENDING_ASSEMBLY'
-                  form(action=`/api/orders/sale/${order.id}/dispatch`, method="POST")
-                    button.btn.btn-info.w-100.text-white(type="submit") Confirmar armado
-                else if order.status === 'DISPATCHING'
-                  form(action=`/api/orders/sale/${order.id}/deliver`, method="POST")
-                    button.btn.btn-success.w-100(type="submit") Confirmar entrega
+                else if order.status === 'PENDING_ASSEMBLY' || order.status === 'DISPATCHING'
+                  .alert.alert-info.mb-0.small
+                    i.bi.bi-box-seam.me-1
+                    | El armado y despacho se gestionan desde&nbsp;
+                    a(href="/api/inventory?tab=sale") Inventario
+                    | .
                 else
                   p.text-muted.mb-0.text-center Sin acciones disponibles
 
@@ -113,11 +114,11 @@ block content
                 tr
                   td= item.product_name
                   td.text-center= item.quantity
-                  td.text-end= `$ ${item.unit_price.toFixed(2)}`
-                  td.text-end= `$ ${(item.quantity * item.unit_price).toFixed(2)}`
+                  td.text-end= formatCurrency(item.unit_price)
+                  td.text-end= formatCurrency(item.quantity * item.unit_price)
             tfoot
               tr.table-dark
                 td(colspan="3")
                   strong Total
                 td.text-end
-                  strong= `$ ${order.total_amount.toFixed(2)}`
+                  strong= formatCurrency(order.total_amount)

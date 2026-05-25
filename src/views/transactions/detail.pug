@@ -8,9 +8,11 @@ block content
         i.bi.bi-exclamation-triangle-fill.me-2
         = errorMessage
         button.btn-close(type="button", data-bs-dismiss="alert", aria-label="Cerrar")
-      a.btn.btn-secondary(href="/api/transactions") Volver al listado
+      a.btn.btn-secondary(href='/api/transactions?type=PAYMENT') Volver al listado
 
     else if transaction
+      - const transactionItems = transaction.items && transaction.items.length > 0 ? transaction.items : (order ? order.items : [])
+      - const transactionTotal = typeof transaction.total_amount === 'number' ? transaction.total_amount : (order ? order.total_amount : 0)
       if flashError
         .alert.alert-warning.alert-dismissible.fade.show
           i.bi.bi-exclamation-triangle-fill.me-2
@@ -19,10 +21,10 @@ block content
 
       .d-flex.justify-content-between.align-items-center.mb-3
         h2
-          span.badge.me-2(class=transaction.transaction_type === 'PAYMENT' ? 'bg-primary' : 'bg-success')
+          span.entity-pill.me-2(class=transaction.transaction_type === 'PAYMENT' ? 'entity-payment' : 'entity-collection')
             = typeLabel
           | Transacción ##{transaction.id.slice(-6).toUpperCase()}
-        a.btn.btn-outline-secondary(href="/api/transactions") Volver al listado
+        a.btn.btn-outline-secondary(href=transaction.transaction_type === 'COLLECTION' ? '/api/transactions?type=COLLECTION' : '/api/transactions?type=PAYMENT') Volver al listado
 
       .row.mb-4
         .col-md-8
@@ -34,7 +36,7 @@ block content
                 .col-md-6
                   p
                     strong Estado:&nbsp;
-                    span.badge(class=`bg-${statusBadge}`) #{statusLabel}
+                    span.status-pill(class=`status-${statusBadge}`) #{statusLabel}
                   p
                     strong Orden asociada:&nbsp;
                     a(href=`/api/orders/${transaction.order_id}`)
@@ -51,6 +53,39 @@ block content
                     p
                       strong Nro. Documento:&nbsp;
                       = transaction.document_number
+
+          if order
+            .card.shadow-sm.mt-4
+              .card-header.bg-light
+                strong= transaction.transaction_type === 'PAYMENT' ? 'Detalle de lo que se paga' : 'Detalle de lo que se cobra'
+              .card-body
+                .d-flex.justify-content-between.align-items-start.gap-3.flex-wrap.mb-3
+                  div
+                    p.mb-1
+                      strong Orden:&nbsp;
+                      a(href=`/api/orders/${order.id}`)= `#${order.id.slice(-6).toUpperCase()}`
+                    p.mb-0.text-muted= `${order.items.length} ítem${order.items.length === 1 ? '' : 's'} asociados`
+                  .text-end
+                    p.mb-1
+                      strong Total:&nbsp;
+                      = formatCurrency(transactionTotal)
+                    p.mb-0.text-muted= transaction.transaction_type === 'PAYMENT' ? 'Monto total a pagar' : 'Monto total a cobrar'
+
+                .table-responsive
+                  table.table.table-sm.table-bordered.mb-0
+                    thead.table-light
+                      tr
+                        th Producto
+                        th.text-center Cantidad
+                        th.text-end Precio unitario
+                        th.text-end Subtotal
+                    tbody
+                      each item in transactionItems
+                        tr
+                          td= item.product_name
+                          td.text-center= item.quantity
+                          td.text-end= formatCurrency(item.unit_price)
+                          td.text-end= formatCurrency(item.quantity * item.unit_price)
 
         .col-md-4
           .card.shadow-sm

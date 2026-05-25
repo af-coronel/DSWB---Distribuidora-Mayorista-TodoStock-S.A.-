@@ -67,12 +67,19 @@ export class AuditPurchaseOrder {
 
     const now = new Date();
     let auditedTotal = 0;
+    const auditedItems = [];
 
     for (const orderItem of order.items) {
       const audit = auditMap.get(orderItem.product_id);
       const received = audit?.received_quantity ?? orderItem.quantity;
 
       auditedTotal += received * orderItem.unit_price;
+      auditedItems.push({
+        product_id: orderItem.product_id,
+        product_name: orderItem.product_name,
+        quantity: received,
+        unit_price: orderItem.unit_price,
+      });
 
       if (received > 0) {
         await this.createInventoryLotUseCase.execute({
@@ -88,13 +95,6 @@ export class AuditPurchaseOrder {
       }
     }
 
-    await this.orderRepository.updateTotalAmount(
-      orderId,
-      auditedTotal,
-      updatedBy,
-      now,
-    );
-
     const transactions =
       await this.transactionRepository.findByOrderId(orderId);
     const paymentTransaction = transactions.find(
@@ -109,6 +109,8 @@ export class AuditPurchaseOrder {
       await this.transactionRepository.update({
         ...paymentTransaction,
         status: "PENDING_PAYMENT",
+        total_amount: auditedTotal,
+        items: auditedItems,
         updated_by: updatedBy,
         updated_at: now,
       });

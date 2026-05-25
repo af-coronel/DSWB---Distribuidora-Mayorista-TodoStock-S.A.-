@@ -24,6 +24,16 @@ const TransactionSchema = new Schema<TransactionDocument>(
       default: "TO_VERIFY",
       required: true,
     },
+    total_amount: { type: Number, min: 0 },
+    items: [
+      {
+        _id: false,
+        product_id: { type: String, required: true },
+        product_name: { type: String, required: true },
+        quantity: { type: Number, required: true, min: 0 },
+        unit_price: { type: Number, required: true, min: 0 },
+      },
+    ],
     pos_number: { type: String },
     document_number: { type: String },
     created_by: { type: String, required: true },

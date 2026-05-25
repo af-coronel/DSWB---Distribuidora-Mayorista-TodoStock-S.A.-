@@ -2,15 +2,16 @@ extends ../layout
 
 block content
   .container.mt-5
+    - const backHref = returnTo || `/api/orders/${order?.id || ''}`
 
     if errorMessage
       .alert.alert-danger= errorMessage
-      a.btn.btn-secondary(href="/api/orders") Volver al listado
+      a.btn.btn-secondary(href=returnTo || '/api/orders') Volver
 
     else if order
       .d-flex.justify-content-between.align-items-center.mb-3
         h2 Auditoría — Orden ##{order.id.slice(-6).toUpperCase()}
-        a.btn.btn-outline-secondary(href=`/api/orders/${order.id}`) Volver al detalle
+        a.btn.btn-outline-secondary(href=backHref) Volver
 
       .alert.alert-info
         i.bi.bi-info-circle.me-2
@@ -21,6 +22,8 @@ block content
           strong Ítems recibidos
         .card-body
           form(action=`/api/orders/purchase/${order.id}/audit`, method="POST")
+            if returnTo
+              input(type='hidden', name='return_to', value=returnTo)
             table.table.table-bordered.mb-4
               thead.table-light
                 tr
@@ -51,7 +54,7 @@ block content
                       )
 
             .d-flex.justify-content-between
-              a.btn.btn-secondary(href=`/api/orders/${order.id}`) Cancelar
+              a.btn.btn-secondary(href=backHref) Cancelar
               button.btn.btn-warning(type="submit")
                 i.bi.bi-check2-circle.me-1
                 | Confirmar auditoría y registrar stock

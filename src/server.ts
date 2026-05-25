@@ -1,5 +1,9 @@
 import "dotenv/config";
-import express, { type Request, type Response, type NextFunction } from "express";
+import express, {
+  type Request,
+  type Response,
+  type NextFunction,
+} from "express";
 import path from "path";
 import cookieParser from "cookie-parser";
 import { fileURLToPath } from "url";
@@ -22,6 +26,13 @@ const __dirname = path.dirname(__filename);
 
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "pug");
+app.locals.formatCurrency = (value: number) =>
+  new Intl.NumberFormat("es-AR", {
+    style: "currency",
+    currency: "ARS",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -47,7 +58,9 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   if (req.headers.accept?.includes("text/html")) {
     return res.status(404).render("errors/404");
   }
-  return res.status(404).json({ error: true, message: "Recurso no encontrado" });
+  return res
+    .status(404)
+    .json({ error: true, message: "Recurso no encontrado" });
 });
 
 app.use(errorHandler);
