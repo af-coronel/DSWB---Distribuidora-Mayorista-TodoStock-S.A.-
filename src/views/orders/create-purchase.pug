@@ -15,7 +15,7 @@ block content
         button.btn-close(type="button", data-bs-dismiss="alert", aria-label="Cerrar")
 
     if !products || products.length === 0
-      .alert.alert-warning No hay productos registrados para agregar a la orden.
+      .alert.alert-warning No hay productos disponibles. Verificá que los proveedores estén activos.
 
     else
       .alert.alert-info.d-flex.align-items-start.gap-2
@@ -32,16 +32,6 @@ block content
             .card-body
               form(action="/api/orders/purchase", method="POST", onsubmit="return validateForm(event)")
 
-                .row.mb-3
-                  .col-md-6
-                    label.form-label Fecha estimada de recepción (opcional)
-                    input.form-control(type="date", name="scheduled_date", value=form.scheduled_date || "")
-
-                .mb-3
-                  label.form-label Notas (opcional)
-                  textarea.form-control(name="notes", rows="2")= form.notes || ""
-
-                hr
                 .d-flex.justify-content-between.align-items-center.mb-2
                   h5.mb-0 Ítems
                   button.btn.btn-sm.btn-outline-primary(type="button", onclick="addItem()")
@@ -95,6 +85,12 @@ block content
                   .d-flex.justify-content-end
                     strong.me-2 Total estimado:
                     span#grand-total.fw-bold —
+
+                hr
+
+                .mb-3
+                  label.form-label Notas (opcional)
+                  textarea.form-control(name="notes", rows="2")= form.notes || ""
 
                 .d-flex.justify-content-between.mt-4
                   a.btn.btn-secondary(href="/api/orders") Cancelar

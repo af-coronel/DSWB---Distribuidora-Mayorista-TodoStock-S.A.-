@@ -74,7 +74,9 @@ export class OrderController {
     const vendors = partners.filter((p) => p.active && p.type.includes("VENDOR"));
     const vendorMap: Record<string, string> = {};
     vendors.forEach((v) => { vendorMap[v.cuit] = v.legal_name; });
-    const products = await this.getAllProductsUseCase.execute();
+    const activeVendorCuits = new Set(Object.keys(vendorMap));
+    const allProducts = await this.getAllProductsUseCase.execute();
+    const products = allProducts.filter((p) => activeVendorCuits.has(p.vendor_cuit));
 
     return res.render("orders/create-purchase", {
       activeTab: "orders",
@@ -143,7 +145,9 @@ export class OrderController {
         const vendors = partners.filter((p) => p.active && p.type.includes("VENDOR"));
         const vendorMap: Record<string, string> = {};
         vendors.forEach((v) => { vendorMap[v.cuit] = v.legal_name; });
-        const products = await this.getAllProductsUseCase.execute();
+        const activeVendorCuits = new Set(Object.keys(vendorMap));
+        const allProducts = await this.getAllProductsUseCase.execute();
+        const products = allProducts.filter((p) => activeVendorCuits.has(p.vendor_cuit));
         return res.status(400).render("orders/create-purchase", {
           activeTab: "orders",
           vendorMap,
