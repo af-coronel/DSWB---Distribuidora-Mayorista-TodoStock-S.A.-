@@ -105,11 +105,21 @@ export class ProductController {
       const { name, vendor_cuit, vendor_price, customer_price, category } =
         req.body;
 
+      const vendorPriceNum = Number(vendor_price);
+      const customerPriceNum = Number(customer_price);
+
+      if (!vendor_price || isNaN(vendorPriceNum) || vendorPriceNum < 0) {
+        throw new Error("El precio proveedor debe ser un número válido mayor o igual a cero.");
+      }
+      if (!customer_price || isNaN(customerPriceNum) || customerPriceNum < 0) {
+        throw new Error("El precio cliente debe ser un número válido mayor o igual a cero.");
+      }
+
       const newProduct: IProduct = {
         name,
         vendor_cuit,
-        vendor_price: Number(vendor_price),
-        customer_price: Number(customer_price),
+        vendor_price: vendorPriceNum,
+        customer_price: customerPriceNum,
         category,
         created_at: new Date(),
         updated_at: new Date(),
@@ -195,14 +205,24 @@ export class ProductController {
 
       const originalName = decodeURIComponent(name);
 
+      const updatedVendorPrice = Number(req.body.vendor_price);
+      const updatedCustomerPrice = Number(req.body.customer_price);
+
+      if (!req.body.vendor_price || isNaN(updatedVendorPrice) || updatedVendorPrice < 0) {
+        throw new Error("El precio proveedor debe ser un número válido mayor o igual a cero.");
+      }
+      if (!req.body.customer_price || isNaN(updatedCustomerPrice) || updatedCustomerPrice < 0) {
+        throw new Error("El precio cliente debe ser un número válido mayor o igual a cero.");
+      }
+
       await this.updateProductUseCase.execute(
         originalName,
         vendor_cuit,
         {
           name: req.body.name,
           vendor_cuit: req.body.vendor_cuit,
-          vendor_price: Number(req.body.vendor_price),
-          customer_price: Number(req.body.customer_price),
+          vendor_price: updatedVendorPrice,
+          customer_price: updatedCustomerPrice,
           category: req.body.category,
         },
         userId,
