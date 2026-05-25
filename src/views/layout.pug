@@ -38,5 +38,9 @@ body
         a.nav-link(class=activeTab === 'inventory' ? 'active font-weight-bold' : '', href="/api/inventory")
           i.bi.bi-archive.me-2
           | Inventario
+      li.nav-item
+        a.nav-link(class=activeTab === 'transactions' ? 'active font-weight-bold' : '', href="/api/transactions")
+          i.bi.bi-cash-coin.me-2
+          | Finanzas
 
 block content

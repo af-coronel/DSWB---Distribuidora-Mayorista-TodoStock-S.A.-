@@ -12,6 +12,7 @@ import authRoutes from "./modules/auth/infrastructure/http/routes/authRoutes.js"
 import productRoutes from "./modules/products/infrastructure/http/routes/productRoutes.js";
 import orderRoutes from "./modules/orders/infrastructure/http/routes/orderRoutes.js";
 import inventoryRoutes from "./modules/inventory/infrastructure/http/routes/inventoryRoutes.js";
+import transactionRoutes from "./modules/transactions/infrastructure/http/routes/transactionRoutes.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -31,6 +32,7 @@ app.use("/api/vendors", vendorRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/inventory", inventoryRoutes);
+app.use("/api/transactions", transactionRoutes);
 app.use("/", authRoutes);
 
 app.get("/api/health", (req: Request, res: Response) => {
