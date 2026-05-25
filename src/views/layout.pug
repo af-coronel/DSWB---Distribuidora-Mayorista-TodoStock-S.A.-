@@ -47,6 +47,9 @@ html(lang="es")
       }
       .sidebar-toggle-btn:hover { color: #fff; background: rgba(255,255,255,.12); }
 
+      .sidebar.collapsed .sidebar-brand-area { display: none; }
+      .sidebar.collapsed .sidebar-header { justify-content: center; }
+
       .main-content {
         margin-left: 240px;
         min-height: 100vh;
@@ -55,7 +58,8 @@ html(lang="es")
       .main-content.expanded { margin-left: 64px; }
 
       .main-content .container {
-        max-width: 100%;
+        max-width: 100% !important;
+        width: 100% !important;
         padding-left: 1.75rem;
         padding-right: 1.75rem;
       }
@@ -63,8 +67,8 @@ html(lang="es")
     if activeTab
       .d-flex
         nav.sidebar.bg-dark.d-flex.flex-column.p-3
-          .d-flex.align-items-center.justify-content-between.mb-4
-            .d-flex.align-items-center.overflow-hidden
+          .sidebar-header.d-flex.align-items-center.justify-content-between.mb-4
+            .sidebar-brand-area.d-flex.align-items-center.overflow-hidden
               i.bi.bi-boxes.text-white.fs-5.flex-shrink-0
               span.sidebar-text.fw-bold.fs-6.text-white.ms-2 TodoStock S.A.
             button.sidebar-toggle-btn#sidebar-toggle(type="button", title="Colapsar menú")
