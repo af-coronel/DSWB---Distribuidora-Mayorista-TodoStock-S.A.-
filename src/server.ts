@@ -5,6 +5,7 @@
   import { fileURLToPath } from "url";
 
   import { connectToDatabase } from "./core/database/connection.js";
+  import { errorHandler } from "./core/middleware/errorHandler.js";
   import clientRoutes from "./modules/business-partner/infrastructure/http/routes/clientRoutes.js";
   import vendorRoutes from "./modules/business-partner/infrastructure/http/routes/vendorRoutes.js";
   import authRoutes from "./modules/auth/infrastructure/http/routes/authRoutes.js";
@@ -33,6 +34,8 @@
       timestamp: new Date().toISOString(),
     });
   });
+
+  app.use(errorHandler);
 
   connectToDatabase()
     .then(() => {
