@@ -25,7 +25,9 @@ export class CreateSaleOrder {
       throw new Error("El CUIT del cliente es obligatorio.");
     }
 
-    if (!inputItems || inputItems.length === 0) {
+    const validItems = (inputItems ?? []).filter(Boolean);
+
+    if (validItems.length === 0) {
       throw new Error("La orden debe tener al menos un ítem.");
     }
 
@@ -41,8 +43,10 @@ export class CreateSaleOrder {
 
     const items: IOrderItem[] = [];
 
-    for (const input of inputItems) {
-      if (input.quantity <= 0) {
+    for (const input of validItems) {
+      const quantity = Number(input.quantity);
+
+      if (!quantity || quantity <= 0) {
         throw new Error(`La cantidad del ítem con ID "${input.product_id}" debe ser mayor a cero.`);
       }
 
@@ -55,7 +59,7 @@ export class CreateSaleOrder {
       items.push({
         product_id: input.product_id,
         product_name: product.name,
-        quantity: input.quantity,
+        quantity,
         unit_price: product.customer_price,
       });
     }
