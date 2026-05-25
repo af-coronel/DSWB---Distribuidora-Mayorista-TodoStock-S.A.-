@@ -2,6 +2,9 @@ import type { IOrderRepository } from "../../domain/index.js";
 import type { ConfirmSale } from "../../../inventory/application/index.js";
 import type { IPaymentTransactionRepository } from "../../../transactions/domain/index.js";
 
+const COLLECTION_POS_NUMBER = "0001";
+const COLLECTION_DOCUMENT_LENGTH = 8;
+
 export class ConfirmSalePayment {
   constructor(
     private readonly orderRepository: IOrderRepository,
@@ -45,9 +48,18 @@ export class ConfirmSalePayment {
         (t.status === "PENDING" || t.status === "TO_VERIFY"),
     );
     if (pendingCollection) {
+      const lastDocumentNumber =
+        await this.transactionRepository.findLatestDocumentNumberByType(
+          "COLLECTION",
+          COLLECTION_POS_NUMBER,
+        );
+      const nextDocumentNumber = this.getNextDocumentNumber(lastDocumentNumber);
+
       await this.transactionRepository.update({
         ...pendingCollection,
         status: "COMPLETED",
+        pos_number: COLLECTION_POS_NUMBER,
+        document_number: nextDocumentNumber,
         updated_by: updatedBy,
         updated_at: new Date(),
       });
@@ -59,5 +71,11 @@ export class ConfirmSalePayment {
       updatedBy,
       new Date(),
     );
+  }
+
+  private getNextDocumentNumber(lastDocumentNumber: string | null): string {
+    const numericValue = Number.parseInt(lastDocumentNumber ?? "0", 10);
+    const nextValue = Number.isNaN(numericValue) ? 1 : numericValue + 1;
+    return String(nextValue).padStart(COLLECTION_DOCUMENT_LENGTH, "0");
   }
 }

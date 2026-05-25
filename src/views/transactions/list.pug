@@ -17,8 +17,9 @@ block content
           tr
             th Estado
             th Orden asociada
-            th Nro. POS
-            th Nro. Documento
+            if activeType === 'COLLECTION'
+              th Nro. POS
+              th Nro. Documento
             th Fecha creación
             th
         tbody
@@ -29,8 +30,9 @@ block content
               td
                 span.status-pill(class=`status-${badge}`) #{label}
               td= tx.order_id.slice(-6).toUpperCase()
-              td= tx.pos_number || '—'
-              td= tx.document_number || '—'
+              if activeType === 'COLLECTION'
+                td= tx.pos_number || '—'
+                td= tx.document_number || '—'
               td= new Date(tx.created_at).toLocaleDateString('es-AR')
               td
                 a.btn.btn-sm.btn-outline-secondary(href=`/api/transactions/${tx.id}`) Ver detalle

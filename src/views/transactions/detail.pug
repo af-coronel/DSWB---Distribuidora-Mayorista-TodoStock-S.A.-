@@ -126,6 +126,7 @@ block content
               else if transaction.transaction_type === 'COLLECTION'
                 if order && (order.status === 'TO_VERIFY_COLLECTION' || order.status === 'PENDING_PAYMENT') && (transaction.status === 'PENDING' || transaction.status === 'TO_VERIFY')
                   form(action=`/api/orders/sale/${order.id}/confirm-payment`, method="POST")
+                    p.text-muted.small.mb-2 Al confirmar se emitirá automáticamente el comprobante de cobro con punto de venta 0001.
                     button.btn.btn-success.w-100(type="submit")
                       i.bi.bi-check-circle.me-1
                       | Confirmar cobro

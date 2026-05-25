@@ -24,15 +24,37 @@ export class MongoTransactionRepository implements IPaymentTransactionRepository
 
   async findAll(): Promise<IPaymentTransaction[]> {
     const docs = await TransactionModel.find().sort({ created_at: -1 });
-    return docs.map((doc: TransactionDocument) => doc.toObject() as IPaymentTransaction);
+    return docs.map(
+      (doc: TransactionDocument) => doc.toObject() as IPaymentTransaction,
+    );
   }
 
   async findByOrderId(orderId: string): Promise<IPaymentTransaction[]> {
-    const docs = await TransactionModel.find({ order_id: orderId }).sort({ created_at: -1 });
-    return docs.map((doc: TransactionDocument) => doc.toObject() as IPaymentTransaction);
+    const docs = await TransactionModel.find({ order_id: orderId }).sort({
+      created_at: -1,
+    });
+    return docs.map(
+      (doc: TransactionDocument) => doc.toObject() as IPaymentTransaction,
+    );
+  }
+
+  async findLatestDocumentNumberByType(
+    transactionType: IPaymentTransaction["transaction_type"],
+    posNumber: string,
+  ): Promise<string | null> {
+    const doc = await TransactionModel.findOne({
+      transaction_type: transactionType,
+      status: "COMPLETED",
+      pos_number: posNumber,
+      document_number: { $exists: true, $ne: null },
+    }).sort({ document_number: -1, updated_at: -1 });
+
+    return doc?.document_number ?? null;
   }
 
   async update(transaction: IPaymentTransaction): Promise<void> {
-    await TransactionModel.findByIdAndUpdate(transaction.id, { $set: transaction });
+    await TransactionModel.findByIdAndUpdate(transaction.id, {
+      $set: transaction,
+    });
   }
 }
