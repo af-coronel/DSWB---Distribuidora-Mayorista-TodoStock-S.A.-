@@ -65,7 +65,7 @@ export class TransactionController {
 
   async renderDetail(req: Request, res: Response) {
     try {
-      const { id } = req.params;
+      const { id } = req.params as { id: string };
       const transaction = await this.getTransactionByIdUseCase.execute(id);
 
       return res.render("transactions/detail", {
@@ -138,7 +138,7 @@ export class TransactionController {
   async completeTransaction(req: Request, res: Response) {
     const request = req as AuthenticatedRequest;
     try {
-      const { id } = req.params;
+      const { id } = req.params as { id: string };
       const { pos_number, document_number } = req.body;
       await this.completeTransactionUseCase.execute(
         id,
@@ -157,7 +157,7 @@ export class TransactionController {
   async cancelTransaction(req: Request, res: Response) {
     const request = req as AuthenticatedRequest;
     try {
-      const { id } = req.params;
+      const { id } = req.params as { id: string };
       await this.cancelTransactionUseCase.execute(id, request.user?.id || "unknown");
       if (isFormRequest(req)) return res.redirect(`/api/transactions/${id}`);
       return res.status(200).json({ message: "Transacción cancelada" });
