@@ -95,5 +95,15 @@ block content
     function removeItem(btn) {
       const row = btn.closest('.item-row');
       const rows = document.querySelectorAll('.item-row');
-      if (rows.length > 1) row.remove();
+      if (rows.length > 1) {
+        row.remove();
+        reindexItems();
+      }
+    }
+
+    function reindexItems() {
+      document.querySelectorAll('.item-row').forEach((row, i) => {
+        row.querySelector('[name$="[product_id]"]').name = `items[${i}][product_id]`;
+        row.querySelector('[name$="[quantity]"]').name = `items[${i}][quantity]`;
+      });
     }
