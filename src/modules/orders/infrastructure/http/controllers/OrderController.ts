@@ -9,7 +9,9 @@ import type { MarkOrderDelivered } from "../../../application/use-cases/MarkOrde
 import type { CancelSaleOrder } from "../../../application/use-cases/CancelSaleOrder.js";
 import type { GetAllOrders } from "../../../application/use-cases/GetAllOrders.js";
 import type { GetOrderById } from "../../../application/use-cases/GetOrderById.js";
-import type { IOrderItem, OrderType } from "../../../domain/index.js";
+import type { CreatePurchaseOrderItemInput } from "../../../application/use-cases/CreatePurchaseOrder.js";
+import type { CreateSaleOrderItemInput } from "../../../application/use-cases/CreateSaleOrder.js";
+import type { OrderType } from "../../../domain/index.js";
 
 type AuthenticatedRequest = Request & {
   user?: { id?: string };
@@ -36,7 +38,7 @@ export class OrderController {
 
       const order = await this.createPurchaseOrderUseCase.execute(
         partner_cuit,
-        items as IOrderItem[],
+        items as CreatePurchaseOrderItemInput[],
         request.user?.id || "unknown",
         scheduled_date ? new Date(scheduled_date) : undefined,
         notes,
@@ -94,7 +96,7 @@ export class OrderController {
 
       const order = await this.createSaleOrderUseCase.execute(
         partner_cuit,
-        items as IOrderItem[],
+        items as CreateSaleOrderItemInput[],
         request.user?.id || "unknown",
         scheduled_date ? new Date(scheduled_date) : undefined,
         notes,

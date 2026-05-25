@@ -16,18 +16,20 @@ import {
 import { OrderController } from "../controllers/OrderController.js";
 import { MongoOrderRepository } from "../../persistence/MongoOrderRepository.js";
 import { MongoBusinessPartnerRepository } from "../../../../business-partner/infrastructure/persistence/MongoBusinessPartnerRepository.js";
+import { MongoProductRepository } from "../../../../products/infrastructure/persistence/MongoProductRepository.js";
 
 const router = Router();
 
 const orderRepository = new MongoOrderRepository();
 const partnerRepository = new MongoBusinessPartnerRepository();
+const productRepository = new MongoProductRepository();
 
 const orderController = new OrderController(
-  new CreatePurchaseOrder(orderRepository, partnerRepository),
+  new CreatePurchaseOrder(orderRepository, partnerRepository, productRepository),
   new ConfirmPurchaseOrder(orderRepository),
   new ReceivePurchaseOrder(orderRepository),
   new CancelPurchaseOrder(orderRepository),
-  new CreateSaleOrder(orderRepository, partnerRepository),
+  new CreateSaleOrder(orderRepository, partnerRepository, productRepository),
   new ConfirmSalePayment(orderRepository),
   new MarkOrderDelivered(orderRepository),
   new CancelSaleOrder(orderRepository),

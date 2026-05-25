@@ -29,6 +29,11 @@ export class MongoProductRepository implements IProductRepository {
     return docs.map((doc: ProductDocument) => doc.toObject() as IProduct);
   }
 
+  async findById(id: string): Promise<IProduct | null> {
+    const doc = await ProductModel.findById(id);
+    return doc ? (doc.toObject() as IProduct) : null;
+  }
+
   async findByNameAndVendorCuit(
     name: string,
     vendorCuit: string,
