@@ -13,6 +13,8 @@ import {
   GetAllOrders,
   GetOrderById,
 } from "../../../application/index.js";
+import { GetAllPartners } from "../../../../business-partner/application/index.js";
+import { GetAllProducts } from "../../../../products/application/index.js";
 import { OrderController } from "../controllers/OrderController.js";
 import { MongoOrderRepository } from "../../persistence/MongoOrderRepository.js";
 import { MongoBusinessPartnerRepository } from "../../../../business-partner/infrastructure/persistence/MongoBusinessPartnerRepository.js";
@@ -35,6 +37,16 @@ const orderController = new OrderController(
   new CancelSaleOrder(orderRepository),
   new GetAllOrders(orderRepository),
   new GetOrderById(orderRepository),
+  new GetAllPartners(partnerRepository),
+  new GetAllProducts(productRepository),
+);
+
+// --- Vistas HTML ---
+router.get("/purchase/new", authenticate, (req, res) =>
+  orderController.renderCreatePurchaseForm(req, res),
+);
+router.get("/sale/new", authenticate, (req, res) =>
+  orderController.renderCreateSaleForm(req, res),
 );
 
 // --- Consultas ---
@@ -48,17 +60,35 @@ router.post(
   authorizeRoles(["ADMIN", "VENDOR"]),
   (req, res) => orderController.createPurchaseOrder(req, res),
 );
-router.patch(
+router.post(
   "/purchase/:id/confirm",
   authenticate,
   authorizeRoles(["ADMIN", "VENDOR"]),
   (req, res) => orderController.confirmPurchaseOrder(req, res),
 );
 router.patch(
+  "/purchase/:id/confirm",
+  authenticate,
+  authorizeRoles(["ADMIN", "VENDOR"]),
+  (req, res) => orderController.confirmPurchaseOrder(req, res),
+);
+router.post(
   "/purchase/:id/receive",
   authenticate,
   authorizeRoles(["ADMIN", "VENDOR"]),
   (req, res) => orderController.receivePurchaseOrder(req, res),
+);
+router.patch(
+  "/purchase/:id/receive",
+  authenticate,
+  authorizeRoles(["ADMIN", "VENDOR"]),
+  (req, res) => orderController.receivePurchaseOrder(req, res),
+);
+router.post(
+  "/purchase/:id/cancel",
+  authenticate,
+  authorizeRoles(["ADMIN", "VENDOR"]),
+  (req, res) => orderController.cancelPurchaseOrder(req, res),
 );
 router.patch(
   "/purchase/:id/cancel",
@@ -74,17 +104,35 @@ router.post(
   authorizeRoles(["ADMIN", "VENDOR"]),
   (req, res) => orderController.createSaleOrder(req, res),
 );
-router.patch(
+router.post(
   "/sale/:id/confirm-payment",
   authenticate,
   authorizeRoles(["ADMIN", "VENDOR"]),
   (req, res) => orderController.confirmSalePayment(req, res),
 );
 router.patch(
+  "/sale/:id/confirm-payment",
+  authenticate,
+  authorizeRoles(["ADMIN", "VENDOR"]),
+  (req, res) => orderController.confirmSalePayment(req, res),
+);
+router.post(
   "/sale/:id/deliver",
   authenticate,
   authorizeRoles(["ADMIN", "VENDOR"]),
   (req, res) => orderController.markOrderDelivered(req, res),
+);
+router.patch(
+  "/sale/:id/deliver",
+  authenticate,
+  authorizeRoles(["ADMIN", "VENDOR"]),
+  (req, res) => orderController.markOrderDelivered(req, res),
+);
+router.post(
+  "/sale/:id/cancel",
+  authenticate,
+  authorizeRoles(["ADMIN", "VENDOR"]),
+  (req, res) => orderController.cancelSaleOrder(req, res),
 );
 router.patch(
   "/sale/:id/cancel",
