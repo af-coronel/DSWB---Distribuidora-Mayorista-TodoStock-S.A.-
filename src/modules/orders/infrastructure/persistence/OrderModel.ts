@@ -19,7 +19,9 @@ const OrderSchema = new Schema<OrderDocument>(
     status: {
       type: String,
       enum: [
+        "TO_VERIFY_BUDGET",
         "PENDING_BUDGET",
+        "TO_CONFIRM",
         "CONFIRMED",
         "RECEIVED",
         "AUDITED",

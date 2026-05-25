@@ -6,11 +6,22 @@ export type TransactionDocument = IPaymentTransaction & Document;
 const TransactionSchema = new Schema<TransactionDocument>(
   {
     order_id: { type: String, required: true },
-    transaction_type: { type: String, enum: ["PAYMENT", "COLLECTION"], required: true },
+    transaction_type: {
+      type: String,
+      enum: ["PAYMENT", "COLLECTION"],
+      required: true,
+    },
     status: {
       type: String,
-      enum: ["PENDING", "COMPLETED", "CANCELLED"],
-      default: "PENDING",
+      enum: [
+        "TO_VERIFY",
+        "VERIFIED",
+        "PENDING_PAYMENT",
+        "PENDING",
+        "COMPLETED",
+        "CANCELLED",
+      ],
+      default: "TO_VERIFY",
       required: true,
     },
     pos_number: { type: String },
@@ -23,10 +34,12 @@ const TransactionSchema = new Schema<TransactionDocument>(
   {
     versionKey: false,
     toObject: {
-      transform: (_doc, ret) => {
-        ret.id = ret._id.toString();
-        delete ret._id;
-        return ret;
+      transform: (
+        _doc: unknown,
+        ret: { _id: { toString(): string } } & Record<string, unknown>,
+      ) => {
+        const { _id, ...rest } = ret;
+        return { id: _id.toString(), ...rest };
       },
     },
   },

@@ -1,6 +1,10 @@
 import type { IBusinessPartnerRepository } from "../../../business-partner/domain/index.js";
 import type { IProductRepository } from "../../../products/domain/index.js";
-import type { IOrder, IOrderItem, IOrderRepository } from "../../domain/index.js";
+import type {
+  IOrder,
+  IOrderItem,
+  IOrderRepository,
+} from "../../domain/index.js";
 import type { CreateTransaction } from "../../../transactions/application/index.js";
 
 export interface CreatePurchaseOrderItemInput {
@@ -34,7 +38,9 @@ export class CreatePurchaseOrder {
       const quantity = Number(input.quantity);
 
       if (!quantity || quantity <= 0) {
-        throw new Error(`La cantidad del ítem con ID "${input.product_id}" debe ser mayor a cero.`);
+        throw new Error(
+          `La cantidad del ítem con ID "${input.product_id}" debe ser mayor a cero.`,
+        );
       }
 
       const product = await this.productRepository.findById(input.product_id);
@@ -59,10 +65,14 @@ export class CreatePurchaseOrder {
     for (const cuit of vendorCuits) {
       const vendor = await this.partnerRepository.findByCuit(cuit);
       if (!vendor || !vendor.active) {
-        throw new Error(`El proveedor con CUIT "${cuit}" no existe o está inactivo.`);
+        throw new Error(
+          `El proveedor con CUIT "${cuit}" no existe o está inactivo.`,
+        );
       }
       if (!vendor.type.includes("VENDOR")) {
-        throw new Error(`El socio con CUIT "${cuit}" no está registrado como proveedor.`);
+        throw new Error(
+          `El socio con CUIT "${cuit}" no está registrado como proveedor.`,
+        );
       }
     }
 
@@ -70,16 +80,19 @@ export class CreatePurchaseOrder {
     const created: IOrder[] = [];
 
     for (const [vendorCuit, items] of grouped) {
-      const total = items.reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
+      const total = items.reduce(
+        (sum, item) => sum + item.quantity * item.unit_price,
+        0,
+      );
 
       const order: IOrder = {
         order_type: "PURCHASE",
-        status: "PENDING_BUDGET",
+        status: "TO_VERIFY_BUDGET",
         partner_cuit: vendorCuit,
         items,
         total_amount: total,
-        scheduled_date: scheduledDate,
-        notes,
+        ...(scheduledDate ? { scheduled_date: scheduledDate } : {}),
+        ...(notes ? { notes } : {}),
         created_by: createdBy,
         created_at: now,
         updated_by: createdBy,
@@ -87,7 +100,11 @@ export class CreatePurchaseOrder {
       };
 
       const saved = await this.orderRepository.save(order);
-      await this.createTransactionUseCase.execute(saved.id!, "PAYMENT", createdBy);
+      await this.createTransactionUseCase.execute(
+        saved.id!,
+        "PAYMENT",
+        createdBy,
+      );
       created.push(saved);
     }
 

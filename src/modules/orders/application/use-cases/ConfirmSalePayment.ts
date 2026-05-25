@@ -27,12 +27,19 @@ export class ConfirmSalePayment {
     }
 
     for (const item of order.items) {
-      await this.confirmSaleUseCase.execute(item.product_id, item.quantity, updatedBy);
+      await this.confirmSaleUseCase.execute(
+        item.product_id,
+        item.quantity,
+        updatedBy,
+      );
     }
 
-    const transactions = await this.transactionRepository.findByOrderId(orderId);
+    const transactions =
+      await this.transactionRepository.findByOrderId(orderId);
     const pendingCollection = transactions.find(
-      (t) => t.transaction_type === "COLLECTION" && t.status === "PENDING",
+      (t) =>
+        t.transaction_type === "COLLECTION" &&
+        (t.status === "TO_VERIFY" || t.status === "PENDING"),
     );
     if (pendingCollection) {
       await this.transactionRepository.update({
@@ -43,6 +50,11 @@ export class ConfirmSalePayment {
       });
     }
 
-    await this.orderRepository.updateStatus(orderId, "PENDING_ASSEMBLY", updatedBy, new Date());
+    await this.orderRepository.updateStatus(
+      orderId,
+      "PENDING_ASSEMBLY",
+      updatedBy,
+      new Date(),
+    );
   }
 }

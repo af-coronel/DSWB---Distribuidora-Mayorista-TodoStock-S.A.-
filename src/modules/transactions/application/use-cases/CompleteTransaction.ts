@@ -11,15 +11,21 @@ export class CompleteTransaction {
     posNumber?: string,
     documentNumber?: string,
   ): Promise<void> {
-    const transaction = await this.transactionRepository.findById(transactionId);
+    const transaction =
+      await this.transactionRepository.findById(transactionId);
 
     if (!transaction) {
       throw new Error("La transacción no existe.");
     }
 
-    if (transaction.status !== "PENDING") {
+    const completableStatuses =
+      transaction.transaction_type === "PAYMENT"
+        ? (["PENDING_PAYMENT", "PENDING"] as const)
+        : (["TO_VERIFY", "PENDING"] as const);
+
+    if (!completableStatuses.includes(transaction.status as any)) {
       throw new Error(
-        `No se puede completar una transacción en estado "${transaction.status}". Se requiere estado PENDING.`,
+        `No se puede completar una transacción en estado "${transaction.status}".`,
       );
     }
 
@@ -39,8 +45,10 @@ export class CompleteTransaction {
     await this.transactionRepository.update({
       ...transaction,
       status: "COMPLETED",
-      pos_number: posNumber?.trim(),
-      document_number: documentNumber?.trim(),
+      ...(posNumber?.trim() ? { pos_number: posNumber.trim() } : {}),
+      ...(documentNumber?.trim()
+        ? { document_number: documentNumber.trim() }
+        : {}),
       updated_by: updatedBy,
       updated_at: new Date(),
     });

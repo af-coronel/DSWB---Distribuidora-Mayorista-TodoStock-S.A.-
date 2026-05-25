@@ -1,7 +1,19 @@
 export type OrderType = "PURCHASE" | "SALE";
 
-export type PurchaseStatus = "PENDING_BUDGET" | "CONFIRMED" | "RECEIVED" | "AUDITED" | "CANCELLED";
-export type SaleStatus = "PENDING_PAYMENT" | "PENDING_ASSEMBLY" | "DISPATCHING" | "DELIVERED" | "CANCELLED";
+export type PurchaseStatus =
+  | "TO_VERIFY_BUDGET"
+  | "PENDING_BUDGET"
+  | "TO_CONFIRM"
+  | "CONFIRMED"
+  | "RECEIVED"
+  | "AUDITED"
+  | "CANCELLED";
+export type SaleStatus =
+  | "PENDING_PAYMENT"
+  | "PENDING_ASSEMBLY"
+  | "DISPATCHING"
+  | "DELIVERED"
+  | "CANCELLED";
 export type OrderStatus = PurchaseStatus | SaleStatus;
 
 export interface IOrderItem {

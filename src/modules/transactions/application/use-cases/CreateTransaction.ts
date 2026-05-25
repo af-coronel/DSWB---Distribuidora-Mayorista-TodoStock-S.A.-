@@ -43,7 +43,7 @@ export class CreateTransaction {
     const transaction: IPaymentTransaction = {
       order_id: orderId,
       transaction_type: transactionType,
-      status: "PENDING",
+      status: "TO_VERIFY",
       created_by: createdBy,
       created_at: now,
       updated_by: createdBy,
