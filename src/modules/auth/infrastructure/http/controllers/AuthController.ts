@@ -5,7 +5,9 @@ export class AuthController {
   constructor(private readonly loginUserUseCase: LoginUser) {}
 
   async renderLogin(req: Request, res: Response) {
-    res.render("auth/login");
+    res.render("auth/login", {
+      sessionExpired: req.query.sessionExpired === "true",
+    });
   }
   async logout(req: Request, res: Response) {
     res.clearCookie("token", { httpOnly: true, secure: false });
