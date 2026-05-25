@@ -47,12 +47,14 @@ html(lang="es")
       }
       .sidebar-toggle-btn:hover { color: #fff; background: rgba(255,255,255,.12); }
 
-      .sidebar.collapsed .sidebar-brand-area { display: none; }
+      .sidebar.collapsed .sidebar-brand-area { display: none !important; }
       .sidebar.collapsed .sidebar-header { justify-content: center; }
 
       .main-content {
+        flex: 1;
         margin-left: 240px;
         min-height: 100vh;
+        min-width: 0;
         transition: margin-left 0.22s ease;
       }
       .main-content.expanded { margin-left: 64px; }
