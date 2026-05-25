@@ -117,6 +117,27 @@ export class OrderController {
       }));
   }
 
+  private async getPurchaseProductsWithStock(activeVendorCuits: Set<string>) {
+    const allProducts = await this.getAllProductsUseCase.execute();
+    const vendorProducts = allProducts.filter((product) =>
+      activeVendorCuits.has(product.vendor_cuit),
+    );
+
+    const stockByProduct = await Promise.all(
+      vendorProducts.map(async (product) => ({
+        product,
+        availableStock: await this.getAvailableStockByProductUseCase.execute(
+          product.id!,
+        ),
+      })),
+    );
+
+    return stockByProduct.map(({ product, availableStock }) => ({
+      ...product,
+      available_stock: availableStock,
+    }));
+  }
+
   private getFormSuccessRedirect(req: Request, defaultPath: string) {
     return getFinanceReturnPath(req) || defaultPath;
   }
@@ -147,10 +168,7 @@ export class OrderController {
       vendorMap[v.cuit] = v.legal_name;
     });
     const activeVendorCuits = new Set(Object.keys(vendorMap));
-    const allProducts = await this.getAllProductsUseCase.execute();
-    const products = allProducts.filter((p) =>
-      activeVendorCuits.has(p.vendor_cuit),
-    );
+    const products = await this.getPurchaseProductsWithStock(activeVendorCuits);
 
     return res.render("orders/create-purchase", {
       activeTab: "orders",
@@ -228,10 +246,8 @@ export class OrderController {
           vendorMap[v.cuit] = v.legal_name;
         });
         const activeVendorCuits = new Set(Object.keys(vendorMap));
-        const allProducts = await this.getAllProductsUseCase.execute();
-        const products = allProducts.filter((p) =>
-          activeVendorCuits.has(p.vendor_cuit),
-        );
+        const products =
+          await this.getPurchaseProductsWithStock(activeVendorCuits);
         return res.status(400).render("orders/create-purchase", {
           activeTab: "orders",
           vendorMap,
