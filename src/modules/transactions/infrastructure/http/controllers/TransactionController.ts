@@ -1,10 +1,8 @@
 import type { Request, Response } from "express";
-import type { CreateTransaction } from "../../../application/use-cases/CreateTransaction.js";
 import type { CompleteTransaction } from "../../../application/use-cases/CompleteTransaction.js";
 import type { CancelTransaction } from "../../../application/use-cases/CancelTransaction.js";
 import type { GetAllTransactions } from "../../../application/use-cases/GetAllTransactions.js";
 import type { GetTransactionById } from "../../../application/use-cases/GetTransactionById.js";
-import type { GetAllOrders } from "../../../../orders/application/use-cases/GetAllOrders.js";
 import type { TransactionType } from "../../../domain/index.js";
 
 type AuthenticatedRequest = Request & {
@@ -33,12 +31,10 @@ const isFormRequest = (req: Request) =>
 
 export class TransactionController {
   constructor(
-    private readonly createTransactionUseCase: CreateTransaction,
     private readonly completeTransactionUseCase: CompleteTransaction,
     private readonly cancelTransactionUseCase: CancelTransaction,
     private readonly getAllTransactionsUseCase: GetAllTransactions,
     private readonly getTransactionByIdUseCase: GetTransactionById,
-    private readonly getAllOrdersUseCase: GetAllOrders,
   ) {}
 
   async getAll(req: Request, res: Response) {
@@ -93,45 +89,6 @@ export class TransactionController {
       return res.status(200).json(transaction);
     } catch (error: any) {
       return res.status(404).json({ error: true, message: error.message });
-    }
-  }
-
-  async renderCreateForm(req: Request, res: Response) {
-    const orders = await this.getAllOrdersUseCase.execute();
-    return res.render("transactions/create", {
-      activeTab: "transactions",
-      orders,
-      errorMessage: undefined,
-    });
-  }
-
-  async createTransaction(req: Request, res: Response) {
-    const request = req as AuthenticatedRequest;
-    try {
-      const { order_id, transaction_type } = req.body;
-
-      if (!transaction_type || !["PAYMENT", "COLLECTION"].includes(transaction_type)) {
-        throw new Error("El tipo de transacción es requerido (PAYMENT o COLLECTION).");
-      }
-
-      const transaction = await this.createTransactionUseCase.execute(
-        order_id,
-        transaction_type as TransactionType,
-        request.user?.id || "unknown",
-      );
-
-      if (isFormRequest(req)) return res.redirect(`/api/transactions/${transaction.id}`);
-      return res.status(201).json({ message: "Transacción creada", item: transaction });
-    } catch (error: any) {
-      if (isFormRequest(req)) {
-        const orders = await this.getAllOrdersUseCase.execute();
-        return res.status(400).render("transactions/create", {
-          activeTab: "transactions",
-          orders,
-          errorMessage: error.message,
-        });
-      }
-      return res.status(400).json({ error: true, message: error.message });
     }
   }
 
