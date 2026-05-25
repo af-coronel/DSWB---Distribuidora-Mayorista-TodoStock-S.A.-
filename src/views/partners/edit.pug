@@ -1,5 +1,7 @@
 extends ../layout
 block content
+  - const customerData = partner.customer_data || {}
+  - const vendorData = partner.vendor_data || {}
   .container.mt-5
     if errorMessage
       .alert.alert-danger= errorMessage
@@ -45,7 +47,7 @@ block content
                 .row.mb-3
                   .col-md-6
                     label.form-label Límite de Crédito
-                    input.form-control(type="number", name="credit_limit", value=partner.customer_data.credit_limit || 0, min="0")
+                    input.form-control(type="number", name="credit_limit", value=customerData.credit_limit || 0, min="0")
               else
                 hr
                 h5 Datos de Logística
@@ -53,14 +55,14 @@ block content
                   .col-md-6
                     label.form-label Categoría
                     select.form-select(name="category")
-                      option(value="Alimentos", selected=partner.vendor_data.category === 'Alimentos') Alimentos
-                      option(value="Limpieza", selected=partner.vendor_data.category === 'Limpieza') Limpieza
-                      option(value="Bebidas", selected=partner.vendor_data.category === 'Bebidas') Bebidas
-                      option(value="Bazar", selected=partner.vendor_data.category === 'Bazar') Bazar
-                      option(value="General", selected=!partner.vendor_data.category || partner.vendor_data.category === 'General') General
+                      option(value="Alimentos", selected=vendorData.category === 'Alimentos') Alimentos
+                      option(value="Limpieza", selected=vendorData.category === 'Limpieza') Limpieza
+                      option(value="Bebidas", selected=vendorData.category === 'Bebidas') Bebidas
+                      option(value="Bazar", selected=vendorData.category === 'Bazar') Bazar
+                      option(value="General", selected=!vendorData.category || vendorData.category === 'General') General
                   .col-md-6
                     label.form-label Lead Time (Días de entrega)
-                    input.form-control(type="number", name="lead_time", value=partner.vendor_data.lead_time || 0, min="0")
+                    input.form-control(type="number", name="lead_time", value=vendorData.lead_time || 0, min="0")
 
               .d-flex.justify-content-between.mt-4
                 a.btn.btn-secondary(href=`/api/${activeTab}/${partner.cuit}`) Cancelar

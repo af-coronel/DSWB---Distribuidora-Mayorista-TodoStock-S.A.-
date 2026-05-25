@@ -162,7 +162,13 @@ export class ClientController {
         successMessage:
           req.query.updated === "1"
             ? "Cliente actualizado correctamente."
-            : undefined,
+            : req.query.activated === "1"
+              ? "Cliente activado correctamente."
+              : req.query.deactivated === "1"
+                ? "Cliente desactivado correctamente."
+                : undefined,
+        errorMessage:
+          typeof req.query.error === "string" ? req.query.error : undefined,
       });
     } catch (error: any) {
       return res.status(500).json({
@@ -186,7 +192,13 @@ export class ClientController {
           successMessage:
             req.query.created === "1"
               ? "Cliente registrado correctamente."
-              : undefined,
+              : req.query.activated === "1"
+                ? "Cliente activado correctamente."
+                : req.query.deactivated === "1"
+                  ? "Cliente desactivado correctamente."
+                  : undefined,
+          errorMessage:
+            typeof req.query.error === "string" ? req.query.error : undefined,
         });
       }
 

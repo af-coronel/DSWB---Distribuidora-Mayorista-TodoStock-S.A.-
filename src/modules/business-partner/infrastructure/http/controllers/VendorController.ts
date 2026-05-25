@@ -166,7 +166,13 @@ export class VendorController {
           successMessage:
             req.query.updated === "1"
               ? "Proveedor actualizado correctamente."
-              : undefined,
+              : req.query.activated === "1"
+                ? "Proveedor activado correctamente."
+                : req.query.deactivated === "1"
+                  ? "Proveedor desactivado correctamente."
+                  : undefined,
+          errorMessage:
+            typeof req.query.error === "string" ? req.query.error : undefined,
         });
       }
 
@@ -192,7 +198,13 @@ export class VendorController {
           successMessage:
             req.query.created === "1"
               ? "Proveedor registrado correctamente."
-              : undefined,
+              : req.query.activated === "1"
+                ? "Proveedor activado correctamente."
+                : req.query.deactivated === "1"
+                  ? "Proveedor desactivado correctamente."
+                  : undefined,
+          errorMessage:
+            typeof req.query.error === "string" ? req.query.error : undefined,
         });
       }
       if (!onlyVendors.length) {

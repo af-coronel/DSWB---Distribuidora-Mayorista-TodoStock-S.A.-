@@ -3,6 +3,19 @@ block content
   .container.mt-5
     if successMessage
       .alert.alert-success= successMessage
+    if errorMessage
+      .alert.alert-danger= errorMessage
+
+    #partner-action-modal.position-fixed.top-0.start-0.w-100.h-100.d-none(style="background: rgba(33, 37, 41, 0.55); z-index: 1055;")
+      .d-flex.justify-content-center.align-items-center.w-100.h-100.p-3
+        .card.shadow-lg.border-0(style="width: 100%; max-width: 460px;")
+          .card-header.bg-dark.text-white
+            h5.mb-0 Confirmar acción
+          .card-body
+            p.mb-0#partner-action-message
+          .card-footer.bg-white.d-flex.justify-content-end.gap-2
+            button.btn.btn-outline-secondary(type="button", onclick="closePartnerActionModal()") Cancelar
+            button.btn.btn-dark(type="button", onclick="confirmPartnerAction()") Confirmar
 
     .card.shadow
       .card-header.bg-dark.text-white.d-flex.justify-content-between.align-items-center
@@ -38,23 +51,50 @@ block content
         div
           a.btn.btn-warning.me-2(href=`/api/${activeTab}/${partner.cuit}/edit`) Editar
           if partner.active
-            button.btn.btn-danger(onclick=`togglePartner('${partner.cuit}', 'deactivate', '${activeTab}')`) Desactivar
+            button.btn.btn-danger(type="button", onclick=`openPartnerAction('${partner.cuit}', 'deactivate', '${activeTab}')`) Desactivar
           else
-            button.btn.btn-success(onclick=`togglePartner('${partner.cuit}', 'activate', '${activeTab}')`) Activar
+            button.btn.btn-success(type="button", onclick=`openPartnerAction('${partner.cuit}', 'activate', '${activeTab}')`) Activar
 
   script.
-    async function togglePartner(cuit, action, tab) {
+    let pendingPartnerAction = null;
+
+    function openPartnerAction(cuit, action, tab) {
       const label = action === 'activate' ? 'activar' : 'desactivar';
-      if (!confirm(`¿Está seguro que desea ${label} este socio de negocio?`)) return;
+      pendingPartnerAction = { cuit, action, tab };
+
+      const box = document.getElementById('partner-action-modal');
+      const message = document.getElementById('partner-action-message');
+
+      if (!box || !message) return;
+
+      message.textContent = `¿Está seguro que desea ${label} este socio de negocio?`;
+      box.classList.remove('d-none');
+    }
+
+    function closePartnerActionModal() {
+      pendingPartnerAction = null;
+      const box = document.getElementById('partner-action-modal');
+      if (box) {
+        box.classList.add('d-none');
+      }
+    }
+
+    async function confirmPartnerAction() {
+      if (!pendingPartnerAction) return;
+
+      const { cuit, action, tab } = pendingPartnerAction;
       try {
         const res = await fetch(`/api/${tab}/${cuit}/${action}`, { method: 'PATCH' });
         const data = await res.json();
         if (res.ok) {
-          window.location.reload();
+          const query = action === 'activate' ? 'activated=1' : 'deactivated=1';
+          window.location.href = `/api/${tab}/${cuit}?${query}`;
         } else {
-          alert('Error: ' + data.message);
+          const message = data && data.message ? data.message : 'No se pudo actualizar el estado del socio de negocio.';
+          window.location.href = `/api/${tab}/${cuit}?error=${encodeURIComponent(message)}`;
         }
       } catch (e) {
-        alert('Error de conexión: ' + e.message);
+        const message = e && e.message ? `Error de conexión: ${e.message}` : 'Error de conexión.';
+        window.location.href = `/api/${tab}/${cuit}?error=${encodeURIComponent(message)}`;
       }
     }
