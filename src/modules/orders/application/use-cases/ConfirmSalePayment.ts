@@ -1,10 +1,12 @@
 import type { IOrderRepository } from "../../domain/index.js";
 import type { ConfirmSale } from "../../../inventory/application/index.js";
+import type { IPaymentTransactionRepository } from "../../../transactions/domain/index.js";
 
 export class ConfirmSalePayment {
   constructor(
     private readonly orderRepository: IOrderRepository,
     private readonly confirmSaleUseCase: ConfirmSale,
+    private readonly transactionRepository: IPaymentTransactionRepository,
   ) {}
 
   async execute(orderId: string, updatedBy: string): Promise<void> {
@@ -26,6 +28,19 @@ export class ConfirmSalePayment {
 
     for (const item of order.items) {
       await this.confirmSaleUseCase.execute(item.product_id, item.quantity, updatedBy);
+    }
+
+    const transactions = await this.transactionRepository.findByOrderId(orderId);
+    const pendingCollection = transactions.find(
+      (t) => t.transaction_type === "COLLECTION" && t.status === "PENDING",
+    );
+    if (pendingCollection) {
+      await this.transactionRepository.update({
+        ...pendingCollection,
+        status: "COMPLETED",
+        updated_by: updatedBy,
+        updated_at: new Date(),
+      });
     }
 
     await this.orderRepository.updateStatus(orderId, "PENDING_ASSEMBLY", updatedBy, new Date());
