@@ -50,6 +50,12 @@ export class UpdateProduct {
       throw new Error("Los precios del producto no pueden ser negativos.");
     }
 
+    if (nextCustomerPrice < nextVendorPrice) {
+      throw new Error(
+        "El precio al cliente no puede ser menor que el precio del proveedor.",
+      );
+    }
+
     if (
       updateData.vendor_cuit &&
       CuitValidator.sanitize(updateData.vendor_cuit) !== cleanVendorCuit

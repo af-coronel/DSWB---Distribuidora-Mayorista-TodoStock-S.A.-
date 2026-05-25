@@ -31,6 +31,12 @@ export class RegisterProduct {
       throw new Error("Los precios del producto no pueden ser negativos.");
     }
 
+    if (productData.customer_price < productData.vendor_price) {
+      throw new Error(
+        "El precio al cliente no puede ser menor que el precio del proveedor.",
+      );
+    }
+
     const vendor =
       await this.businessPartnerRepository.findByCuit(cleanVendorCuit);
 
