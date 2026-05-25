@@ -44,6 +44,13 @@ export class CreateTransaction {
       order_id: orderId,
       transaction_type: transactionType,
       status: transactionType === "PAYMENT" ? "TO_VERIFY" : "PENDING",
+      total_amount: order.total_amount,
+      items: order.items.map((item) => ({
+        product_id: item.product_id,
+        product_name: item.product_name,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+      })),
       created_by: createdBy,
       created_at: now,
       updated_by: createdBy,

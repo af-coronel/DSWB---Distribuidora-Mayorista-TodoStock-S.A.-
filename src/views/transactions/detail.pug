@@ -11,6 +11,8 @@ block content
       a.btn.btn-secondary(href='/api/transactions?type=PAYMENT') Volver al listado
 
     else if transaction
+      - const transactionItems = transaction.items && transaction.items.length > 0 ? transaction.items : (order ? order.items : [])
+      - const transactionTotal = typeof transaction.total_amount === 'number' ? transaction.total_amount : (order ? order.total_amount : 0)
       if flashError
         .alert.alert-warning.alert-dismissible.fade.show
           i.bi.bi-exclamation-triangle-fill.me-2
@@ -66,7 +68,7 @@ block content
                   .text-end
                     p.mb-1
                       strong Total:&nbsp;
-                      = formatCurrency(order.total_amount)
+                      = formatCurrency(transactionTotal)
                     p.mb-0.text-muted= transaction.transaction_type === 'PAYMENT' ? 'Monto total a pagar' : 'Monto total a cobrar'
 
                 .table-responsive
@@ -78,7 +80,7 @@ block content
                         th.text-end Precio unitario
                         th.text-end Subtotal
                     tbody
-                      each item in order.items
+                      each item in transactionItems
                         tr
                           td= item.product_name
                           td.text-center= item.quantity
