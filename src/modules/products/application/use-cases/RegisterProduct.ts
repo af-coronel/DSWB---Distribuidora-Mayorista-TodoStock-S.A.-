@@ -67,6 +67,10 @@ export class RegisterProduct {
 
     await this.productRepository.save(productToSave);
 
-    return productToSave;
+    const saved = await this.productRepository.findByNameAndVendorCuit(
+      productToSave.name,
+      productToSave.vendor_cuit,
+    );
+    return saved ?? productToSave;
   }
 }
