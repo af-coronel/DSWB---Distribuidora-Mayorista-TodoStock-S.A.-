@@ -1,9 +1,18 @@
 import type { Request, Response } from "express";
 import type { LoginUser } from "../../../application/use-cases/LoginUser.js";
+import type { UserRole } from "../../../domain/interfaces/IUser.js";
 import { UserModel } from "../../persistence/UserModel.js";
 
 export class AuthController {
   constructor(private readonly loginUserUseCase: LoginUser) {}
+
+  private getLandingPathByRole(role: UserRole): string {
+    if (role === "INVENTORY") return "/api/inventory";
+    if (role === "FINANCE") return "/api/transactions?type=PAYMENT";
+
+    // ADMIN y perfil comercial arrancan en Clientes.
+    return "/api/clients";
+  }
 
   async renderLogin(req: Request, res: Response) {
     res.render("auth/login", {
@@ -38,6 +47,7 @@ export class AuthController {
         }
 
         const token = `todostock-fake-jwt-token-for-${user.id}`;
+        const landingPath = this.getLandingPathByRole(user.role as UserRole);
 
         if (
           req.headers["content-type"]?.includes(
@@ -49,7 +59,7 @@ export class AuthController {
             secure: false,
             maxAge: 3600000,
           });
-          return res.redirect("/api/clients");
+          return res.redirect(landingPath);
         }
 
         return res.status(200).json({
@@ -60,6 +70,7 @@ export class AuthController {
             role: user.role,
           },
           token,
+          landingPath,
         });
       }
 
@@ -73,6 +84,9 @@ export class AuthController {
 
       // Llamamos a nuestra lógica de negocio (Caso de Uso)
       const response = await this.loginUserUseCase.execute(email, passwordHash);
+      const landingPath = this.getLandingPathByRole(
+        response.user.role as UserRole,
+      );
       if (
         req.headers["content-type"]?.includes(
           "application/x-www-form-urlencoded",
@@ -83,9 +97,9 @@ export class AuthController {
           secure: false, // Ponelo en 'true' cuando uses HTTPS
           maxAge: 3600000, // 1 hora de sesión
         });
-        return res.redirect("/api/clients"); // ¡Adentro!
+        return res.redirect(landingPath);
       }
-      return res.status(200).json(response);
+      return res.status(200).json({ ...response, landingPath });
     } catch (error: any) {
       // Si el caso de uso lanza un error (por ejemplo: "Credenciales inválidas"), devolvemos un 401 (Unauthorized)
       return res.status(401).json({
