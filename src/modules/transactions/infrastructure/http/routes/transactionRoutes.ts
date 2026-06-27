@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { authenticate } from "../../../../auth/infrastructure/http/middleware/authMiddleware.js";
+import { authorizeRoles } from "../../../../auth/infrastructure/http/middleware/roleMiddleware.js";
 import {
   CompleteTransaction,
   CancelTransaction,
@@ -23,6 +24,8 @@ const transactionController = new TransactionController(
   new GetTransactionById(transactionRepository),
   new GetOrderById(orderRepository),
 );
+
+router.use(authenticate, authorizeRoles(["ADMIN", "FINANCE"]));
 
 router.get("/", authenticate, (req, res) =>
   transactionController.getAll(req, res),

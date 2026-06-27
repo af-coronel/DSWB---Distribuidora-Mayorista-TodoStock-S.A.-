@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import type { LoginUser } from "../../../application/use-cases/LoginUser.js";
+import { UserModel } from "../../persistence/UserModel.js";
 
 export class AuthController {
   constructor(private readonly loginUserUseCase: LoginUser) {}
@@ -19,7 +20,48 @@ export class AuthController {
 
   async login(req: Request, res: Response) {
     try {
-      const { email, passwordHash } = req.body;
+      const { email, passwordHash } = req.body ?? {};
+      const bypassLogin = true;
+
+      // Bypass temporal: permite entrar con "Ingresar" sin validar credenciales.
+      if (bypassLogin) {
+        const user =
+          (typeof email === "string" && email.trim().length > 0
+            ? await UserModel.findOne({ email: email.trim(), active: true })
+            : null) ?? (await UserModel.findOne({ active: true }));
+
+        if (!user) {
+          return res.status(503).json({
+            error: true,
+            message: "No hay usuarios activos para el bypass temporal",
+          });
+        }
+
+        const token = `todostock-fake-jwt-token-for-${user.id}`;
+
+        if (
+          req.headers["content-type"]?.includes(
+            "application/x-www-form-urlencoded",
+          )
+        ) {
+          res.cookie("token", token, {
+            httpOnly: true,
+            secure: false,
+            maxAge: 3600000,
+          });
+          return res.redirect("/api/clients");
+        }
+
+        return res.status(200).json({
+          user: {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            role: user.role,
+          },
+          token,
+        });
+      }
 
       // Pequeña validación de entrada
       if (!email || !passwordHash) {

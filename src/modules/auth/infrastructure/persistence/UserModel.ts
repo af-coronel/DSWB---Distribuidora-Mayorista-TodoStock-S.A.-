@@ -11,7 +11,7 @@ const UserSchema = new Schema<UserDocument>(
     passwordHash: { type: String, required: true },
     role: {
       type: String,
-      enum: ["ADMIN", "VENDOR", "CLIENT"] as UserRole[],
+      enum: ["ADMIN", "COMMERCIAL", "INVENTORY", "FINANCE", "VENDOR", "CLIENT"] as UserRole[],
       required: true,
     },
     active: { type: Boolean, required: true, default: true },

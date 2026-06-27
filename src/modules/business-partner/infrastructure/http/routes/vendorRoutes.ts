@@ -31,6 +31,8 @@ const vendorController = new VendorController(
   activatePartnerUseCase,
 );
 
+router.use(authenticate, authorizeRoles(["ADMIN", "COMMERCIAL", "VENDOR", "CLIENT"]));
+
 // --- DEFINICIÓN DE ENDPOINTS PROTEGIDOS ---
 
 // Crear un cliente: Requiere estar logueado Y ser ADMIN o VENDOR
@@ -39,7 +41,7 @@ router.get("/new", (req, res) => vendorController.renderCreateForm(req, res));
 router.post(
   "/",
   authenticate,
-  authorizeRoles(["ADMIN", "VENDOR"]),
+  authorizeRoles(["ADMIN", "COMMERCIAL", "VENDOR"]),
   (req, res) => vendorController.create(req, res),
 );
 
@@ -59,14 +61,14 @@ router.get("/", authenticate, (req, res) => vendorController.getAll(req, res));
 router.put(
   "/:cuit",
   authenticate,
-  authorizeRoles(["ADMIN", "VENDOR"]),
+  authorizeRoles(["ADMIN", "COMMERCIAL", "VENDOR"]),
   (req, res) => vendorController.update(req, res),
 );
 
 router.post(
   "/:cuit/edit",
   authenticate,
-  authorizeRoles(["ADMIN", "VENDOR"]),
+  authorizeRoles(["ADMIN", "COMMERCIAL", "VENDOR"]),
   (req, res) => vendorController.update(req, res),
 );
 

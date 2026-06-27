@@ -98,6 +98,8 @@ const orderController = new OrderController(
   new GetAvailableStockByProduct(inventoryRepository, productRepository),
 );
 
+router.use(authenticate, authorizeRoles(["ADMIN", "COMMERCIAL", "VENDOR", "CLIENT"]));
+
 // --- Vistas HTML ---
 router.get("/purchase/new", authenticate, (req, res) =>
   orderController.renderCreatePurchaseForm(req, res),
@@ -116,67 +118,67 @@ router.get("/:id", authenticate, (req, res) =>
 router.post(
   "/purchase",
   authenticate,
-  authorizeRoles(["ADMIN", "VENDOR"]),
+  authorizeRoles(["ADMIN", "COMMERCIAL", "VENDOR"]),
   (req, res) => orderController.createPurchaseOrder(req, res),
 );
 router.post(
   "/purchase/:id/verify-budget",
   authenticate,
-  authorizeRoles(["ADMIN", "VENDOR"]),
+  authorizeRoles(["ADMIN", "COMMERCIAL", "VENDOR"]),
   (req, res) => orderController.verifyPurchaseBudget(req, res),
 );
 router.patch(
   "/purchase/:id/verify-budget",
   authenticate,
-  authorizeRoles(["ADMIN", "VENDOR"]),
+  authorizeRoles(["ADMIN", "COMMERCIAL", "VENDOR"]),
   (req, res) => orderController.verifyPurchaseBudget(req, res),
 );
 router.post(
   "/purchase/:id/confirm",
   authenticate,
-  authorizeRoles(["ADMIN", "VENDOR"]),
+  authorizeRoles(["ADMIN", "COMMERCIAL", "VENDOR"]),
   (req, res) => orderController.confirmPurchaseOrder(req, res),
 );
 router.patch(
   "/purchase/:id/confirm",
   authenticate,
-  authorizeRoles(["ADMIN", "VENDOR"]),
+  authorizeRoles(["ADMIN", "COMMERCIAL", "VENDOR"]),
   (req, res) => orderController.confirmPurchaseOrder(req, res),
 );
 router.post(
   "/purchase/:id/receive",
   authenticate,
-  authorizeRoles(["ADMIN", "VENDOR"]),
+  authorizeRoles(["ADMIN", "COMMERCIAL", "VENDOR"]),
   (req, res) => orderController.receivePurchaseOrder(req, res),
 );
 router.patch(
   "/purchase/:id/receive",
   authenticate,
-  authorizeRoles(["ADMIN", "VENDOR"]),
+  authorizeRoles(["ADMIN", "COMMERCIAL", "VENDOR"]),
   (req, res) => orderController.receivePurchaseOrder(req, res),
 );
 router.get(
   "/purchase/:id/audit",
   authenticate,
-  authorizeRoles(["ADMIN", "VENDOR"]),
+  authorizeRoles(["ADMIN", "COMMERCIAL", "VENDOR"]),
   (req, res) => orderController.renderAuditForm(req, res),
 );
 router.post(
   "/purchase/:id/audit",
   authenticate,
-  authorizeRoles(["ADMIN", "VENDOR"]),
+  authorizeRoles(["ADMIN", "COMMERCIAL", "VENDOR"]),
   (req, res) => orderController.auditPurchaseOrder(req, res),
 );
 router.post(
   "/purchase/:id/cancel",
   authenticate,
-  authorizeRoles(["ADMIN", "VENDOR"]),
+  authorizeRoles(["ADMIN", "COMMERCIAL", "VENDOR"]),
   (req, res) => orderController.cancelPurchaseOrder(req, res),
 );
 router.patch(
   "/purchase/:id/cancel",
   authenticate,
-  authorizeRoles(["ADMIN", "VENDOR"]),
+  authorizeRoles(["ADMIN", "COMMERCIAL", "VENDOR"]),
   (req, res) => orderController.cancelPurchaseOrder(req, res),
 );
 
@@ -184,55 +186,55 @@ router.patch(
 router.post(
   "/sale",
   authenticate,
-  authorizeRoles(["ADMIN", "VENDOR"]),
+  authorizeRoles(["ADMIN", "COMMERCIAL", "VENDOR"]),
   (req, res) => orderController.createSaleOrder(req, res),
 );
 router.post(
   "/sale/:id/confirm-payment",
   authenticate,
-  authorizeRoles(["ADMIN", "VENDOR"]),
+  authorizeRoles(["ADMIN", "COMMERCIAL", "VENDOR"]),
   (req, res) => orderController.confirmSalePayment(req, res),
 );
 router.patch(
   "/sale/:id/confirm-payment",
   authenticate,
-  authorizeRoles(["ADMIN", "VENDOR"]),
+  authorizeRoles(["ADMIN", "COMMERCIAL", "VENDOR"]),
   (req, res) => orderController.confirmSalePayment(req, res),
 );
 router.post(
   "/sale/:id/dispatch",
   authenticate,
-  authorizeRoles(["ADMIN", "VENDOR"]),
+  authorizeRoles(["ADMIN", "COMMERCIAL", "VENDOR"]),
   (req, res) => orderController.dispatchSaleOrder(req, res),
 );
 router.patch(
   "/sale/:id/dispatch",
   authenticate,
-  authorizeRoles(["ADMIN", "VENDOR"]),
+  authorizeRoles(["ADMIN", "COMMERCIAL", "VENDOR"]),
   (req, res) => orderController.dispatchSaleOrder(req, res),
 );
 router.post(
   "/sale/:id/deliver",
   authenticate,
-  authorizeRoles(["ADMIN", "VENDOR"]),
+  authorizeRoles(["ADMIN", "COMMERCIAL", "VENDOR"]),
   (req, res) => orderController.markOrderDelivered(req, res),
 );
 router.patch(
   "/sale/:id/deliver",
   authenticate,
-  authorizeRoles(["ADMIN", "VENDOR"]),
+  authorizeRoles(["ADMIN", "COMMERCIAL", "VENDOR"]),
   (req, res) => orderController.markOrderDelivered(req, res),
 );
 router.post(
   "/sale/:id/cancel",
   authenticate,
-  authorizeRoles(["ADMIN", "VENDOR"]),
+  authorizeRoles(["ADMIN", "COMMERCIAL", "VENDOR"]),
   (req, res) => orderController.cancelSaleOrder(req, res),
 );
 router.patch(
   "/sale/:id/cancel",
   authenticate,
-  authorizeRoles(["ADMIN", "VENDOR"]),
+  authorizeRoles(["ADMIN", "COMMERCIAL", "VENDOR"]),
   (req, res) => orderController.cancelSaleOrder(req, res),
 );
 

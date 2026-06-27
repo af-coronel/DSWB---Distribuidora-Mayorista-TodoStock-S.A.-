@@ -56,6 +56,7 @@ export const authenticate = async (
 
     // 4. Inyectamos el usuario real en la petición para que el Controlador lo use.
     req.user = user;
+    res.locals.currentUser = user;
 
     // 5. next() abre paso al siguiente middleware.
     next();
