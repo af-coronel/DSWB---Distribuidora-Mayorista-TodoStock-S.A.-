@@ -1,3 +1,4 @@
+import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import type { IUserRepository } from '../../domain/repositories/IUserRepository.js';
 
@@ -21,7 +22,8 @@ export class LoginUser {
       throw new Error("Credenciales inválidas");
     }
 
-    if (user.passwordHash !== password) {
+    const isMatch = await bcrypt.compare(password, user.passwordHash);
+    if (!isMatch) {
       throw new Error("Credenciales inválidas");
     }
 
