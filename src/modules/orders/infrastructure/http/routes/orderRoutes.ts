@@ -98,7 +98,10 @@ const orderController = new OrderController(
   new GetAvailableStockByProduct(inventoryRepository, productRepository),
 );
 
-router.use(authenticate, authorizeRoles(["ADMIN", "COMMERCIAL", "VENDOR", "CLIENT"]));
+router.use(
+  authenticate,
+  authorizeRoles(["ADMIN", "COMMERCIAL", "VENDOR", "CLIENT"]),
+);
 
 // --- Vistas HTML ---
 router.get("/purchase/new", authenticate, (req, res) =>
@@ -204,13 +207,13 @@ router.patch(
 router.post(
   "/sale/:id/dispatch",
   authenticate,
-  authorizeRoles(["ADMIN", "COMMERCIAL", "VENDOR"]),
+  authorizeRoles(["ADMIN", "INVENTORY"]),
   (req, res) => orderController.dispatchSaleOrder(req, res),
 );
 router.patch(
   "/sale/:id/dispatch",
   authenticate,
-  authorizeRoles(["ADMIN", "COMMERCIAL", "VENDOR"]),
+  authorizeRoles(["ADMIN", "INVENTORY"]),
   (req, res) => orderController.dispatchSaleOrder(req, res),
 );
 router.post(

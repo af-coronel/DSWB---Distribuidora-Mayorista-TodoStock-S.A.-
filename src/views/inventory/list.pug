@@ -2,6 +2,7 @@ extends ../layout
 
 block content
   .container.mt-5
+    - const isInventoryProfile = currentRole === 'INVENTORY'
     .d-flex.justify-content-between.align-items-center.mb-3
       h2 Inventario
 
@@ -11,13 +12,18 @@ block content
         = flashError
         button.btn-close(type="button", data-bs-dismiss="alert", aria-label="Cerrar")
 
-    ul.nav.nav-pills.mb-4
-      li.nav-item
-        a.nav-link(class=inventoryTab === 'purchase' ? 'active' : '', href='/api/inventory?tab=purchase') Recepción y auditoría
-      li.nav-item
-        a.nav-link(class=inventoryTab === 'sale' ? 'active' : '', href='/api/inventory?tab=sale') Armado y despacho
-      li.nav-item
-        a.nav-link(class=inventoryTab === 'stock' ? 'active' : '', href='/api/inventory?tab=stock') Stock total
+    if !isInventoryProfile
+      ul.nav.nav-pills.mb-4
+        li.nav-item
+          a.nav-link(class=inventoryTab === 'purchase' ? 'active' : '', href='/api/inventory?tab=purchase') Recepción y auditoría
+        li.nav-item
+          a.nav-link(class=inventoryTab === 'sale' ? 'active' : '', href='/api/inventory?tab=sale') Armado y despacho
+        li.nav-item
+          a.nav-link(class=inventoryTab === 'stock' ? 'active' : '', href='/api/inventory?tab=stock') Stock total
+    else
+      .alert.alert-info.d-flex.align-items-center.gap-2.mb-4
+        i.bi.bi-info-circle-fill
+        span Usá el menú lateral para cambiar entre Recepción y auditoría, Armado y despacho, o Stock total.
 
     if inventoryTab === 'purchase'
       if purchaseTasks && purchaseTasks.length > 0

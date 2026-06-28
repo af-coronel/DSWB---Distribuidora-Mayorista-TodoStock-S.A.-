@@ -4,6 +4,10 @@ import type { GetAllProducts } from "../../../../products/application/index.js";
 import type { GetAllOrders } from "../../../../orders/application/index.js";
 import type { GetAllPartners } from "../../../../business-partner/application/index.js";
 
+type AuthenticatedRequest = Request & {
+  user?: { role?: string };
+};
+
 const ORDER_STATUS_LABEL: Record<string, string> = {
   TO_VERIFY_BUDGET: "A verificar presupuesto",
   PENDING_BUDGET: "Presupuesto pendiente",
@@ -44,6 +48,7 @@ export class InventoryController {
 
   async getAll(req: Request, res: Response) {
     try {
+      const request = req as AuthenticatedRequest;
       const lots = await this.getAllInventoryLotsUseCase.execute();
 
       if (req.headers.accept?.includes("text/html")) {
@@ -108,6 +113,7 @@ export class InventoryController {
         return res.render("inventory/list", {
           activeTab: "inventory",
           inventoryTab: activeTab,
+          currentRole: request.user?.role,
           lots: paginatedLots,
           productMap,
           partnerMap,

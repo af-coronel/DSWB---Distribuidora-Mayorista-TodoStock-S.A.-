@@ -170,6 +170,19 @@ html(lang="es")
                 a.nav-link(class=activeTab === 'inventory' ? 'active' : '', href="/api/inventory", title="Inventario")
                   i.bi.bi-archive.flex-shrink-0
                   span.sidebar-text.ms-2 Inventario
+              if currentRole === 'INVENTORY'
+                li.nav-item.ms-3
+                  a.nav-link(class=activeTab === 'inventory' && inventoryTab === 'purchase' ? 'active' : '', href="/api/inventory?tab=purchase", title="Recepción y auditoría")
+                    i.bi.bi-arrow-down-left-circle.flex-shrink-0
+                    span.sidebar-text.ms-2 Recepción y auditoría
+                li.nav-item.ms-3
+                  a.nav-link(class=activeTab === 'inventory' && inventoryTab === 'sale' ? 'active' : '', href="/api/inventory?tab=sale", title="Armado y despacho")
+                    i.bi.bi-arrow-up-right-circle.flex-shrink-0
+                    span.sidebar-text.ms-2 Armado y despacho
+                li.nav-item.ms-3
+                  a.nav-link(class=activeTab === 'inventory' && inventoryTab === 'stock' ? 'active' : '', href="/api/inventory?tab=stock", title="Stock total")
+                    i.bi.bi-box-seam.flex-shrink-0
+                    span.sidebar-text.ms-2 Stock total
             if canAccessFinance
               li.nav-item
                 a.nav-link(class=activeTab === 'transactions' ? 'active' : '', href="/api/transactions?type=PAYMENT", title="Finanzas")
