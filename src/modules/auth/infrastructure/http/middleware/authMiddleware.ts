@@ -1,9 +1,8 @@
 import type { Request, Response, NextFunction } from "express";
+import jwt from "jsonwebtoken";
 import { MongoUserRepository } from "../../persistence/MongoUserRepository.js";
 import type { IUser } from "../../../domain/interfaces/IUser.js";
 
-// Truco avanzado de TypeScript: Extendemos la interfaz Request de Express
-// para decirle que ahora TODAS las peticiones pueden traer un objeto "user".
 declare global {
   namespace Express {
     interface Request {
@@ -12,40 +11,47 @@ declare global {
   }
 }
 
+interface JwtPayload {
+  id: string;
+  role: string;
+}
+
 export const authenticate = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    // 1. Intentamos sacar el token del Header (Postman/Apps)
     let token = req.headers.authorization?.split(" ")[1];
 
-    // 2. Si no hay Header, intentamos sacarlo de la Cookie (Navegador/Pug)
     if (!token && req.cookies) {
       token = req.cookies.token;
     }
 
     if (!token) {
       if (req.headers.accept?.includes("text/html")) {
-        return res.redirect("/?sessionExpired=true"); // Al login si es humano
+        return res.redirect("/?sessionExpired=true");
       }
-      return res.status(401).json({ error: true, message: "Acceso denegado" }); // JSON si es máquina
+      return res.status(401).json({ error: true, message: "Acceso denegado" });
     }
 
-    // Como nuestro token simulado termina con el ID del usuario, lo extraemos:
-    const userId = token?.split("-for-")[1];
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      return res.status(500).json({ error: true, message: "JWT_SECRET no configurado" });
+    }
 
-    if (!userId) {
+    let decoded: JwtPayload;
+    try {
+      decoded = jwt.verify(token, secret) as JwtPayload;
+    } catch {
       if (req.headers.accept?.includes("text/html")) {
         return res.redirect("/?sessionExpired=true");
       }
-      return res.status(401).json({ error: true, message: "Token inválido." });
+      return res.status(401).json({ error: true, message: "Token inválido o expirado" });
     }
 
-    // 3. Verificamos que el usuario realmente exista en la base de datos JSON
     const userRepository = new MongoUserRepository();
-    const user = await userRepository.findById(userId);
+    const user = await userRepository.findById(decoded.id);
 
     if (!user || !user.active) {
       if (req.headers.accept?.includes("text/html")) {
@@ -54,11 +60,9 @@ export const authenticate = async (
       return res.status(401).json({ error: true, message: "Usuario incorrecto" });
     }
 
-    // 4. Inyectamos el usuario real en la petición para que el Controlador lo use.
     req.user = user;
     res.locals.currentUser = user;
 
-    // 5. next() abre paso al siguiente middleware.
     next();
   } catch (error) {
     if (req.headers.accept?.includes("text/html")) {

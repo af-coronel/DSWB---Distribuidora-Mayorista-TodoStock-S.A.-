@@ -28,18 +28,15 @@ export class AuthController {
 
   async login(req: Request, res: Response) {
     try {
-      const { email, passwordHash } = req.body ?? {};
-      console.log("Login request body:", req.body); // Log the request body for debugging
-      // Pequeña validación de entrada
-      if (!email || !passwordHash) {
+      const { email, password } = req.body;
+      if (!email || !password) {
         return res.status(400).json({
           error: true,
           message: "Debe ingresar un email y contraseña válidos",
         });
       }
 
-      // Llamamos a nuestra lógica de negocio (Caso de Uso)
-      const response = await this.loginUserUseCase.execute(email, passwordHash);
+      const response = await this.loginUserUseCase.execute(email, password);
       const landingPath = this.getLandingPathByRole(
         response.user.role as UserRole,
       );

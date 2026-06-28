@@ -1,4 +1,5 @@
 import "dotenv/config";
+import bcrypt from "bcrypt";
 import fs from "node:fs/promises";
 import path from "node:path";
 import mongoose from "mongoose";
@@ -19,16 +20,20 @@ async function migrate(): Promise<void> {
   const usersPath = path.resolve(process.cwd(), "data", "users.json");
   const usersRaw: Record<string, any> = JSON.parse(await fs.readFile(usersPath, "utf-8"));
 
-  const users: IUser[] = Object.values(usersRaw).map((u) => ({
-    id: u.id,
-    username: u.username,
-    email: u.email,
-    passwordHash: u.passwordHash,
-    role: u.role,
-    active: u.active ?? true,
-    created_at: new Date(u.created_at),
-    updated_at: new Date(u.updated_at),
-  }));
+  const salt = await bcrypt.genSalt(10);
+
+  const users: IUser[] = await Promise.all(
+    Object.values(usersRaw).map(async (u) => ({
+      id: u.id,
+      username: u.username,
+      email: u.email,
+      passwordHash: await bcrypt.hash(u.passwordHash, salt),
+      role: u.role,
+      active: u.active ?? true,
+      created_at: new Date(u.created_at),
+      updated_at: new Date(u.updated_at),
+    })),
+  );
 
   for (const user of users) {
     await UserModel.findOneAndUpdate({ id: user.id }, { $set: user }, { upsert: true });
