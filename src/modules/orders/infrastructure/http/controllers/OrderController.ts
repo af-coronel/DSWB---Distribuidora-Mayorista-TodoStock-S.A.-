@@ -257,20 +257,20 @@ export class OrderController {
         notes,
       );
 
-      emitRoleNotification("FINANCE", {
-        kind: "ORDER_CREATED",
-        title:
-          orders.length === 1
-            ? "Nueva orden de compra"
-            : "Nuevas órdenes de compra",
-        message:
-          orders.length === 1
-            ? `Se generó una orden de compra y requiere verificación presupuestaria.`
-            : `Se generaron ${orders.length} órdenes de compra y requieren verificación presupuestaria.`,
-        link: "/api/transactions?type=PAYMENT",
-        entityId: orders.length === 1 ? orders[0]?.id : undefined,
-        entityType: "PURCHASE_ORDER",
-        createdAt: new Date().toISOString(),
+      orders.forEach((order) => {
+        if (!order.id) {
+          return;
+        }
+
+        emitRoleNotification("FINANCE", {
+          kind: "ORDER_CREATED",
+          title: "Nueva orden de compra",
+          message: `La orden #${order.id.slice(-6).toUpperCase()} requiere verificación presupuestaria.`,
+          link: `/api/orders/${order.id}`,
+          entityId: order.id,
+          entityType: "PURCHASE_ORDER",
+          createdAt: new Date().toISOString(),
+        });
       });
 
       if (isFormRequest(req)) return res.redirect("/api/orders?type=PURCHASE");
@@ -419,16 +419,17 @@ export class OrderController {
         notes,
       );
 
-      emitRoleNotification("FINANCE", {
-        kind: "ORDER_CREATED",
-        title: "Nueva orden de venta",
-        message:
-          "Se generó una orden de venta y requiere gestión financiera de cobro.",
-        link: "/api/transactions?type=COLLECTION",
-        entityId: order.id,
-        entityType: "SALE_ORDER",
-        createdAt: new Date().toISOString(),
-      });
+      if (order.id) {
+        emitRoleNotification("FINANCE", {
+          kind: "ORDER_CREATED",
+          title: "Nueva orden de venta",
+          message: `La orden #${order.id.slice(-6).toUpperCase()} requiere gestión financiera de cobro.`,
+          link: `/api/orders/${order.id}`,
+          entityId: order.id,
+          entityType: "SALE_ORDER",
+          createdAt: new Date().toISOString(),
+        });
+      }
 
       if (isFormRequest(req)) return res.redirect(`/api/orders/${order.id}`);
       return res
