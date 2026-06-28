@@ -188,6 +188,15 @@ html(lang="es")
                 a.nav-link(class=activeTab === 'transactions' ? 'active' : '', href="/api/transactions?type=PAYMENT", title="Finanzas")
                   i.bi.bi-cash-coin.flex-shrink-0
                   span.sidebar-text.ms-2 Finanzas
+              if currentRole === 'FINANCE'
+                li.nav-item.ms-3
+                  a.nav-link(class=activeTab === 'transactions' && activeType === 'PAYMENT' ? 'active' : '', href="/api/transactions?type=PAYMENT", title="Órdenes de Pago")
+                    i.bi.bi-credit-card.flex-shrink-0
+                    span.sidebar-text.ms-2 Órdenes de Pago
+                li.nav-item.ms-3
+                  a.nav-link(class=activeTab === 'transactions' && activeType === 'COLLECTION' ? 'active' : '', href="/api/transactions?type=COLLECTION", title="Órdenes de Cobro")
+                    i.bi.bi-cash-stack.flex-shrink-0
+                    span.sidebar-text.ms-2 Órdenes de Cobro
 
           .mt-auto
             form(action="/api/auth/logout", method="POST")

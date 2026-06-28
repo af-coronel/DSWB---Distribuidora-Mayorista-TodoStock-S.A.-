@@ -100,7 +100,14 @@ const orderController = new OrderController(
 
 router.use(
   authenticate,
-  authorizeRoles(["ADMIN", "COMMERCIAL", "VENDOR", "CLIENT", "INVENTORY"]),
+  authorizeRoles([
+    "ADMIN",
+    "COMMERCIAL",
+    "VENDOR",
+    "CLIENT",
+    "INVENTORY",
+    "FINANCE",
+  ]),
 );
 
 // --- Vistas HTML ---

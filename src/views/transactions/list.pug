@@ -1,50 +1,60 @@
 extends ../layout
 
 block content
-  .container.mt-5
-    .d-flex.justify-content-between.align-items-center.mb-3
-      h2 Finanzas — Transacciones
+  .d-flex.flex-column.min-vh-100
+    
+    .flex-grow-1.container.mt-5
+      - const isFinanceProfile = currentRole === 'FINANCE'
+      .d-flex.justify-content-between.align-items-center.mb-3
+        h2 Finanzas — Transacciones
 
-    ul.nav.nav-pills.mb-3
-      li.nav-item
-        a.nav-link(class=activeType === 'PAYMENT' ? 'active' : '', href="/api/transactions?type=PAYMENT") Órdenes de Pago
-      li.nav-item
-        a.nav-link(class=activeType === 'COLLECTION' ? 'active' : '', href="/api/transactions?type=COLLECTION") Órdenes de Cobro
+      if !isFinanceProfile
+        ul.nav.nav-pills.mb-3
+          li.nav-item
+            a.nav-link(class=activeType === 'PAYMENT' ? 'active' : '', href="/api/transactions?type=PAYMENT") Órdenes de Pago
+          li.nav-item
+            a.nav-link(class=activeType === 'COLLECTION' ? 'active' : '', href="/api/transactions?type=COLLECTION") Órdenes de Cobro
+      else
+        .alert.alert-info.d-flex.align-items-center.gap-2.mb-3
+          i.bi.bi-info-circle-fill
+          span Usá el menú lateral para cambiar entre Órdenes de Pago y Órdenes de Cobro.
 
-    if transactions && transactions.length > 0
-      table.table.table-striped.table-hover
-        thead.table-dark
-          tr
-            th Estado
-            th Orden asociada
-            if activeType === 'COLLECTION'
-              th Nro. POS
-              th Nro. Documento
-            th Fecha creación
-            th
-        tbody
-          each tx in transactions
-            - const badge = statusBadge[tx.status] || 'neutral'
-            - const label = (tx.status === 'COMPLETED' && tx.transaction_type === 'COLLECTION') ? 'Cobrada' : (statusLabel[tx.status] || tx.status)
+      if transactions && transactions.length > 0
+        table.table.table-striped.table-hover
+          thead.table-dark
             tr
-              td
-                span.status-pill(class=`status-${badge}`) #{label}
-              td= tx.order_id.slice(-6).toUpperCase()
+              th Estado
+              th Orden asociada
               if activeType === 'COLLECTION'
-                td= tx.pos_number || '—'
-                td= tx.document_number || '—'
-              td= new Date(tx.created_at).toLocaleDateString('es-AR')
-              td
-                a.btn.btn-sm.btn-outline-secondary(href=`/api/transactions/${tx.id}`) Ver detalle
-      if totalPages > 1
-        nav.mt-4(aria-label="Paginación de transacciones")
-          ul.pagination.justify-content-center.mb-0
-            li.page-item(class=currentPage === 1 ? 'disabled' : '')
-              a.page-link(href=`/api/transactions?type=${activeType}&page=${currentPage - 1}`) Anterior
-            - for (let page = 1; page <= totalPages; page++)
-              li.page-item(class=page === currentPage ? 'active' : '')
-                a.page-link(href=`/api/transactions?type=${activeType}&page=${page}`)= page
-            li.page-item(class=currentPage === totalPages ? 'disabled' : '')
-              a.page-link(href=`/api/transactions?type=${activeType}&page=${currentPage + 1}`) Siguiente
-    else
-      .alert.alert-info Aún no hay transacciones registradas.
+                th Nro. POS
+                th Nro. Documento
+              th Fecha creación
+              th
+          tbody
+            each tx in transactions
+              - const badge = statusBadge[tx.status] || 'neutral'
+              - const label = (tx.status === 'COMPLETED' && tx.transaction_type === 'COLLECTION') ? 'Cobrada' : (statusLabel[tx.status] || tx.status)
+              tr
+                td
+                  span.status-pill(class=`status-${badge}`) #{label}
+                td= tx.order_id.slice(-6).toUpperCase()
+                if activeType === 'COLLECTION'
+                  td= tx.pos_number || '—'
+                  td= tx.document_number || '—'
+                td= new Date(tx.created_at).toLocaleDateString('es-AR')
+                td
+                  a.btn.btn-sm.btn-outline-secondary(href=`/api/transactions/${tx.id}`) Ver detalle
+      else
+        .alert.alert-info Aún no hay transacciones registradas.
+
+
+    if transactions && transactions.length > 0 && totalPages > 1
+      nav.mt-4.pb-5(aria-label="Paginación de transacciones")
+        ul.pagination.justify-content-center.m-0
+          li.page-item(class=currentPage === 1 ? 'disabled' : '')
+            a.page-link(href=`/api/transactions?type=${activeType}&page=${currentPage - 1}`) Anterior
+          - for (let page = 1; page <= totalPages; page++)
+            li.page-item(class=page === currentPage ? 'active' : '')
+              a.page-link(href=`/api/transactions?type=${activeType}&page=${page}`)= page
+          li.page-item(class=currentPage === totalPages ? 'disabled' : '')
+            a.page-link(href=`/api/transactions?type=${activeType}&page=${currentPage + 1}`) Siguiente

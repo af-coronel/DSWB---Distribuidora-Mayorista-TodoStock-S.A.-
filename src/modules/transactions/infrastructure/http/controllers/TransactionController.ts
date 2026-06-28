@@ -7,7 +7,7 @@ import type { GetOrderById } from "../../../../orders/application/use-cases/GetO
 import type { TransactionType } from "../../../domain/index.js";
 
 type AuthenticatedRequest = Request & {
-  user?: { id?: string };
+  user?: { id?: string; role?: string };
 };
 
 const STATUS_LABEL: Record<string, string> = {
@@ -47,6 +47,7 @@ export class TransactionController {
 
   async getAll(req: Request, res: Response) {
     try {
+      const request = req as AuthenticatedRequest;
       const isHtmlRequest = req.headers.accept?.includes("text/html");
       const type =
         (req.query.type as TransactionType | undefined) ||
@@ -71,6 +72,7 @@ export class TransactionController {
           activeTab: "transactions",
           transactions: paginatedTransactions,
           activeType: type || "PAYMENT",
+          currentRole: request.user?.role,
           currentPage,
           totalPages,
           totalItems,
@@ -89,6 +91,7 @@ export class TransactionController {
 
   async renderDetail(req: Request, res: Response) {
     try {
+      const request = req as AuthenticatedRequest;
       const { id } = req.params as { id: string };
       const transaction = await this.getTransactionByIdUseCase.execute(id);
 
@@ -103,6 +106,8 @@ export class TransactionController {
 
       return res.render("transactions/detail", {
         activeTab: "transactions",
+        activeType: transaction.transaction_type,
+        currentRole: request.user?.role,
         transaction,
         order,
         statusLabel:
