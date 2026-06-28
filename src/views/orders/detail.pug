@@ -66,13 +66,16 @@ block content
 
               if order.order_type === 'PURCHASE'
                 if order.status === 'TO_VERIFY_BUDGET' || order.status === 'PENDING_BUDGET'
-                  .alert.alert-info.mb-0.small
-                    i.bi.bi-info-circle.me-1
-                    if canAccessFinanceView
-                      | La confirmación del presupuesto y la cancelación se gestionan desde&nbsp;
-                      a(href="/api/transactions") Finanzas
-                      | .
-                    else
+                  if canAccessFinanceView
+                    form(action=`/api/orders/purchase/${order.id}/verify-budget`, method="POST")
+                      input(type="hidden", name="return_to", value=`/api/orders/${order.id}`)
+                      button.btn.btn-primary.w-100(type="submit") Verificar presupuesto
+                    form(action=`/api/orders/purchase/${order.id}/cancel`, method="POST")
+                      input(type="hidden", name="return_to", value=`/api/orders/${order.id}`)
+                      button.btn.btn-outline-danger.w-100(type="submit") Cancelar orden
+                  else
+                    .alert.alert-info.mb-0.small
+                      i.bi.bi-info-circle.me-1
                       | La confirmación del presupuesto y la cancelación se gestionan por el área de Finanzas.
                 else if order.status === 'TO_CONFIRM'
                   form(action=`/api/orders/purchase/${order.id}/confirm`, method="POST")
@@ -88,13 +91,16 @@ block content
 
               else if order.order_type === 'SALE'
                 if order.status === 'TO_VERIFY_COLLECTION' || order.status === 'PENDING_PAYMENT'
-                  .alert.alert-info.mb-0.small
-                    i.bi.bi-info-circle.me-1
-                    if canAccessFinanceView
-                      | La confirmación del cobro y la cancelación se gestionan desde&nbsp;
-                      a(href="/api/transactions") Finanzas
-                      | .
-                    else
+                  if canAccessFinanceView
+                    form(action=`/api/orders/sale/${order.id}/confirm-payment`, method="POST")
+                      input(type="hidden", name="return_to", value=`/api/orders/${order.id}`)
+                      button.btn.btn-primary.w-100(type="submit") Confirmar cobro
+                    form(action=`/api/orders/sale/${order.id}/cancel`, method="POST")
+                      input(type="hidden", name="return_to", value=`/api/orders/${order.id}`)
+                      button.btn.btn-outline-danger.w-100(type="submit") Cancelar orden
+                  else
+                    .alert.alert-info.mb-0.small
+                      i.bi.bi-info-circle.me-1
                       | La confirmación del cobro y la cancelación se gestionan por el área de Finanzas.
                 else if order.status === 'PENDING_ASSEMBLY' || order.status === 'DISPATCHING'
                   .alert.alert-info.mb-0.small

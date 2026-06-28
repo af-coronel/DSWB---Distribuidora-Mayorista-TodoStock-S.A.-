@@ -4,6 +4,7 @@ import express, {
   type Response,
   type NextFunction,
 } from "express";
+import { createServer } from "http";
 import path from "path";
 import cookieParser from "cookie-parser";
 import { fileURLToPath } from "url";
@@ -17,9 +18,11 @@ import productRoutes from "./modules/products/infrastructure/http/routes/product
 import orderRoutes from "./modules/orders/infrastructure/http/routes/orderRoutes.js";
 import inventoryRoutes from "./modules/inventory/infrastructure/http/routes/inventoryRoutes.js";
 import transactionRoutes from "./modules/transactions/infrastructure/http/routes/transactionRoutes.js";
+import { initializeSocketServer } from "./core/realtime/socketServer.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const httpServer = createServer(app);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -65,9 +68,11 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
 app.use(errorHandler);
 
+initializeSocketServer(httpServer);
+
 connectToDatabase()
   .then(() => {
-    app.listen(PORT, () => {
+    httpServer.listen(PORT, () => {
       console.log(`Servidor ejecutándose en http://localhost:${PORT}`);
     });
   })
