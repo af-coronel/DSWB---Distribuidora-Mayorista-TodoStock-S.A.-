@@ -2,76 +2,73 @@ extends ../layout
 
 block content
   - const productForm = formData || {}
-  .container.mt-5
-    .d-flex.justify-content-between.align-items-center.mb-3
-      h2 Editar Producto
-      a.btn.btn-outline-secondary(href="/api/products") Volver al listado
 
-    if errorMessage
-      .alert.alert-danger.alert-dismissible.fade.show
-        i.bi.bi-exclamation-triangle-fill.me-2
-        = errorMessage
-        button.btn-close(type="button", data-bs-dismiss="alert", aria-label="Cerrar")
+  .pg-header
+    h1.pg-title Editar Producto
+    .pg-actions
+      a.btn.btn-secondary(href="/api/products") Cancelar
 
-    .row.justify-content-center
-      .col-md-8
-        .card.shadow
-          .card-header.bg-dark.text-white
-            h3.mb-0 Modificar Producto
-          .card-body
-            form(action=`/api/products/${product.vendor_cuit}/${encodedName}/edit`, method="POST")
-              .row.mb-3
-                .col-md-6
-                  label.form-label Nombre
-                  input.form-control(
-                    type="text",
-                    name="name",
-                    required,
-                    value=productForm.name || "",
-                    minlength="2",
-                    maxlength="100"
-                  )
-                .col-md-6
-                  label.form-label Proveedor
-                  input.form-control(type="text", value=vendorName, disabled)
-                  input(type="hidden", name="vendor_cuit", value=product.vendor_cuit)
-                  .form-text CUIT: #{product.vendor_cuit}
+  if errorMessage
+    .flash.flash-err
+      i.bi.bi-exclamation-triangle-fill(style="flex-shrink:0")
+      span= errorMessage
 
-              .row.mb-3
-                .col-md-6
-                  label.form-label Precio Proveedor
-                  input.form-control(
-                    type="number",
-                    name="vendor_price",
-                    min="0",
-                    step="0.01",
-                    required,
-                    placeholder="0.00",
-                    value=typeof productForm.vendor_price !== 'undefined' ? productForm.vendor_price : ""
-                  )
-                .col-md-6
-                  label.form-label Precio Cliente
-                  input.form-control(
-                    type="number",
-                    name="customer_price",
-                    min="0",
-                    step="0.01",
-                    required,
-                    placeholder="0.00",
-                    value=typeof productForm.customer_price !== 'undefined' ? productForm.customer_price : ""
-                  )
+  .crd(style="max-width:680px;margin:0 auto")
+    .crd-head
+      p.crd-title Modificar producto
+    form#edit-form(action=`/api/products/${product.vendor_cuit}/${encodedName}/edit`, method="POST")
+      .crd-body
+        .grid-2
+          .frm-group
+            label.frm-label Nombre
+            input.frm-ctrl(
+              type="text",
+              name="name",
+              required,
+              value=productForm.name || "",
+              minlength="2",
+              maxlength="100"
+            )
+          .frm-group
+            label.frm-label Proveedor
+            input.frm-ctrl(type="text", value=vendorName, disabled)
+            input(type="hidden", name="vendor_cuit", value=product.vendor_cuit)
+            span.frm-hint CUIT: #{product.vendor_cuit}
 
-              .row.mb-3
-                .col-md-6
-                  label.form-label Categoría
-                  select.form-select(name="category", required)
-                    option(value="") Seleccionar categoría
-                    each item in categories
-                      option(
-                        value=item,
-                        selected=productForm.category === item
-                      )= item
+        .grid-2
+          .frm-group
+            label.frm-label Precio Proveedor
+            input.frm-ctrl(
+              type="number",
+              name="vendor_price",
+              min="0",
+              step="0.01",
+              required,
+              placeholder="0.00",
+              value=typeof productForm.vendor_price !== 'undefined' ? productForm.vendor_price : ""
+            )
+          .frm-group
+            label.frm-label Precio Cliente
+            input.frm-ctrl(
+              type="number",
+              name="customer_price",
+              min="0",
+              step="0.01",
+              required,
+              placeholder="0.00",
+              value=typeof productForm.customer_price !== 'undefined' ? productForm.customer_price : ""
+            )
 
-              .d-flex.justify-content-between.mt-4
-                a.btn.btn-secondary(href="/api/products") Cancelar
-                button.btn.btn-dark(type="submit") Guardar Cambios
+        .frm-group(style="max-width:320px")
+          label.frm-label Categoría
+          select.frm-ctrl(name="category", required)
+            option(value="") Seleccionar categoría
+            each item in categories
+              option(
+                value=item,
+                selected=productForm.category === item
+              )= item
+
+      .crd-foot
+        span
+        button.btn.btn-primary(type="submit", form="edit-form") Guardar Cambios

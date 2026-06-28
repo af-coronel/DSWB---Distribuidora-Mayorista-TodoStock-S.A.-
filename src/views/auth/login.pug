@@ -1,39 +1,274 @@
 doctype html
 html(lang="es")
   head
-    title TodoStock S.A. - Login
-    link(rel="stylesheet", href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css")
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1")
+    title TodoStock S.A. — Acceso
     link(rel="stylesheet", href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css")
+    link(rel="preconnect", href="https://fonts.googleapis.com")
+    link(rel="preconnect", href="https://fonts.gstatic.com", crossorigin="")
+    link(rel="stylesheet", href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap")
+    link(rel="stylesheet", href="/styles/app.css")
+    script(src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js", defer)
     style.
-      body { background-color: #f8f9fa; display: flex; align-items: center; height: 100vh; }
-      .login-form { width: 100%; max-width: 400px; padding: 15px; margin: auto; }
+      *, *::before, *::after { box-sizing: border-box; }
+      body { margin: 0; font-family: 'Manrope', system-ui, sans-serif; }
+
+      .ts-shell { display: flex; min-height: 100vh; }
+
+      .ts-brand {
+        display: none;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 3rem 3.5rem;
+        color: #fff;
+        background: linear-gradient(155deg, #070d1c 0%, #0c1e40 55%, #163a7e 100%);
+        position: relative;
+        overflow: hidden;
+      }
+      .ts-brand::before {
+        content: '';
+        position: absolute;
+        top: -120px; right: -120px;
+        width: 400px; height: 400px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(99,153,255,0.12), transparent 70%);
+        pointer-events: none;
+      }
+      .ts-brand::after {
+        content: '';
+        position: absolute;
+        bottom: -80px; left: -80px;
+        width: 320px; height: 320px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(59,130,246,0.1), transparent 70%);
+        pointer-events: none;
+      }
+      .ts-form-panel {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem 1.5rem;
+        background: #f6f9ff;
+      }
+      @media (min-width: 1024px) {
+        .ts-brand { display: flex; width: 52%; }
+        .ts-form-panel { width: 48%; }
+        .ts-mobile-logo { display: none !important; }
+      }
+      .ts-logo-badge {
+        display: flex; align-items: center; justify-content: center;
+        height: 2.75rem; width: 2.75rem; border-radius: 0.75rem;
+        background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.18);
+        font-size: 1.3rem;
+      }
+      .ts-tag {
+        display: inline-flex; align-items: center; gap: 0.4rem;
+        padding: 0.3rem 0.875rem; border-radius: 9999px;
+        background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.13);
+        font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 0.15em; color: #93c5fd; margin-bottom: 1.5rem;
+      }
+      .ts-headline {
+        font-family: 'Sora', sans-serif; font-size: 2.5rem; font-weight: 800;
+        line-height: 1.15; margin: 0 0 1.1rem 0;
+      }
+      .ts-headline span { color: #93c5fd; }
+      .ts-lead {
+        font-size: 0.9rem; color: rgba(255,255,255,0.6); line-height: 1.75;
+        max-width: 340px; margin: 0 0 2.5rem 0;
+      }
+      .ts-features { display: flex; flex-direction: column; gap: 1.1rem; }
+      .ts-feature { display: flex; align-items: center; gap: 0.875rem; }
+      .ts-feature-icon {
+        display: flex; flex-shrink: 0; height: 2.25rem; width: 2.25rem;
+        align-items: center; justify-content: center; border-radius: 0.625rem;
+        background: rgba(255,255,255,0.09); border: 1px solid rgba(255,255,255,0.1);
+        color: #93c5fd; font-size: 0.95rem;
+      }
+      .ts-feature-title { margin: 0; font-weight: 600; font-size: 0.875rem; }
+      .ts-feature-sub { margin: 0; font-size: 0.775rem; color: rgba(255,255,255,0.45); }
+      .ts-stats { display: flex; gap: 0.75rem; }
+      .ts-stat {
+        flex: 1; text-align: center; padding: 0.875rem 0.5rem; border-radius: 0.75rem;
+        background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.09);
+      }
+      .ts-stat-num { margin: 0; font-size: 1.5rem; font-weight: 800; color: #93c5fd; }
+      .ts-stat-lbl { margin: 0; font-size: 0.68rem; color: rgba(255,255,255,0.38); text-transform: uppercase; letter-spacing: 0.1em; }
+      .ts-brand-copy { font-size: 0.72rem; color: rgba(255,255,255,0.25); margin: 0.875rem 0 0 0; }
+      .ts-form-wrap { width: 100%; max-width: 400px; }
+      .ts-mobile-logo { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 2rem; }
+      .ts-mobile-logo-icon {
+        display: flex; height: 2.25rem; width: 2.25rem;
+        align-items: center; justify-content: center; border-radius: 0.625rem;
+        background: #1d4ed8; color: #fff; font-size: 0.875rem;
+      }
+      .ts-mobile-logo-name { margin: 0; font-family: 'Sora', sans-serif; font-size: 1rem; font-weight: 700; color: #0f172a; }
+      .ts-form-icon {
+        display: inline-flex; height: 3.5rem; width: 3.5rem;
+        align-items: center; justify-content: center; border-radius: 1rem;
+        background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff; font-size: 1.4rem;
+        box-shadow: 0 6px 20px rgba(37,99,235,0.35); margin-bottom: 1.25rem;
+      }
+      .ts-form-title { font-family: 'Sora', sans-serif; font-size: 1.65rem; font-weight: 800; color: #0f172a; margin: 0 0 0.35rem 0; }
+      .ts-form-sub { font-size: 0.875rem; color: #64748b; margin: 0; }
+      .ts-label { display: block; font-size: 0.82rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem; }
+      .ts-input {
+        display: block; width: 100%; border-radius: 0.75rem;
+        border: 1.5px solid #e2e8f0; background: #fff;
+        padding: 0.8rem 1rem; font-size: 0.875rem; color: #0f172a;
+        outline: none; font-family: inherit; transition: border-color 0.15s, box-shadow 0.15s;
+      }
+      .ts-input:focus { border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37,99,235,0.1); }
+      .ts-input-pr { padding-right: 3rem; }
+      .ts-eye-btn {
+        position: absolute; right: 0; top: 0; bottom: 0;
+        display: flex; align-items: center; padding: 0 0.875rem;
+        background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 1rem; transition: color 0.15s;
+      }
+      .ts-eye-btn:hover { color: #475569; }
+      .ts-submit {
+        display: flex; width: 100%; align-items: center; justify-content: center; gap: 0.5rem;
+        border: none; border-radius: 0.75rem; background: #1d4ed8; padding: 0.875rem 1.5rem;
+        font-size: 0.9rem; font-weight: 700; color: #fff; cursor: pointer; font-family: inherit;
+        transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+        box-shadow: 0 4px 18px rgba(29,78,216,0.35);
+      }
+      .ts-submit:hover { background: #1e40af; box-shadow: 0 6px 24px rgba(29,78,216,0.45); }
+      .ts-submit:active { transform: translateY(1px); }
+      .ts-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+      .ts-alert { display: flex; align-items: flex-start; gap: 0.75rem; border-radius: 0.75rem; padding: 0.875rem 1rem; font-size: 0.83rem; margin-bottom: 1.25rem; border: 1.5px solid; }
+      .ts-alert-warn { background: #fffbeb; border-color: #fcd34d; color: #92400e; }
+      .ts-alert-err  { background: #fff1f2; border-color: #fca5a5; color: #881337; }
+      .ts-devhint { margin-top: 1.75rem; border-radius: 0.875rem; border: 1.5px solid #bae6fd; background: #f0f9ff; padding: 0.875rem 1rem; }
+      .ts-devhint-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+      .ts-devhint-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #0c4a6e; margin: 0; }
+      .ts-devhint-list { display: flex; flex-direction: column; gap: 0.2rem; font-size: 0.78rem; color: #0369a1; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      .ts-spin { animation: spin 1s linear infinite; display: inline-block; width: 1rem; height: 1rem; }
 
   body
-    .login-form
-      .card.shadow-sm
-        .card-body
-          .text-center.mb-4
-            h1.h3.mb-3.font-weight-normal TodoStock S.A.
-            p.text-muted Por favor, inicie sesión
-          
+    .ts-shell(x-data="{ showPassword: false, loading: false }")
+
+      //- ── Panel de marca (solo escritorio) ─────────────────────────────────
+      aside.ts-brand
+
+        .flex.items-center.gap-3
+          .ts-logo-badge
+            i.bi.bi-boxes
+          div
+            p(style="margin:0;font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.22em;color:rgba(255,255,255,0.4)") Sistema de Gestion
+            p(style="margin:0;font-family:'Sora',sans-serif;font-size:1rem;font-weight:700") TodoStock S.A.
+
+        div
+          p.ts-tag
+            i.bi.bi-boxes-fill
+            span Distribuidora Mayorista
+          h1.ts-headline
+            | Operacion mayorista
+            br
+            span bajo control total.
+          p.ts-lead
+            | Gestioná clientes, proveedores, stock, pedidos y finanzas desde una sola plataforma, diseñada para el mayorista moderno.
+          .ts-features
+            .ts-feature
+              .ts-feature-icon
+                i.bi.bi-person-badge-fill
+              div
+                p.ts-feature-title Acceso por roles
+                p.ts-feature-sub Comercial, Inventario y Finanzas segmentados
+            .ts-feature
+              .ts-feature-icon
+                i.bi.bi-diagram-3-fill
+              div
+                p.ts-feature-title Módulos integrados
+                p.ts-feature-sub Catálogo, órdenes, stock y transacciones
+            .ts-feature
+              .ts-feature-icon
+                i.bi.bi-shield-check-fill
+              div
+                p.ts-feature-title Trazabilidad completa
+                p.ts-feature-sub Cada operación queda registrada y auditable
+
+        div
+          .ts-stats
+            .ts-stat
+              p.ts-stat-num 3
+              p.ts-stat-lbl Roles
+            .ts-stat
+              p.ts-stat-num 5
+              p.ts-stat-lbl Módulos
+            .ts-stat
+              p.ts-stat-num 100%
+              p.ts-stat-lbl Trazado
+          p.ts-brand-copy © 2026 TodoStock S.A. Todos los derechos reservados.
+
+      //- ── Panel de formulario ──────────────────────────────────────────────
+      main.ts-form-panel
+        .ts-form-wrap
+
+          .ts-mobile-logo
+            .ts-mobile-logo-icon
+              i.bi.bi-boxes
+            p.ts-mobile-logo-name TodoStock S.A.
+
+          .mb-8
+            .ts-form-icon
+              i.bi.bi-buildings
+            h2.ts-form-title Iniciá sesión
+            p.ts-form-sub Ingresá tus credenciales para acceder al sistema.
+
           if sessionExpired
-            .alert.alert-warning.py-2
-              i.bi.bi-clock-history.me-2
-              | Tu sesión expiró. Por favor, volvé a iniciar sesión.
+            .ts-alert.ts-alert-warn
+              i.bi.bi-clock-history(style="margin-top:0.1rem;flex-shrink:0")
+              span Tu sesión expiró. Por favor, volvé a iniciar sesión.
 
           if error
-            .alert.alert-danger.py-2= error
+            .ts-alert.ts-alert-err
+              i.bi.bi-exclamation-triangle(style="margin-top:0.1rem;flex-shrink:0")
+              span= error
 
-          form(action="/api/auth/login", method="POST")
-            .mb-3
-              label.form-label Email
-              input.form-control(type="email", name="email", required, autofocus)
-            .mb-3
-              label.form-label Contraseña
-              input.form-control(type="password", name="password", required)
-            
-            .d-grid.gap-2
-              button.btn.btn-primary.btn-lg(type="submit") Ingresar
-          
-          .text-center.mt-3
-            small.text-muted © 2026 TodoStock S.A.
+          form(action="/api/auth/login", method="POST", x-on:submit="loading = true")
+
+            .mb-5
+              label.ts-label(for="email") Email corporativo
+              input#email.ts-input(
+                type="email",
+                name="email",
+                required,
+                autofocus,
+                placeholder="usuario@todostock.local"
+              )
+
+            .mb-6
+              label.ts-label(for="passwordHash") Contraseña
+              .relative
+                input#passwordHash.ts-input.ts-input-pr(
+                  x-bind:type="showPassword ? 'text' : 'password'",
+                  name="passwordHash",
+                  required,
+                  placeholder="••••••••"
+                )
+                button.ts-eye-btn(type="button", x-on:click="showPassword = !showPassword")
+                  i.bi(x-bind:class="showPassword ? 'bi-eye-slash' : 'bi-eye'")
+
+            button.ts-submit(type="submit", x-bind:disabled="loading")
+              span(x-show="!loading") Ingresar al sistema
+              span.inline-flex.items-center.gap-2(x-show="loading")
+                svg.ts-spin(viewBox="0 0 24 24", fill="none")
+                  circle(cx="12", cy="12", r="10", stroke="currentColor", stroke-width="4", style="opacity:0.3")
+                  path(d="M22 12a10 10 0 0 1-10 10", stroke="currentColor", stroke-width="4", style="opacity:0.9")
+                | Verificando...
+
+          .ts-devhint
+            .ts-devhint-header
+              i.bi.bi-info-circle(style="color:#0284c7;font-size:0.85rem")
+              p.ts-devhint-label Acceso de prueba
+            .ts-devhint-list
+              span comercial@todostock.local
+              span inventario@todostock.local
+              span finanzas@todostock.local
+
+          p.text-center.text-xs.text-slate-500(style="margin-top:1.5rem")
+            | © 2026 TodoStock S.A. — Plataforma de gestión interna.

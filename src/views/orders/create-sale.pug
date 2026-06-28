@@ -3,111 +3,110 @@ extends ../layout
 block content
   - const form = formData || {}
   - const savedItems = (form.items && Array.isArray(form.items)) ? form.items : null
-  .container.mt-5
-    .d-flex.justify-content-between.align-items-center.mb-3
-      h2 Nueva Orden de Venta
-      a.btn.btn-outline-secondary(href="/api/orders?type=SALE") Volver al listado
 
-    if errorMessage
-      .alert.alert-danger.alert-dismissible.fade.show
-        i.bi.bi-exclamation-triangle-fill.me-2
-        = errorMessage
-        button.btn-close(type="button", data-bs-dismiss="alert", aria-label="Cerrar")
+  .pg-header
+    h1.pg-title Nueva Orden de Venta
+    .pg-actions
+      a.btn.btn-secondary(href="/api/orders?type=SALE") Cancelar
 
-    if !clients || clients.length === 0
-      .alert.alert-warning.d-flex.align-items-center.gap-2
-        i.bi.bi-exclamation-triangle-fill
-        span No hay clientes activos.
-        a.btn.btn-sm.btn-primary.ms-auto(href="/api/clients/new") Crear cliente
+  if errorMessage
+    .flash.flash-err
+      i.bi.bi-exclamation-triangle-fill(style="flex-shrink:0")
+      span= errorMessage
 
-    else if !products || products.length === 0
-      .alert.alert-warning No hay productos registrados para agregar a la orden.
+  if !clients || clients.length === 0
+    .flash.flash-warn
+      i.bi.bi-exclamation-triangle-fill(style="flex-shrink:0")
+      span No hay clientes activos.
+      a.btn.btn-sm.btn-primary(href="/api/clients/new" style="margin-left:auto") Crear cliente
 
-    else
-      .row.justify-content-center
-        .col-md-10
-          .card.shadow
-            .card-header.bg-dark.text-white
-              h4.mb-0 Datos de la orden
-            .card-body
-              form(action="/api/orders/sale", method="POST", onsubmit="return validateForm(event)")
+  else if !products || products.length === 0
+    .flash.flash-warn
+      i.bi.bi-exclamation-triangle-fill(style="flex-shrink:0")
+      span No hay productos registrados para agregar a la orden.
 
-                .row.mb-3
-                  .col-md-6
-                    label.form-label Cliente
-                    select.form-select(name="partner_cuit", required)
-                      option(value="") Seleccionar cliente
-                      each client in clients
-                        option(value=client.cuit, selected=(form.partner_cuit === client.cuit))= `${client.legal_name} — ${client.cuit}`
-                  .col-md-6
-                    label.form-label Fecha estimada de entrega (opcional)
-                    input.form-control(type="date", name="scheduled_date", value=form.scheduled_date || "")
+  else
+    .crd
+      .crd-head
+        p.crd-title Datos de la orden
+      form#sale-form(action="/api/orders/sale", method="POST", onsubmit="return validateForm(event)")
+        .crd-body
+          .grid-2
+            .frm-group
+              label.frm-label Cliente
+              select.frm-ctrl(name="partner_cuit", required)
+                option(value="") Seleccionar cliente
+                each client in clients
+                  option(value=client.cuit, selected=(form.partner_cuit === client.cuit))= `${client.legal_name} — ${client.cuit}`
+            .frm-group
+              label.frm-label Fecha estimada de entrega (opcional)
+              input.frm-ctrl(type="date", name="scheduled_date", value=form.scheduled_date || "")
 
-                .mb-3
-                  label.form-label Notas (opcional)
-                  textarea.form-control(name="notes", rows="2")= form.notes || ""
+          .frm-group
+            label.frm-label Notas (opcional)
+            textarea.frm-ctrl(name="notes", rows="2")= form.notes || ""
 
-                hr
-                .d-flex.justify-content-between.align-items-center.mb-2
-                  h5.mb-0 Ítems
-                  button.btn.btn-sm.btn-outline-primary(type="button", onclick="addItem()")
-                    i.bi.bi-plus-circle.me-1
-                    | Agregar ítem
+        hr.frm-divider
+        .crd-head
+          .flex-between
+            p.crd-title Ítems
+            button.btn.btn-sm.btn-primary(type="button", onclick="addItem()")
+              i.bi.bi-plus-circle
+              | Agregar ítem
+        .crd-body(style="padding:0")
+          table.tbl
+            thead
+              tr
+                th(style="width:38%") Producto
+                th(style="text-align:center;width:14%") Cantidad
+                th(style="text-align:center;width:12%") Disponible
+                th(style="text-align:right;width:14%") Precio unit.
+                th(style="text-align:right;width:14%") Subtotal
+                th(style="width:8%")
+            tbody#items-container
 
-                .table-responsive
-                  table.table.table-bordered.mb-2
-                    thead.table-dark
-                      tr
-                        th.col-4 Producto
-                        th.col-2.text-center Cantidad
-                        th.col-2.text-center Disponible
-                        th.col-2.text-end Precio unit.
-                        th.col-2.text-end Subtotal
-                        th.col-1
-                    tbody#items-container
+              if savedItems
+                each item, index in savedItems
+                  tr.item-row(data-index=index)
+                    td
+                      select.form-select.form-select-sm.product-select(name=`items[${index}][product_id]`, required, onchange="updateRow(this)")
+                        option(value="") Seleccionar producto
+                        each product in products
+                          option(value=product.id, data-price=product.customer_price, data-stock=product.available_stock, selected=(item.product_id === product.id))= `${product.name} (disp.: ${product.available_stock})`
+                    td(style="text-align:center")
+                      input.form-control.form-control-sm(type="number", name=`items[${index}][quantity]`, min="1", max="9999", value=item.quantity || 1, required, oninput="updateRow(this.closest('tr').querySelector('.product-select'))")
+                    td.text-center.available-stock —
+                    td.text-end.unit-price —
+                    td.text-end.subtotal —
+                    td(style="text-align:center")
+                      button.btn.btn-sm.btn-outline-danger(type="button", onclick="removeItem(this)")
+                        i.bi.bi-trash
 
-                      if savedItems
-                        each item, index in savedItems
-                          tr.item-row(data-index=index)
-                            td
-                              select.form-select.form-select-sm.product-select(name=`items[${index}][product_id]`, required, onchange="updateRow(this)")
-                                option(value="") Seleccionar producto
-                                each product in products
-                                  option(value=product.id, data-price=product.customer_price, data-stock=product.available_stock, selected=(item.product_id === product.id))= `${product.name} (disp.: ${product.available_stock})`
-                            td.text-center
-                              input.form-control.form-control-sm(type="number", name=`items[${index}][quantity]`, min="1", max="9999", value=item.quantity || 1, required, oninput="updateRow(this.closest('tr').querySelector('.product-select'))")
-                            td.text-center.available-stock —
-                            td.text-end.unit-price —
-                            td.text-end.subtotal —
-                            td.text-center
-                              button.btn.btn-sm.btn-outline-danger(type="button", onclick="removeItem(this)")
-                                i.bi.bi-trash
+              else
+                tr.item-row(data-index="0")
+                  td
+                    select.form-select.form-select-sm.product-select(name="items[0][product_id]", required, onchange="updateRow(this)")
+                      option(value="") Seleccionar producto
+                      each product in products
+                        option(value=product.id, data-price=product.customer_price, data-stock=product.available_stock)= `${product.name} (disp.: ${product.available_stock})`
+                  td(style="text-align:center")
+                    input.form-control.form-control-sm(type="number", name="items[0][quantity]", min="1", max="9999", value="1", required, oninput="updateRow(this.closest('tr').querySelector('.product-select'))")
+                  td.text-center.available-stock —
+                  td.text-end.unit-price —
+                  td.text-end.subtotal —
+                  td(style="text-align:center")
+                    button.btn.btn-sm.btn-outline-danger(type="button", onclick="removeItem(this)")
+                      i.bi.bi-trash
 
-                      else
-                        tr.item-row(data-index="0")
-                          td
-                            select.form-select.form-select-sm.product-select(name="items[0][product_id]", required, onchange="updateRow(this)")
-                              option(value="") Seleccionar producto
-                              each product in products
-                                option(value=product.id, data-price=product.customer_price, data-stock=product.available_stock)= `${product.name} (disp.: ${product.available_stock})`
-                          td.text-center
-                            input.form-control.form-control-sm(type="number", name="items[0][quantity]", min="1", max="9999", value="1", required, oninput="updateRow(this.closest('tr').querySelector('.product-select'))")
-                          td.text-center.available-stock —
-                          td.text-end.unit-price —
-                          td.text-end.subtotal —
-                          td.text-center
-                            button.btn.btn-sm.btn-outline-danger(type="button", onclick="removeItem(this)")
-                              i.bi.bi-trash
-
-                  .d-flex.justify-content-end
-                    strong.me-2 Total estimado:
-                    span#grand-total.fw-bold —
-
-                .d-flex.justify-content-between.mt-4
-                  a.btn.btn-secondary(href="/api/orders?type=SALE") Cancelar
-                  button.btn.btn-dark(type="submit")
-                    i.bi.bi-check2-circle.me-1
-                    | Crear Orden de Venta
+        .crd-foot
+          .flex-gap
+            strong Total estimado:
+            span#grand-total.fw-bold —
+          div
+          a.btn.btn-secondary(href="/api/orders?type=SALE") Cancelar
+          button.btn.btn-primary(type="submit", form="sale-form")
+            i.bi.bi-check2-circle
+            | Crear Orden de Venta
 
 block scripts
   script.

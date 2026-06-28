@@ -1,33 +1,53 @@
-.d-flex.justify-content-between.align-items-center.mb-3
-  p.text-muted.mb-0
+.flex-between(style="margin-bottom:0.875rem")
+  p(style="margin:0;font-size:0.8rem;color:#64748b")
     | Mostrando #{products.length} de #{totalItems || 0} productos
   if viewMode === 'public_sale'
-    span.badge.bg-primary-subtle.text-primary Venta al público
+    span.status-pill.status-progress Venta al público
   else if viewMode === 'internal_use'
-    span.badge.bg-secondary-subtle.text-secondary Consumo interno
+    span.status-pill.status-neutral Consumo interno
   else
-    span.badge.bg-light.text-dark Todos
+    span.status-pill.status-neutral Todos
 
 if products && products.length > 0
-  table.table.table-striped.table-hover
-    thead.table-dark
-      tr
-        th Nombre
-        th Proveedor
-        th Precio Proveedor
-        th Precio Cliente
-        th Categoría
-        th Acciones
-    tbody
-      each product in products
+  .tbl-wrap
+    table.tbl
+      thead
         tr
-          td= product.name
-          td= product.vendor_name || product.vendor_cuit
-          td= formatCurrency(product.vendor_price)
-          td= formatCurrency(product.customer_price)
-          td= product.category
-          td
-            a.btn.btn-sm.btn-outline-primary(href=`/api/products/${product.vendor_cuit}/${encodeURIComponent(product.name)}/edit`) Editar
+          th Nombre
+          th Proveedor
+          th Precio Proveedor
+          th Precio Cliente
+          th Categoría
+          th(style="width:1%")
+      tbody
+        each product in products
+          tr
+            td= product.name
+            td= product.vendor_name || product.vendor_cuit
+            td= formatCurrency(product.vendor_price)
+            td= formatCurrency(product.customer_price)
+            td= product.category
+            td
+              a.btn.btn-sm.btn-warning(href=`/api/products/${product.vendor_cuit}/${encodeURIComponent(product.name)}/edit`) Editar
+
+  if totalPages > 1
+    .flex-between(style="margin-top:1rem")
+      p(style="margin:0;font-size:0.8rem;color:#64748b") Página #{currentPage} de #{totalPages}
+      .flex-gap
+        - for (let page = 1; page <= totalPages; page++)
+          a.btn.btn-sm(
+            class=page === currentPage ? 'btn-primary' : 'btn-secondary',
+            href=`/api/products?view=${encodeURIComponent(viewMode || 'all')}&search=${encodeURIComponent(searchTerm || '')}&page=${page}`
+            hx-get=`/api/products?view=${encodeURIComponent(viewMode || 'all')}&search=${encodeURIComponent(searchTerm || '')}&page=${page}`
+            hx-target="#product-table"
+            hx-swap="innerHTML"
+          )= page
+else
+  .tbl-wrap
+    .empty
+      i.bi.bi-box-seam-fill.empty-ico
+      p.empty-title No hay productos para los filtros seleccionados.
+      a.btn.btn-sm.btn-primary(href="/api/products/new" style="margin-top:0.75rem") Crear producto
 
   if totalPages > 1
     nav.mt-4(aria-label="Paginación de productos")

@@ -1,39 +1,184 @@
 extends ../layout
 block content
-  
-  .container.mt-5
-    if successMessage
-      .alert.alert-success= successMessage
-    if errorMessage
-      .alert.alert-danger= errorMessage
+  - const isClients = activeTab === 'clients'
+  - const totalCount = partners ? partners.length : 0
+  - const activeCount = partners ? partners.filter(p => p.active).length : 0
+  - const inactiveCount = totalCount - activeCount
+  - const avatarClasses = ['av-blue','av-green','av-purple','av-amber','av-rose','av-cyan']
+  - const getAv = (name) => avatarClasses[(name || '').charCodeAt(0) % avatarClasses.length]
 
-    #partner-list-action-modal.position-fixed.top-0.start-0.w-100.h-100.d-none(style="background: rgba(33, 37, 41, 0.55); z-index: 1055;")
-      .d-flex.justify-content-center.align-items-center.w-100.h-100.p-3
-        .card.shadow-lg.border-0(style="width: 100%; max-width: 460px;")
-          .card-header.bg-dark.text-white
-            h5.mb-0 Confirmar acción
-          .card-body
-            p.mb-0#partner-list-action-message
-          .card-footer.bg-white.d-flex.justify-content-end.gap-2
-            button.btn.btn-outline-secondary(type="button", onclick="closeListPartnerActionModal()") Cancelar
-            button.btn.btn-dark(type="button", onclick="confirmListPartnerAction()") Confirmar
+  .pg-header
+    div
+      p.pg-crumb= isClients ? 'Gestión de Clientes' : 'Gestión de Proveedores'
+      h1.pg-title= isClients ? 'Cartera de Clientes' : 'Cartera de Proveedores'
+      p.pg-sub= isClients ? 'Gestión de clientes activos e inactivos' : 'Gestión de proveedores activos e inactivos'
+    .pg-actions
+      a.btn.btn-primary(href=`/api/${activeTab}/new`)
+        i.bi.bi-person-plus-fill
+        | #{isClients ? 'Nuevo Cliente' : 'Nuevo Proveedor'}
 
-    // --- CONTENIDO DINÁMICO ---
-    .d-flex.justify-content-between.align-items-center.mb-3
-      h2= activeTab === 'clients' ? 'Cartera de Clientes' : 'Lista de Proveedores'
-      
-      // El botón de "Nuevo" ahora apunta dinámicamente según la tab
-      a.btn.btn-primary(href=`/api/${activeTab}/new`) 
-        | + Nuevo #{activeTab === 'clients' ? 'Cliente' : 'Proveedor'}
+  if successMessage
+    .flash.flash-ok
+      i.bi.bi-check-circle-fill(style="flex-shrink:0")
+      span= successMessage
+  if errorMessage
+    .flash.flash-err
+      i.bi.bi-exclamation-triangle-fill(style="flex-shrink:0")
+      span= errorMessage
 
-    if partners && partners.length > 0
-      table.table.table-striped.table-hover
-        thead.table-dark
+  .stat-row
+    .stat-card(style="--accent:#3b82f6")
+      p.stat-num= totalCount
+      p.stat-lbl Total
+    .stat-card(style="--accent:#22c55e")
+      p.stat-num= activeCount
+      p.stat-lbl Activos
+    .stat-card(style="--accent:#f59e0b")
+      p.stat-num= inactiveCount
+      p.stat-lbl Inactivos
+
+  .search-wrap
+    i.bi.bi-search.search-ico
+    input.frm-ctrl(
+      type="text"
+      id="partner-search"
+      placeholder=`Buscar por CUIT o razón social...`
+      autocomplete="off"
+      oninput="filterPartners(this.value)"
+    )
+
+  #partner-list-action-modal.modal-ov.d-none
+    .modal-box
+      .modal-head
+        h2.modal-ttl Confirmar acción
+      .modal-body
+        p#partner-list-action-message(style="margin:0")
+      .modal-foot
+        button.btn.btn-secondary(type="button", onclick="closeListPartnerActionModal()") Cancelar
+        button.btn.btn-danger(type="button", onclick="confirmListPartnerAction()") Confirmar
+
+  if partners && partners.length > 0
+    .tbl-wrap
+      table.tbl#partners-table
+        thead
           tr
             th CUIT
             th Razón Social
             th Estado
-            th Acciones
+            th(style="width:1%;text-align:right") Acciones
+        tbody
+          each partner in partners
+            - const initial = (partner.legal_name || '?')[0].toUpperCase()
+            - const av = getAv(partner.legal_name || '')
+            tr(data-cuit=partner.cuit data-name=(partner.legal_name || '').toLowerCase())
+              td(style="font-size:0.8rem;color:#64748b;font-family:monospace;letter-spacing:0.05em")= partner.cuit
+              td
+                .flex-gap
+                  span.avatar-c(class=av)= initial
+                  span(style="font-weight:600;color:#e2e8f0")= partner.legal_name
+              td
+                span.status-pill(class=partner.active ? 'status-done' : 'status-cancelled')
+                  span(style="display:inline-block;width:6px;height:6px;border-radius:50%;background:currentColor;margin-right:0.3rem")
+                  = partner.active ? 'Activo' : 'Inactivo'
+              td(style="text-align:right")
+                .flex-gap(style="justify-content:flex-end")
+                  a.btn.btn-sm.btn-outline-secondary(href=`/api/${activeTab}/${partner.cuit}`)
+                    i.bi.bi-eye
+                    | Ver
+                  if partner.active
+                    button.btn.btn-sm.btn-danger(
+                      type="button"
+                      onclick=`openListPartnerAction('${partner.cuit}', 'deactivate', '${activeTab}')`)
+                      i.bi.bi-person-dash
+                      | Desactivar
+                  else
+                    button.btn.btn-sm.btn-success(
+                      type="button"
+                      onclick=`openListPartnerAction('${partner.cuit}', 'activate', '${activeTab}')`)
+                      i.bi.bi-person-check
+                      | Activar
+      div(style="padding:0.75rem 1.25rem;border-top:1px solid rgba(255,255,255,0.06);display:flex;justify-content:space-between;align-items:center")
+        p(style="margin:0;font-size:0.78rem;color:#4b5563") Mostrando #{totalCount} de #{totalCount} #{isClients ? 'clientes' : 'proveedores'}
+        p(style="margin:0;font-size:0.75rem;color:#374151") &copy; 2026 TodoStock S.A.
+  else
+    .tbl-wrap
+      .empty
+        i.bi.bi-people-fill.empty-ico
+        p.empty-title= isClients ? 'No hay clientes registrados' : 'No hay proveedores registrados'
+        p.empty-sub Agregá el primero usando el botón de arriba.
+
+  script.
+    let pendingListPartnerAction = null;
+
+    function filterPartners(query) {
+      const q = query.toLowerCase().trim();
+      document.querySelectorAll('#partners-table tbody tr').forEach(row => {
+        const cuit = row.dataset.cuit || '';
+        const name = row.dataset.name || '';
+        row.style.display = (!q || cuit.includes(q) || name.includes(q)) ? '' : 'none';
+      });
+    }
+
+    function openListPartnerAction(cuit, action, tab) {
+      const label = action === 'activate' ? 'activar' : 'desactivar';
+      pendingListPartnerAction = { cuit, action, tab };
+      const box = document.getElementById('partner-list-action-modal');
+      const message = document.getElementById('partner-list-action-message');
+      if (!box || !message) return;
+      message.textContent = `¿Está seguro que desea ${label} este socio de negocio?`;
+      box.classList.remove('d-none');
+    }
+
+    function closeListPartnerActionModal() {
+      pendingListPartnerAction = null;
+      const box = document.getElementById('partner-list-action-modal');
+      if (box) box.classList.add('d-none');
+    }
+
+    async function confirmListPartnerAction() {
+      if (!pendingListPartnerAction) return;
+      const { cuit, action, tab } = pendingListPartnerAction;
+      try {
+        const res = await fetch(`/api/${tab}/${cuit}/${action}`, { method: 'PATCH' });
+        const data = await res.json();
+        if (res.ok) {
+          window.location.href = `/api/${tab}?${action === 'activate' ? 'activated=1' : 'deactivated=1'}`;
+        } else {
+          window.location.href = `/api/${tab}?error=${encodeURIComponent(data?.message || 'No se pudo actualizar el estado.')}`;
+        }
+      } catch (e) {
+        window.location.href = `/api/${tab}?error=${encodeURIComponent('Error de conexión.')}`;
+      }
+    }
+
+  if successMessage
+    .flash.flash-ok
+      i.bi.bi-check-circle-fill(style="flex-shrink:0")
+      span= successMessage
+  if errorMessage
+    .flash.flash-err
+      i.bi.bi-exclamation-triangle-fill(style="flex-shrink:0")
+      span= errorMessage
+
+  #partner-list-action-modal.modal-ov.d-none
+    .modal-box
+      .modal-head
+        h2.modal-ttl Confirmar acción
+      .modal-body
+        p#partner-list-action-message(style="margin:0")
+      .modal-foot
+        button.btn.btn-secondary(type="button", onclick="closeListPartnerActionModal()") Cancelar
+        button.btn.btn-danger(type="button", onclick="confirmListPartnerAction()") Confirmar
+
+  if partners && partners.length > 0
+    .tbl-wrap
+      table.tbl
+        thead
+          tr
+            th CUIT
+            th Razón Social
+            th Estado
+            th(style="width:1%")
         tbody
           each partner in partners
             tr

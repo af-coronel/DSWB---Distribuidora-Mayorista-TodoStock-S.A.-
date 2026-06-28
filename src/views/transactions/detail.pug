@@ -1,138 +1,128 @@
 extends ../layout
 
 block content
-  .container.mt-5
 
-    if errorMessage
-      .alert.alert-danger.alert-dismissible.fade.show
-        i.bi.bi-exclamation-triangle-fill.me-2
-        = errorMessage
-        button.btn-close(type="button", data-bs-dismiss="alert", aria-label="Cerrar")
-      a.btn.btn-secondary(href='/api/transactions?type=PAYMENT') Volver al listado
+  if errorMessage
+    .flash.flash-err
+      i.bi.bi-exclamation-triangle-fill(style="flex-shrink:0")
+      span= errorMessage
+    a.btn.btn-secondary(href='/api/transactions?type=PAYMENT' style="margin-bottom:1rem") Volver
 
-    else if transaction
-      - const transactionItems = transaction.items && transaction.items.length > 0 ? transaction.items : (order ? order.items : [])
-      - const transactionTotal = typeof transaction.total_amount === 'number' ? transaction.total_amount : (order ? order.total_amount : 0)
-      if flashError
-        .alert.alert-warning.alert-dismissible.fade.show
-          i.bi.bi-exclamation-triangle-fill.me-2
-          = flashError
-          button.btn-close(type="button", data-bs-dismiss="alert", aria-label="Cerrar")
+  else if transaction
+    - const transactionItems = transaction.items && transaction.items.length > 0 ? transaction.items : (order ? order.items : [])
+    - const transactionTotal = typeof transaction.total_amount === 'number' ? transaction.total_amount : (order ? order.total_amount : 0)
 
-      .d-flex.justify-content-between.align-items-center.mb-3
-        h2
-          span.entity-pill.me-2(class=transaction.transaction_type === 'PAYMENT' ? 'entity-payment' : 'entity-collection')
+    if flashError
+      .flash.flash-warn
+        i.bi.bi-exclamation-triangle-fill(style="flex-shrink:0")
+        span= flashError
+
+    .pg-header
+      div
+        .flex-gap
+          span.entity-pill(class=transaction.transaction_type === 'PAYMENT' ? 'entity-payment' : 'entity-collection')
             = typeLabel
-          | Transacción ##{transaction.id.slice(-6).toUpperCase()}
-        a.btn.btn-outline-secondary(href=transaction.transaction_type === 'COLLECTION' ? '/api/transactions?type=COLLECTION' : '/api/transactions?type=PAYMENT') Volver al listado
+          h1.pg-title Transacción ##{transaction.id.slice(-6).toUpperCase()}
+      .pg-actions
+        a.btn.btn-secondary(href=transaction.transaction_type === 'COLLECTION' ? '/api/transactions?type=COLLECTION' : '/api/transactions?type=PAYMENT') Volver
 
-      .row.mb-4
-        .col-md-8
-          .card.shadow-sm
-            .card-header.bg-light
-              strong Información general
-            .card-body
-              .row
-                .col-md-6
-                  p
-                    strong Estado:&nbsp;
-                    span.status-pill(class=`status-${statusBadge}`) #{statusLabel}
-                  p
-                    strong Orden asociada:&nbsp;
-                    a(href=`/api/orders/${transaction.order_id}`)
-                      = `#${transaction.order_id.slice(-6).toUpperCase()}`
-                  p
-                    strong Creada:&nbsp;
-                    = new Date(transaction.created_at).toLocaleDateString('es-AR')
-                .col-md-6
-                  if transaction.pos_number
-                    p
-                      strong Nro. POS:&nbsp;
-                      = transaction.pos_number
-                  if transaction.document_number
-                    p
-                      strong Nro. Documento:&nbsp;
-                      = transaction.document_number
+    .grid-2-3
+      div
+        .crd(style="margin-bottom:1.25rem")
+          .crd-head
+            p.crd-title Información general
+          .crd-body
+            .grid-2
+              div
+                .info-row
+                  span.info-lbl Estado:
+                  span.status-pill(class=`status-${statusBadge}` style="margin-left:0.5rem") #{statusLabel}
+                .info-row
+                  span.info-lbl Orden:
+                  a(href=`/api/orders/${transaction.order_id}` style="font-size:0.875rem;font-weight:600")
+                    = `#${transaction.order_id.slice(-6).toUpperCase()}`
+                .info-row
+                  span.info-lbl Creada:
+                  span.info-val= new Date(transaction.created_at).toLocaleDateString('es-AR')
+              div
+                if transaction.pos_number
+                  .info-row
+                    span.info-lbl Nro. POS:
+                    span.info-val= transaction.pos_number
+                if transaction.document_number
+                  .info-row
+                    span.info-lbl Nro. Doc:
+                    span.info-val= transaction.document_number
 
-          if order
-            .card.shadow-sm.mt-4
-              .card-header.bg-light
-                strong= transaction.transaction_type === 'PAYMENT' ? 'Detalle de lo que se paga' : 'Detalle de lo que se cobra'
-              .card-body
-                .d-flex.justify-content-between.align-items-start.gap-3.flex-wrap.mb-3
-                  div
-                    p.mb-1
-                      strong Orden:&nbsp;
-                      a(href=`/api/orders/${order.id}`)= `#${order.id.slice(-6).toUpperCase()}`
-                    p.mb-0.text-muted= `${order.items.length} ítem${order.items.length === 1 ? '' : 's'} asociados`
-                  .text-end
-                    p.mb-1
-                      strong Total:&nbsp;
-                      = formatCurrency(transactionTotal)
-                    p.mb-0.text-muted= transaction.transaction_type === 'PAYMENT' ? 'Monto total a pagar' : 'Monto total a cobrar'
+        if order
+          .crd
+            .crd-head
+              p.crd-title= transaction.transaction_type === 'PAYMENT' ? 'Detalle de lo que se paga' : 'Detalle de lo que se cobra'
+            .crd-body(style="padding:0")
+              table.tbl.tbl-sm
+                thead
+                  tr
+                    th Producto
+                    th(style="text-align:center") Cantidad
+                    th(style="text-align:right") Precio unit.
+                    th(style="text-align:right") Subtotal
+                tbody
+                  each item in transactionItems
+                    tr
+                      td= item.product_name
+                      td(style="text-align:center")= item.quantity
+                      td(style="text-align:right")= formatCurrency(item.unit_price)
+                      td(style="text-align:right")= formatCurrency(item.quantity * item.unit_price)
+                tfoot
+                  tr
+                    td(colspan="3" style="text-align:right;padding:0.65rem 1rem;background:#0f172a;color:#fff;font-weight:700") Total
+                    td(style="text-align:right;padding:0.65rem 1rem;background:#0f172a;color:#fff;font-weight:700")= formatCurrency(transactionTotal)
 
-                .table-responsive
-                  table.table.table-sm.table-bordered.mb-0
-                    thead.table-light
-                      tr
-                        th Producto
-                        th.text-center Cantidad
-                        th.text-end Precio unitario
-                        th.text-end Subtotal
-                    tbody
-                      each item in transactionItems
-                        tr
-                          td= item.product_name
-                          td.text-center= item.quantity
-                          td.text-end= formatCurrency(item.unit_price)
-                          td.text-end= formatCurrency(item.quantity * item.unit_price)
+      .crd
+        .crd-head
+          p.crd-title Acciones
+        .crd-body(style="display:flex;flex-direction:column;gap:0.75rem")
 
-        .col-md-4
-          .card.shadow-sm
-            .card-header.bg-light
-              strong Acciones
-            .card-body.d-grid.gap-2
+          if transaction.transaction_type === 'PAYMENT'
+            if order
+              if (order.status === 'TO_VERIFY_BUDGET' || order.status === 'PENDING_BUDGET') && (transaction.status === 'TO_VERIFY' || transaction.status === 'PENDING')
+                form(action=`/api/orders/purchase/${order.id}/verify-budget`, method="POST")
+                  input(type="hidden", name="transaction_id", value=transaction.id)
+                  button.btn.btn-primary.w-100(type="submit")
+                    i.bi.bi-check-circle
+                    | Confirmar presupuesto
 
-              if transaction.transaction_type === 'PAYMENT'
-                if order
-                  if (order.status === 'TO_VERIFY_BUDGET' || order.status === 'PENDING_BUDGET') && (transaction.status === 'TO_VERIFY' || transaction.status === 'PENDING')
-                    form(action=`/api/orders/purchase/${order.id}/verify-budget`, method="POST")
-                      input(type="hidden", name="transaction_id", value=transaction.id)
-                      button.btn.btn-primary.w-100(type="submit")
-                        i.bi.bi-check-circle.me-1
-                        | Confirmar presupuesto
+              if transaction.status !== 'VERIFIED' && (order.status === 'TO_VERIFY_BUDGET' || order.status === 'PENDING_BUDGET' || order.status === 'TO_CONFIRM' || order.status === 'CONFIRMED')
+                form(action=`/api/orders/purchase/${order.id}/cancel`, method="POST", onsubmit="return confirm('¿Confirmás la cancelación de esta orden? Esta acción no se puede deshacer.')")
+                  button.btn.btn-danger.w-100(type="submit")
+                    i.bi.bi-x-circle
+                    | Cancelar orden
 
-                  if transaction.status !== 'VERIFIED' && (order.status === 'TO_VERIFY_BUDGET' || order.status === 'PENDING_BUDGET' || order.status === 'TO_CONFIRM' || order.status === 'CONFIRMED')
-                    form(action=`/api/orders/purchase/${order.id}/cancel`, method="POST", onsubmit="return confirm('¿Confirmás la cancelación de esta orden? Esta acción no se puede deshacer.')")
-                      button.btn.btn-outline-danger.w-100(type="submit")
-                        i.bi.bi-x-circle.me-1
-                        | Cancelar orden
+              if transaction.status === 'PENDING_PAYMENT' && order.status === 'AUDITED'
+                form(action=`/api/transactions/${transaction.id}/complete`, method="POST")
+                  p(style="font-size:0.8rem;color:#64748b;margin:0 0 0.5rem") Se registrará el pago al proveedor por el monto auditado.
+                  button.btn.btn-success.w-100(type="submit")
+                    i.bi.bi-cash-coin
+                    | Registrar pago
 
-                  if transaction.status === 'PENDING_PAYMENT' && order.status === 'AUDITED'
-                    form(action=`/api/transactions/${transaction.id}/complete`, method="POST")
-                      p.text-muted.small.mb-2 Se registrará el pago al proveedor por el monto auditado.
-                      button.btn.btn-success.w-100(type="submit")
-                        i.bi.bi-cash-coin.me-1
-                        | Registrar pago
+              if transaction.status === 'VERIFIED'
+                p(style="color:#94a3b8;font-size:0.875rem;text-align:center;margin:0") Sin acciones disponibles
 
-                  if transaction.status === 'VERIFIED'
-                    p.text-muted.mb-0.text-center Sin acciones disponibles
+              if transaction.status !== 'VERIFIED' && order.status !== 'TO_VERIFY_BUDGET' && order.status !== 'PENDING_BUDGET' && order.status !== 'TO_CONFIRM' && order.status !== 'CONFIRMED' && !(transaction.status === 'PENDING_PAYMENT' && order.status === 'AUDITED')
+                p(style="color:#94a3b8;font-size:0.875rem;text-align:center;margin:0") Sin acciones disponibles
+            else
+              p(style="color:#94a3b8;font-size:0.875rem;text-align:center;margin:0") Sin información de orden disponible
 
-                  if transaction.status !== 'VERIFIED' && order.status !== 'TO_VERIFY_BUDGET' && order.status !== 'PENDING_BUDGET' && order.status !== 'TO_CONFIRM' && order.status !== 'CONFIRMED' && !(transaction.status === 'PENDING_PAYMENT' && order.status === 'AUDITED')
-                    p.text-muted.mb-0.text-center Sin acciones disponibles
-                else
-                  p.text-muted.mb-0.text-center Sin información de orden disponible
-
-              else if transaction.transaction_type === 'COLLECTION'
-                if order && (order.status === 'TO_VERIFY_COLLECTION' || order.status === 'PENDING_PAYMENT') && (transaction.status === 'PENDING' || transaction.status === 'TO_VERIFY')
-                  form(action=`/api/orders/sale/${order.id}/confirm-payment`, method="POST")
-                    p.text-muted.small.mb-2 Al confirmar se emitirá automáticamente el comprobante de cobro con punto de venta 0001.
-                    button.btn.btn-success.w-100(type="submit")
-                      i.bi.bi-check-circle.me-1
-                      | Confirmar cobro
-                  form(action=`/api/orders/sale/${order.id}/cancel`, method="POST", onsubmit="return confirm('¿Confirmás la cancelación de esta orden? Esta acción no se puede deshacer.')")
-                    button.btn.btn-outline-danger.w-100(type="submit")
-                      i.bi.bi-x-circle.me-1
-                      | Cancelar orden
-                else
-                  p.text-muted.mb-0.text-center Sin acciones disponibles
+          else if transaction.transaction_type === 'COLLECTION'
+            if order && (order.status === 'TO_VERIFY_COLLECTION' || order.status === 'PENDING_PAYMENT') && (transaction.status === 'PENDING' || transaction.status === 'TO_VERIFY')
+              form(action=`/api/orders/sale/${order.id}/confirm-payment`, method="POST")
+                p(style="font-size:0.8rem;color:#64748b;margin:0 0 0.5rem") Al confirmar se emitirá el comprobante de cobro con punto de venta 0001.
+                button.btn.btn-success.w-100(type="submit")
+                  i.bi.bi-check-circle
+                  | Confirmar cobro
+              form(action=`/api/orders/sale/${order.id}/cancel`, method="POST", onsubmit="return confirm('¿Confirmás la cancelación de esta orden? Esta acción no se puede deshacer.')")
+                button.btn.btn-danger.w-100(type="submit")
+                  i.bi.bi-x-circle
+                  | Cancelar orden
+            else
+              p(style="color:#94a3b8;font-size:0.875rem;text-align:center;margin:0") Sin acciones disponibles

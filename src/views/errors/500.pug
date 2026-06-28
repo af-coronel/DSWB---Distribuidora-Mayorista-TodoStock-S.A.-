@@ -1,23 +1,20 @@
 extends ../layout
 
 block content
-  .container.mt-5
-    .row.justify-content-center
-      .col-md-6.text-center
-        .card.shadow-sm.border-0
-          .card-body.py-5
-            i.bi.bi-exclamation-triangle.display-1.text-danger.mb-3
-            h1.display-4.fw-bold.text-dark 500
-            h4.mb-3.text-secondary Error interno del servidor
-            if errorMessage
-              .alert.alert-warning.text-start.mb-4
-                i.bi.bi-info-circle.me-2
-                = errorMessage
-            else
-              p.text-muted.mb-4
-                | Algo salió mal de nuestro lado.
-                br
-                | Ya fuimos notificados. Intentá de nuevo en unos minutos.
-            a.btn.btn-dark.px-4(href="/api/clients")
-              i.bi.bi-house.me-2
-              | Volver al inicio
+  .crd(style="max-width:480px;margin:4rem auto;text-align:center")
+    .crd-body(style="padding:3rem 2rem")
+      i.bi.bi-exclamation-triangle(style="font-size:2.5rem;color:#f87171;margin-bottom:1rem;display:block")
+      h1(style="font-family:'Sora',sans-serif;font-size:3rem;font-weight:800;color:#0f172a;margin:0 0 0.5rem") 500
+      h2(style="font-size:1.1rem;font-weight:600;color:#475569;margin:0 0 0.75rem") Error interno del servidor
+      if errorMessage
+        .flash.flash-warn(style="text-align:left;margin-bottom:1.25rem")
+          i.bi.bi-info-circle(style="flex-shrink:0")
+          span= errorMessage
+      else
+        p(style="font-size:0.875rem;color:#64748b;margin:0 0 1.5rem")
+          | Algo salió mal de nuestro lado.
+          br
+          | Intentá de nuevo en unos minutos.
+      a.btn.btn-primary(href="/api/clients")
+        i.bi.bi-house
+        | Volver al inicio

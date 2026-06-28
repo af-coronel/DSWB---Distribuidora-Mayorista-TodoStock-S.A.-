@@ -6,11 +6,8 @@ block content
     .d-flex.justify-content-between.align-items-center.mb-3
       h2 Inventario
 
-    if flashError
-      .alert.alert-warning.alert-dismissible.fade.show
-        i.bi.bi-exclamation-triangle-fill.me-2
-        = flashError
-        button.btn-close(type="button", data-bs-dismiss="alert", aria-label="Cerrar")
+  .pg-header
+    h1.pg-title Inventario
 
     if !isInventoryProfile
       ul.nav.nav-pills.mb-4

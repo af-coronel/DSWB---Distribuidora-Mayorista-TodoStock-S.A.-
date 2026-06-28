@@ -1,20 +1,68 @@
 extends ../layout
 block content
   - const vendorForm = formData || {}
-  .container.mt-5
-    if errorMessage
-      .alert.alert-danger.alert-dismissible.fade.show
-        i.bi.bi-exclamation-triangle-fill.me-2
-        = errorMessage
-        button.btn-close(type="button", data-bs-dismiss="alert", aria-label="Cerrar")
 
-    .row.justify-content-center
-      .col-md-8
-        .card.shadow
-          .card-header.bg-dark.text-white
-            h3.mb-0 Registrar Nuevo Proveedor
-          .card-body
-            form(action="/api/vendors", method="POST")
+  .pg-header
+    h1.pg-title Registrar Nuevo Proveedor
+    .pg-actions
+      a.btn.btn-secondary(href="/api/vendors") Cancelar
+
+  if errorMessage
+    .flash.flash-err
+      i.bi.bi-exclamation-triangle-fill(style="flex-shrink:0")
+      span= errorMessage
+
+  .crd(style="max-width:680px;margin:0 auto")
+    .crd-head
+      p.crd-title Datos del proveedor
+    form#create-form(action="/api/vendors", method="POST")
+      .crd-body
+        .grid-2
+          .frm-group
+            label.frm-label CUIT
+            input.frm-ctrl(type="text", name="cuit", value=vendorForm.cuit || "", required, pattern="[0-9]{11}", maxlength="11", minlength="11", placeholder="20334445556")
+          .frm-group
+            label.frm-label Razón Social
+            input.frm-ctrl(type="text", name="legal_name", value=vendorForm.legal_name || "", required, minlength="2", maxlength="150", placeholder="Proveedor Nacional S.A.")
+
+        .grid-2
+          .frm-group
+            label.frm-label Email
+            input.frm-ctrl(type="email", name="email", value=vendorForm.email || "", required)
+          .frm-group
+            label.frm-label Teléfono
+            input.frm-ctrl(type="tel", name="phone", value=vendorForm.phone || "", required, placeholder="1123456789", maxlength="20")
+
+        .frm-group
+          label.frm-label Dirección Legal
+          input.frm-ctrl(type="text", name="legal_address", value=vendorForm.legal_address || "", required)
+
+        .frm-group
+          label.frm-label Condición de IVA
+          select.frm-ctrl(name="vat_condition", required)
+            option(value="") Seleccionar condición
+            option(value="Responsable Inscripto", selected=vendorForm.vat_condition === 'Responsable Inscripto') Responsable Inscripto
+            option(value="Monotributista", selected=vendorForm.vat_condition === 'Monotributista') Monotributista
+            option(value="Exento", selected=vendorForm.vat_condition === 'Exento') Exento
+
+        hr.frm-divider
+        p.crd-title(style="margin-bottom:1rem") Datos de Logística
+        .grid-2
+          .frm-group
+            label.frm-label Categoría
+            select.frm-ctrl(name="category")
+              option(value="Alimentos", selected=vendorForm.category === 'Alimentos') Alimentos
+              option(value="Limpieza", selected=vendorForm.category === 'Limpieza') Limpieza
+              option(value="Bebidas", selected=vendorForm.category === 'Bebidas') Bebidas
+              option(value="Bazar", selected=vendorForm.category === 'Bazar') Bazar
+              option(value="General", selected=!vendorForm.category || vendorForm.category === 'General') General
+          .frm-group
+            label.frm-label Lead Time (días de entrega)
+            input.frm-ctrl(type="number", name="lead_time", value=typeof vendorForm.lead_time !== 'undefined' ? vendorForm.lead_time : "0", min="0", step="1", placeholder="7")
+
+      .crd-foot
+        span
+        button.btn.btn-primary(type="submit", form="create-form") Guardar Proveedor
               .row.mb-3
                 .col-md-6
                   label.form-label CUIT

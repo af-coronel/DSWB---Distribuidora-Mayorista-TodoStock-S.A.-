@@ -1,41 +1,45 @@
 extends ../layout
 
 block content
-  .container.mt-5
-    .d-flex.justify-content-between.align-items-center.mb-3
-      h2 Lista de Productos
-      a.btn.btn-primary(href="/api/products/new") + Nuevo Producto
 
-    .card.shadow-sm.mb-4
-      .card-body
-        .row.g-3
-          .col-md-5
-            label.form-label(for="search") Buscar por nombre
-            input#search.form-control(
-              type="text"
-              name="search"
-              value=searchTerm || ""
-              placeholder="Ej. Detergente"
-              autocomplete="off"
-              hx-get="/api/products"
-              hx-trigger="input changed delay:300ms"
-              hx-target="#product-table"
-              hx-swap="innerHTML"
-              hx-include="[name='view']"
-            )
-          .col-md-4
-            label.form-label(for="view") Vista
-            select#view.form-select(
-              name="view"
-              hx-get="/api/products"
-              hx-trigger="change"
-              hx-target="#product-table"
-              hx-swap="innerHTML"
-              hx-include="[name='search']"
-            )
-              option(value="all", selected=viewMode === 'all') Todos los productos
-              option(value="public_sale", selected=viewMode === 'public_sale') Venta al público
-              option(value="internal_use", selected=viewMode === 'internal_use') Consumo interno
+  .pg-header
+    div
+      h1.pg-title Catálogo de Productos
+    .pg-actions
+      a.btn.btn-primary(href="/api/products/new")
+        i.bi.bi-plus-circle
+        | Nuevo Producto
 
-    #product-table
-      include _table
+  .crd(style="margin-bottom:1.25rem")
+    .crd-body
+      .grid-2
+        .frm-group(style="margin-bottom:0")
+          label.frm-label Buscar por nombre
+          input#search.frm-ctrl(
+            type="text"
+            name="search"
+            value=searchTerm || ""
+            placeholder="Ej. Detergente"
+            autocomplete="off"
+            hx-get="/api/products"
+            hx-trigger="input changed delay:300ms"
+            hx-target="#product-table"
+            hx-swap="innerHTML"
+            hx-include="[name='view']"
+          )
+        .frm-group(style="margin-bottom:0")
+          label.frm-label Vista
+          select#view.frm-ctrl(
+            name="view"
+            hx-get="/api/products"
+            hx-trigger="change"
+            hx-target="#product-table"
+            hx-swap="innerHTML"
+            hx-include="[name='search']"
+          )
+            option(value="all", selected=viewMode === 'all') Todos los productos
+            option(value="public_sale", selected=viewMode === 'public_sale') Venta al público
+            option(value="internal_use", selected=viewMode === 'internal_use') Consumo interno
+
+  #product-table
+    include _table

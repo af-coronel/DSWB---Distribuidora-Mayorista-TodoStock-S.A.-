@@ -2,71 +2,73 @@ extends ../layout
 block content
   - const customerData = partner.customer_data || {}
   - const vendorData = partner.vendor_data || {}
-  .container.mt-5
-    if errorMessage
-      .alert.alert-danger.alert-dismissible.fade.show
-        i.bi.bi-exclamation-triangle-fill.me-2
-        = errorMessage
-        button.btn-close(type="button", data-bs-dismiss="alert", aria-label="Cerrar")
 
-    .row.justify-content-center
-      .col-md-8
-        .card.shadow
-          .card-header.bg-dark.text-white
-            h3.mb-0 Editar #{activeTab === 'clients' ? 'Cliente' : 'Proveedor'}
-          .card-body
-            form(action=`/api/${activeTab}/${partner.cuit}/edit`, method="POST")
-              .row.mb-3
-                .col-md-6
-                  label.form-label CUIT
-                  input.form-control(type="text", value=partner.cuit, disabled)
-                .col-md-6
-                  label.form-label Razón Social
-                  input.form-control(type="text", name="legal_name", value=partner.legal_name, required, minlength="2", maxlength="150")
+  .pg-header
+    h1.pg-title Editar #{activeTab === 'clients' ? 'Cliente' : 'Proveedor'}
+    .pg-actions
+      a.btn.btn-secondary(href=`/api/${activeTab}/${partner.cuit}`) Cancelar
 
-              .row.mb-3
-                .col-md-6
-                  label.form-label Email
-                  input.form-control(type="email", name="email", value=partner.email, required)
-                .col-md-6
-                  label.form-label Teléfono
-                  input.form-control(type="tel", name="phone", value=partner.phone, required, maxlength="20")
+  if errorMessage
+    .flash.flash-err
+      i.bi.bi-exclamation-triangle-fill(style="flex-shrink:0")
+      span= errorMessage
 
-              .mb-3
-                label.form-label Dirección Legal
-                input.form-control(type="text", name="legal_address", value=partner.legal_address, required)
+  .crd(style="max-width:680px;margin:0 auto")
+    .crd-head
+      p.crd-title Datos del #{activeTab === 'clients' ? 'cliente' : 'proveedor'}
+    form#edit-form(action=`/api/${activeTab}/${partner.cuit}/edit`, method="POST")
+      .crd-body
+        .grid-2
+          .frm-group
+            label.frm-label CUIT
+            input.frm-ctrl(type="text", value=partner.cuit, disabled)
+          .frm-group
+            label.frm-label Razón Social
+            input.frm-ctrl(type="text", name="legal_name", value=partner.legal_name, required, minlength="2", maxlength="150")
 
-              .mb-3
-                label.form-label Condición de IVA
-                select.form-select(name="vat_condition", required)
-                  option(value="Responsable Inscripto", selected=partner.vat_condition === 'Responsable Inscripto') Responsable Inscripto
-                  option(value="Monotributista", selected=partner.vat_condition === 'Monotributista') Monotributista
-                  option(value="Exento", selected=partner.vat_condition === 'Exento') Exento
-                  option(value="No especificado", selected=partner.vat_condition === 'No especificado') No especificado
+        .grid-2
+          .frm-group
+            label.frm-label Email
+            input.frm-ctrl(type="email", name="email", value=partner.email, required)
+          .frm-group
+            label.frm-label Teléfono
+            input.frm-ctrl(type="tel", name="phone", value=partner.phone, required, maxlength="20")
 
-              if activeTab === 'clients'
-                hr
-                h5 Datos de Crédito
-                .row.mb-3
-                  .col-md-6
-                    label.form-label Límite de Crédito
-                    input.form-control(type="number", name="credit_limit", value=customerData.credit_limit || 0, min="0")
-              else
-                hr
-                h5 Datos de Logística
-                .row.mb-3
-                  .col-md-6
-                    label.form-label Categoría
-                    select.form-select(name="category")
-                      option(value="Alimentos", selected=vendorData.category === 'Alimentos') Alimentos
-                      option(value="Limpieza", selected=vendorData.category === 'Limpieza') Limpieza
-                      option(value="Bebidas", selected=vendorData.category === 'Bebidas') Bebidas
-                      option(value="Bazar", selected=vendorData.category === 'Bazar') Bazar
-                      option(value="General", selected=!vendorData.category || vendorData.category === 'General') General
-                  .col-md-6
-                    label.form-label Lead Time (Días de entrega)
-                    input.form-control(type="number", name="lead_time", value=vendorData.lead_time || 0, min="0", step="1")
+        .frm-group
+          label.frm-label Dirección Legal
+          input.frm-ctrl(type="text", name="legal_address", value=partner.legal_address, required)
 
-              .d-flex.justify-content-between.mt-4
-                a.btn.btn-secondary(href=`/api/${activeTab}/${partner.cuit}`) Cancelar
-                button.btn.btn-dark(type="submit") Guardar Cambios
+        .frm-group
+          label.frm-label Condición de IVA
+          select.frm-ctrl(name="vat_condition", required)
+            option(value="Responsable Inscripto", selected=partner.vat_condition === 'Responsable Inscripto') Responsable Inscripto
+            option(value="Monotributista", selected=partner.vat_condition === 'Monotributista') Monotributista
+            option(value="Exento", selected=partner.vat_condition === 'Exento') Exento
+            option(value="No especificado", selected=partner.vat_condition === 'No especificado') No especificado
+
+        hr.frm-divider
+
+        if activeTab === 'clients'
+          p.crd-title(style="margin-bottom:1rem") Datos de Crédito
+          .grid-2
+            .frm-group
+              label.frm-label Límite de Crédito
+              input.frm-ctrl(type="number", name="credit_limit", value=customerData.credit_limit || 0, min="0")
+        else
+          p.crd-title(style="margin-bottom:1rem") Datos de Logística
+          .grid-2
+            .frm-group
+              label.frm-label Categoría
+              select.frm-ctrl(name="category")
+                option(value="Alimentos", selected=vendorData.category === 'Alimentos') Alimentos
+                option(value="Limpieza", selected=vendorData.category === 'Limpieza') Limpieza
+                option(value="Bebidas", selected=vendorData.category === 'Bebidas') Bebidas
+                option(value="Bazar", selected=vendorData.category === 'Bazar') Bazar
+                option(value="General", selected=!vendorData.category || vendorData.category === 'General') General
+            .frm-group
+              label.frm-label Lead Time (días de entrega)
+              input.frm-ctrl(type="number", name="lead_time", value=vendorData.lead_time || 0, min="0", step="1")
+
+      .crd-foot
+        span
+        button.btn.btn-primary(type="submit", form="edit-form") Guardar Cambios

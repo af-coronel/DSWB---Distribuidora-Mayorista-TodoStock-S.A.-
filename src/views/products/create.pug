@@ -2,86 +2,84 @@ extends ../layout
 
 block content
   - const productForm = formData || {}
-  .container.mt-5
-    .d-flex.justify-content-between.align-items-center.mb-3
-      h2 Nuevo Producto
-      a.btn.btn-outline-secondary(href="/api/products") Volver al listado
 
-    if errorMessage
-      .alert.alert-danger.alert-dismissible.fade.show
-        i.bi.bi-exclamation-triangle-fill.me-2
-        = errorMessage
-        button.btn-close(type="button", data-bs-dismiss="alert", aria-label="Cerrar")
+  .pg-header
+    h1.pg-title Nuevo Producto
+    .pg-actions
+      a.btn.btn-secondary(href="/api/products") Cancelar
 
-    if !vendors || vendors.length === 0
-      .alert.alert-warning.d-flex.justify-content-between.align-items-center
-        span No hay proveedores activos disponibles para asociar al producto.
-        a.btn.btn-sm.btn-primary(href="/api/vendors/new") Crear proveedor
-    else
-      .row.justify-content-center
-        .col-md-8
-          .card.shadow
-            .card-header.bg-dark.text-white
-              h3.mb-0 Registrar Nuevo Producto
-            .card-body
-              form(action="/api/products", method="POST")
-                .row.mb-3
-                  .col-md-6
-                    label.form-label Nombre
-                    input.form-control(
-                      type="text",
-                      name="name",
-                      required,
-                      value=productForm.name || "",
-                      minlength="2",
-                      maxlength="100",
-                      placeholder="Ej: Fideos Marolio 500g"
-                    )
-                  .col-md-6
-                    label.form-label Proveedor
-                    select.form-select(name="vendor_cuit", required)
-                      option(value="") Seleccionar proveedor
-                      each vendor in vendors
-                        option(
-                          value=vendor.cuit,
-                          selected=productForm.vendor_cuit === vendor.cuit
-                        )= `${vendor.legal_name} - ${vendor.cuit}`
+  if errorMessage
+    .flash.flash-err
+      i.bi.bi-exclamation-triangle-fill(style="flex-shrink:0")
+      span= errorMessage
 
-                .row.mb-3
-                  .col-md-6
-                    label.form-label Precio Proveedor
-                    input.form-control(
-                      type="number",
-                      name="vendor_price",
-                      min="0",
-                      step="0.01",
-                      required,
-                      placeholder="0.00",
-                      value=typeof productForm.vendor_price !== 'undefined' ? productForm.vendor_price : ""
-                    )
-                  .col-md-6
-                    label.form-label Precio Cliente
-                    input.form-control(
-                      type="number",
-                      name="customer_price",
-                      min="0",
-                      step="0.01",
-                      required,
-                      placeholder="0.00",
-                      value=typeof productForm.customer_price !== 'undefined' ? productForm.customer_price : ""
-                    )
+  if !vendors || vendors.length === 0
+    .flash.flash-warn
+      i.bi.bi-exclamation-triangle-fill(style="flex-shrink:0")
+      span No hay proveedores activos disponibles.
+      a.btn.btn-sm.btn-primary(href="/api/vendors/new" style="margin-left:auto") Crear proveedor
+  else
+    .crd(style="max-width:680px;margin:0 auto")
+      .crd-head
+        p.crd-title Registrar nuevo producto
+      form#create-form(action="/api/products", method="POST")
+        .crd-body
+          .grid-2
+            .frm-group
+              label.frm-label Nombre
+              input.frm-ctrl(
+                type="text",
+                name="name",
+                required,
+                value=productForm.name || "",
+                minlength="2",
+                maxlength="100",
+                placeholder="Fideos Marolio 500g"
+              )
+            .frm-group
+              label.frm-label Proveedor
+              select.frm-ctrl(name="vendor_cuit", required)
+                option(value="") Seleccionar proveedor
+                each vendor in vendors
+                  option(
+                    value=vendor.cuit,
+                    selected=productForm.vendor_cuit === vendor.cuit
+                  )= `${vendor.legal_name} — ${vendor.cuit}`
 
-                .row.mb-3
-                  .col-md-6
-                    label.form-label Categoría
-                    select.form-select(name="category", required)
-                      option(value="") Seleccionar categoría
-                      each item in categories
-                        option(
-                          value=item,
-                          selected=productForm.category === item
-                        )= item
+          .grid-2
+            .frm-group
+              label.frm-label Precio Proveedor
+              input.frm-ctrl(
+                type="number",
+                name="vendor_price",
+                min="0",
+                step="0.01",
+                required,
+                placeholder="0.00",
+                value=typeof productForm.vendor_price !== 'undefined' ? productForm.vendor_price : ""
+              )
+            .frm-group
+              label.frm-label Precio Cliente
+              input.frm-ctrl(
+                type="number",
+                name="customer_price",
+                min="0",
+                step="0.01",
+                required,
+                placeholder="0.00",
+                value=typeof productForm.customer_price !== 'undefined' ? productForm.customer_price : ""
+              )
 
-                .d-flex.justify-content-between.mt-4
-                  a.btn.btn-secondary(href="/api/products") Cancelar
-                  button.btn.btn-dark(type="submit") Guardar Producto
+          .frm-group(style="max-width:320px")
+            label.frm-label Categoría
+            select.frm-ctrl(name="category", required)
+              option(value="") Seleccionar categoría
+              each item in categories
+                option(
+                  value=item,
+                  selected=productForm.category === item
+                )= item
+
+        .crd-foot
+          span
+          button.btn.btn-primary(type="submit", form="create-form") Guardar Producto

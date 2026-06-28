@@ -3,103 +3,100 @@ extends ../layout
 block content
   - const form = formData || {}
   - const savedItems = (form.items && Array.isArray(form.items)) ? form.items : null
-  .container.mt-5
-    .d-flex.justify-content-between.align-items-center.mb-3
-      h2 Nueva Orden de Compra
-      a.btn.btn-outline-secondary(href="/api/orders?type=PURCHASE") Volver al listado
 
-    if errorMessage
-      .alert.alert-danger.alert-dismissible.fade.show
-        i.bi.bi-exclamation-triangle-fill.me-2
-        = errorMessage
-        button.btn-close(type="button", data-bs-dismiss="alert", aria-label="Cerrar")
+  .pg-header
+    h1.pg-title Nueva Orden de Compra
+    .pg-actions
+      a.btn.btn-secondary(href="/api/orders?type=PURCHASE") Cancelar
 
-    if !products || products.length === 0
-      .alert.alert-warning No hay productos disponibles. Verificá que los proveedores estén activos.
+  if errorMessage
+    .flash.flash-err
+      i.bi.bi-exclamation-triangle-fill(style="flex-shrink:0")
+      span= errorMessage
 
-    else
-      .alert.alert-info.d-flex.align-items-start.gap-2
-        i.bi.bi-info-circle-fill.mt-1
-        div
-          strong El sistema genera una orden por proveedor.
-          |  Si los ítems pertenecen a proveedores distintos, se crearán múltiples órdenes de compra y sus respectivas órdenes de pago.
+  if !products || products.length === 0
+    .flash.flash-warn
+      i.bi.bi-exclamation-triangle-fill(style="flex-shrink:0")
+      span No hay productos disponibles. Verificá que los proveedores estén activos.
 
-      .row.justify-content-center
-        .col-md-10
-          .card.shadow
-            .card-header.bg-dark.text-white
-              h4.mb-0 Datos de la orden
-            .card-body
-              form(action="/api/orders/purchase", method="POST", onsubmit="return validateForm(event)")
+  else
+    .flash.flash-info
+      i.bi.bi-info-circle(style="flex-shrink:0")
+      div
+        strong El sistema genera una orden por proveedor.
+        |  Si los ítems pertenecen a proveedores distintos, se crearán múltiples órdenes de compra y sus respectivas órdenes de pago.
 
-                .d-flex.justify-content-between.align-items-center.mb-2
-                  h5.mb-0 Ítems
-                  button.btn.btn-sm.btn-outline-primary(type="button", onclick="addItem()")
-                    i.bi.bi-plus-circle.me-1
-                    | Agregar ítem
+    .crd
+      .crd-head
+        .flex-between
+          p.crd-title Ítems de la orden
+          button.btn.btn-sm.btn-primary(type="button", onclick="addItem()")
+            i.bi.bi-plus-circle
+            | Agregar ítem
+      form#purchase-form(action="/api/orders/purchase", method="POST", onsubmit="return validateForm(event)")
+        .crd-body(style="padding:0")
+          table.tbl
+            thead
+              tr
+                th(style="width:38%") Producto (Proveedor)
+                th(style="text-align:center;width:14%") Cantidad
+                th(style="text-align:center;width:12%") Stock actual
+                th(style="text-align:right;width:14%") Precio unit.
+                th(style="text-align:right;width:14%") Subtotal
+                th(style="width:8%")
+            tbody#items-container
 
-                .table-responsive
-                  table.table.table-bordered.mb-2
-                    thead.table-dark
-                      tr
-                        th.col-4 Producto (Proveedor)
-                        th.col-2.text-center Cantidad
-                        th.col-2.text-center Stock actual
-                        th.col-2.text-end Precio unit.
-                        th.col-2.text-end Subtotal
-                        th.col-1
-                    tbody#items-container
+              if savedItems
+                each item, index in savedItems
+                  tr.item-row(data-index=index)
+                    td
+                      select.form-select.form-select-sm.product-select(name=`items[${index}][product_id]`, required, onchange="updateRow(this)")
+                        option(value="") Seleccionar producto
+                        each product in products
+                          option(value=product.id, data-price=product.vendor_price, data-stock=product.available_stock, selected=(item.product_id === product.id))
+                            = `${product.name} — ${vendorMap[product.vendor_cuit] || product.vendor_cuit} (stock: ${product.available_stock})`
+                    td(style="text-align:center")
+                      input.form-control.form-control-sm(type="number", name=`items[${index}][quantity]`, min="1", max="9999", value=item.quantity || 1, required, oninput="updateRow(this.closest('tr').querySelector('.product-select'))")
+                    td.text-center.available-stock —
+                    td.text-end.unit-price —
+                    td.text-end.subtotal —
+                    td(style="text-align:center")
+                      button.btn.btn-sm.btn-outline-danger(type="button", onclick="removeItem(this)")
+                        i.bi.bi-trash
 
-                      if savedItems
-                        each item, index in savedItems
-                          tr.item-row(data-index=index)
-                            td
-                              select.form-select.form-select-sm.product-select(name=`items[${index}][product_id]`, required, onchange="updateRow(this)")
-                                option(value="") Seleccionar producto
-                                each product in products
-                                  option(value=product.id, data-price=product.vendor_price, data-stock=product.available_stock, selected=(item.product_id === product.id))
-                                    = `${product.name} — ${vendorMap[product.vendor_cuit] || product.vendor_cuit} (stock: ${product.available_stock})`
-                            td.text-center
-                              input.form-control.form-control-sm(type="number", name=`items[${index}][quantity]`, min="1", max="9999", value=item.quantity || 1, required, oninput="updateRow(this.closest('tr').querySelector('.product-select'))")
-                            td.text-center.available-stock —
-                            td.text-end.unit-price —
-                            td.text-end.subtotal —
-                            td.text-center
-                              button.btn.btn-sm.btn-outline-danger(type="button", onclick="removeItem(this)")
-                                i.bi.bi-trash
+              else
+                tr.item-row(data-index="0")
+                  td
+                    select.form-select.form-select-sm.product-select(name="items[0][product_id]", required, onchange="updateRow(this)")
+                      option(value="") Seleccionar producto
+                      each product in products
+                        option(value=product.id, data-price=product.vendor_price, data-stock=product.available_stock)
+                          = `${product.name} — ${vendorMap[product.vendor_cuit] || product.vendor_cuit} (stock: ${product.available_stock})`
+                  td(style="text-align:center")
+                    input.form-control.form-control-sm(type="number", name="items[0][quantity]", min="1", max="9999", value="1", required, oninput="updateRow(this.closest('tr').querySelector('.product-select'))")
+                  td.text-center.available-stock —
+                  td.text-end.unit-price —
+                  td.text-end.subtotal —
+                  td(style="text-align:center")
+                    button.btn.btn-sm.btn-outline-danger(type="button", onclick="removeItem(this)")
+                      i.bi.bi-trash
 
-                      else
-                        tr.item-row(data-index="0")
-                          td
-                            select.form-select.form-select-sm.product-select(name="items[0][product_id]", required, onchange="updateRow(this)")
-                              option(value="") Seleccionar producto
-                              each product in products
-                                option(value=product.id, data-price=product.vendor_price, data-stock=product.available_stock)
-                                  = `${product.name} — ${vendorMap[product.vendor_cuit] || product.vendor_cuit} (stock: ${product.available_stock})`
-                          td.text-center
-                            input.form-control.form-control-sm(type="number", name="items[0][quantity]", min="1", max="9999", value="1", required, oninput="updateRow(this.closest('tr').querySelector('.product-select'))")
-                          td.text-center.available-stock —
-                          td.text-end.unit-price —
-                          td.text-end.subtotal —
-                          td.text-center
-                            button.btn.btn-sm.btn-outline-danger(type="button", onclick="removeItem(this)")
-                              i.bi.bi-trash
+        .crd-foot
+          .flex-gap
+            strong Total estimado:
+            span#grand-total.fw-bold —
 
-                  .d-flex.justify-content-end
-                    strong.me-2 Total estimado:
-                    span#grand-total.fw-bold —
+      hr.frm-divider
 
-                hr
-
-                .mb-3
-                  label.form-label Notas (opcional)
-                  textarea.form-control(name="notes", rows="2")= form.notes || ""
-
-                .d-flex.justify-content-between.mt-4
-                  a.btn.btn-secondary(href="/api/orders?type=PURCHASE") Cancelar
-                  button.btn.btn-dark(type="submit")
-                    i.bi.bi-check2-circle.me-1
-                    | Crear Orden de Compra
+      .crd-body
+        .frm-group
+          label.frm-label Notas (opcional)
+          textarea.frm-ctrl(name="notes", rows="2", form="purchase-form")= form.notes || ""
+      .crd-foot
+        a.btn.btn-secondary(href="/api/orders?type=PURCHASE") Cancelar
+        button.btn.btn-primary(type="submit", form="purchase-form")
+          i.bi.bi-check2-circle
+          | Crear Orden de Compra
 
 block scripts
   script.

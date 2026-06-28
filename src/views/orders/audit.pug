@@ -1,60 +1,63 @@
 extends ../layout
 
 block content
-  .container.mt-5
-    - const backHref = returnTo || `/api/orders/${order?.id || ''}`
+  - const backHref = returnTo || `/api/orders/${order?.id || ''}`
 
-    if errorMessage
-      .alert.alert-danger= errorMessage
-      a.btn.btn-secondary(href=returnTo || '/api/orders') Volver
+  if errorMessage
+    .flash.flash-err
+      i.bi.bi-exclamation-triangle-fill(style="flex-shrink:0")
+      span= errorMessage
+    a.btn.btn-secondary(href=returnTo || '/api/orders' style="margin-bottom:1rem") Volver
 
-    else if order
-      .d-flex.justify-content-between.align-items-center.mb-3
-        h2 Auditoría — Orden ##{order.id.slice(-6).toUpperCase()}
-        a.btn.btn-outline-secondary(href=backHref) Volver
+  else if order
+    .pg-header
+      h1.pg-title Auditoría — Orden ##{order.id.slice(-6).toUpperCase()}
+      .pg-actions
+        a.btn.btn-secondary(href=backHref) Volver
 
-      .alert.alert-info
-        i.bi.bi-info-circle.me-2
-        | Revisá cada ítem e informá la cantidad recibida en buen estado. El total de la orden de pago se recalculará automáticamente.
+    .flash.flash-info(style="margin-bottom:1.25rem")
+      i.bi.bi-info-circle(style="flex-shrink:0")
+      span Revisá cada ítem e informá la cantidad recibida en buen estado. El total de la orden de pago se recalculará automáticamente.
 
-      .card.shadow
-        .card-header.bg-dark.text-white
-          strong Ítems recibidos
-        .card-body
-          form(action=`/api/orders/purchase/${order.id}/audit`, method="POST")
-            if returnTo
-              input(type='hidden', name='return_to', value=returnTo)
-            table.table.table-bordered.mb-4
-              thead.table-light
+    .crd
+      .crd-head
+        p.crd-title Ítems recibidos
+      form#audit-form(action=`/api/orders/purchase/${order.id}/audit`, method="POST")
+        if returnTo
+          input(type='hidden', name='return_to', value=returnTo)
+        .crd-body(style="padding:0")
+          table.tbl
+            thead
+              tr
+                th Producto
+                th(style="text-align:center") Cantidad pedida
+                th(style="text-align:center") Cantidad recibida en buen estado
+                th Fecha de vencimiento (opcional)
+            tbody
+              each item, index in order.items
                 tr
-                  th Producto
-                  th.text-center Cantidad pedida
-                  th.text-center Cantidad recibida en buen estado
-                  th Fecha de vencimiento (opcional)
-              tbody
-                each item, index in order.items
-                  tr
-                    td
-                      = item.product_name
-                      input(type="hidden", name=`items[${index}][product_id]`, value=item.product_id)
-                    td.text-center= item.quantity
-                    td.text-center
-                      input.form-control.form-control-sm.text-center(
-                        type="number"
-                        name=`items[${index}][received_quantity]`
-                        value=item.quantity
-                        min="0"
-                        max=item.quantity
-                        required
-                      )
-                    td
-                      input.form-control.form-control-sm(
-                        type="date"
-                        name=`items[${index}][expiration_date]`
-                      )
-
-            .d-flex.justify-content-between
-              a.btn.btn-secondary(href=backHref) Cancelar
-              button.btn.btn-warning(type="submit")
-                i.bi.bi-check2-circle.me-1
-                | Confirmar auditoría y registrar stock
+                  td
+                    = item.product_name
+                    input(type="hidden", name=`items[${index}][product_id]`, value=item.product_id)
+                  td(style="text-align:center")= item.quantity
+                  td(style="text-align:center")
+                    input.form-ctrl(
+                      type="number"
+                      name=`items[${index}][received_quantity]`
+                      value=item.quantity
+                      min="0"
+                      max=item.quantity
+                      required
+                      style="width:90px;margin:auto;text-align:center"
+                    )
+                  td
+                    input.form-ctrl(
+                      type="date"
+                      name=`items[${index}][expiration_date]`
+                      style="width:180px"
+                    )
+        .crd-foot
+          a.btn.btn-secondary(href=backHref) Cancelar
+          button.btn.btn-warning(type="submit", form="audit-form")
+            i.bi.bi-check2-circle
+            | Confirmar auditoría y registrar stock

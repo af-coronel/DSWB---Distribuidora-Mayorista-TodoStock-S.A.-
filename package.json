@@ -8,7 +8,9 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "migrate": "tsx scripts/migrate.ts",
-    "seed:catalog": "tsx scripts/seedCatalog.ts"
+    "seed:catalog": "tsx scripts/seedCatalog.ts",
+    "tailwind:build": "npx @tailwindcss/cli -i ./src/public/styles/tailwind.css -o ./src/public/styles/app.css --minify",
+    "tailwind:watch": "npx @tailwindcss/cli -i ./src/public/styles/tailwind.css -o ./src/public/styles/app.css --watch"
   },
   "keywords": [],
   "author": "",
@@ -16,6 +18,7 @@
   "type": "module",
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "alpinejs": "^3.15.12",
     "cookie-parser": "^1.4.7",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
@@ -30,7 +33,11 @@
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^25.6.0",
+    "@tailwindcss/cli": "^4.3.1",
+    "autoprefixer": "^10.5.2",
     "nodemon": "^3.1.14",
+    "postcss": "^8.5.15",
+    "tailwindcss": "^4.3.1",
     "ts-node": "^10.9.2",
     "tsx": "^4.21.0",
     "typescript": "^6.0.3"

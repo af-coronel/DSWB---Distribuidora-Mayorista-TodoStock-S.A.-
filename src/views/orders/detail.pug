@@ -4,61 +4,121 @@ block content
   .container.mt-5
     - const canAccessFinanceView = !!canAccessFinance
 
-    if errorMessage
-      .alert.alert-danger.alert-dismissible.fade.show
-        i.bi.bi-exclamation-triangle-fill.me-2
-        = errorMessage
-        button.btn-close(type="button", data-bs-dismiss="alert", aria-label="Cerrar")
-      a.btn.btn-secondary(href='/api/orders?type=PURCHASE') Volver al listado
+  if errorMessage
+    .flash.flash-err
+      i.bi.bi-exclamation-triangle-fill(style="flex-shrink:0")
+      span= errorMessage
+    a.btn.btn-secondary(href='/api/orders?type=PURCHASE' style="margin-bottom:1rem") Volver al listado
 
-    else if order
-      if flashError
-        .alert.alert-warning.alert-dismissible.fade.show
-          i.bi.bi-exclamation-triangle-fill.me-2
-          = flashError
-          button.btn-close(type="button", data-bs-dismiss="alert", aria-label="Cerrar")
+  else if order
+    if flashError
+      .flash.flash-warn
+        i.bi.bi-exclamation-triangle-fill(style="flex-shrink:0")
+        span= flashError
 
-      .d-flex.justify-content-between.align-items-center.mb-3
-        h2
-          span.entity-pill.me-2(class=order.order_type === 'PURCHASE' ? 'entity-purchase' : 'entity-sale')
+    .pg-header
+      div
+        .flex-gap
+          span.entity-pill(class=order.order_type === 'PURCHASE' ? 'entity-purchase' : 'entity-sale')
             = order.order_type === 'PURCHASE' ? 'Compra' : 'Venta'
-          | Orden ##{order.id.slice(-6).toUpperCase()}
-        a.btn.btn-outline-secondary(href=order.order_type === 'SALE' ? '/api/orders?type=SALE' : '/api/orders?type=PURCHASE') Volver al listado
+          h1.pg-title Orden ##{order.id.slice(-6).toUpperCase()}
+      .pg-actions
+        a.btn.btn-secondary(href=order.order_type === 'SALE' ? '/api/orders?type=SALE' : '/api/orders?type=PURCHASE') Volver
 
-      .row.mb-4
-        .col-md-8
-          .card.shadow-sm
-            .card-header.bg-light
-              strong Información general
-            .card-body
-              .row
-                .col-md-6
-                  p
-                    strong Estado:&nbsp;
-                    span.status-pill(class=`status-${statusBadge}`) #{statusLabel}
-                  p
-                    strong Socio:&nbsp;
-                    = partnerName
-                  p
-                    strong CUIT:&nbsp;
-                    = order.partner_cuit
-                .col-md-6
-                  p
-                    strong Total:&nbsp;
-                    = formatCurrency(order.total_amount)
-                  p
-                    strong Creada:&nbsp;
-                    = new Date(order.created_at).toLocaleDateString('es-AR')
-                  if order.scheduled_date
-                    p
-                      strong Fecha programada:&nbsp;
-                      = new Date(order.scheduled_date).toLocaleDateString('es-AR')
-              if order.notes
-                p
-                  strong Notas:&nbsp;
-                  = order.notes
+    .grid-2-3
+      div
+        .crd(style="margin-bottom:1.25rem")
+          .crd-head
+            p.crd-title Información general
+          .crd-body
+            .grid-2
+              div
+                .info-row
+                  span.info-lbl Estado:
+                  span.status-pill(class=`status-${statusBadge}` style="margin-left:0.5rem") #{statusLabel}
+                .info-row
+                  span.info-lbl Socio:
+                  span.info-val= partnerName
+                .info-row
+                  span.info-lbl CUIT:
+                  span.info-val= order.partner_cuit
+              div
+                .info-row
+                  span.info-lbl Total:
+                  span.info-val(style="font-weight:700;color:#0f172a")= formatCurrency(order.total_amount)
+                .info-row
+                  span.info-lbl Creada:
+                  span.info-val= new Date(order.created_at).toLocaleDateString('es-AR')
+                if order.scheduled_date
+                  .info-row
+                    span.info-lbl Programada:
+                    span.info-val= new Date(order.scheduled_date).toLocaleDateString('es-AR')
+            if order.notes
+              .info-row(style="margin-top:0.5rem")
+                span.info-lbl Notas:
+                span.info-val= order.notes
 
-        .col-md-4
+        .crd
+          .crd-head
+            p.crd-title Ítems de la orden
+          .crd-body(style="padding:0")
+            table.tbl
+              thead
+                tr
+                  th Producto
+                  th(style="text-align:center") Cantidad
+                  th(style="text-align:right") Precio unit.
+                  th(style="text-align:right") Subtotal
+              tbody
+                each item in order.items
+                  tr
+                    td= item.product_name
+                    td(style="text-align:center")= item.quantity
+                    td(style="text-align:right")= formatCurrency(item.unit_price)
+                    td(style="text-align:right")= formatCurrency(item.quantity * item.unit_price)
+              tfoot
+                tr
+                  td(colspan="3" style="text-align:right;padding:0.75rem 1rem;background:#0f172a;color:#fff;font-weight:700") Total
+                  td(style="text-align:right;padding:0.75rem 1rem;background:#0f172a;color:#fff;font-weight:700")= formatCurrency(order.total_amount)
+
+      .crd
+        .crd-head
+          p.crd-title Acciones
+        .crd-body(style="display:flex;flex-direction:column;gap:0.75rem")
+          if order.order_type === 'PURCHASE'
+            if order.status === 'TO_VERIFY_BUDGET' || order.status === 'PENDING_BUDGET'
+              .flash.flash-info(style="margin:0")
+                i.bi.bi-info-circle(style="flex-shrink:0")
+                span La confirmación del presupuesto se gestiona desde
+                  a(href="/api/transactions")  Finanzas
+                  | .
+            else if order.status === 'TO_CONFIRM'
+              form(action=`/api/orders/purchase/${order.id}/confirm`, method="POST")
+                button.btn.btn-primary.w-100(type="submit") Confirmar orden
+            else if order.status === 'CONFIRMED' || order.status === 'RECEIVED'
+              .flash.flash-info(style="margin:0")
+                i.bi.bi-box-seam(style="flex-shrink:0")
+                span La recepción se gestiona desde
+                  a(href="/api/inventory?tab=purchase")  Inventario
+                  | .
+            else
+              p(style="color:#94a3b8;font-size:0.875rem;text-align:center;margin:0") Sin acciones disponibles
+
+          else if order.order_type === 'SALE'
+            if order.status === 'TO_VERIFY_COLLECTION' || order.status === 'PENDING_PAYMENT'
+              .flash.flash-info(style="margin:0")
+                i.bi.bi-info-circle(style="flex-shrink:0")
+                span La confirmación del cobro se gestiona desde
+                  a(href="/api/transactions")  Finanzas
+                  | .
+            else if order.status === 'PENDING_ASSEMBLY' || order.status === 'DISPATCHING'
+              .flash.flash-info(style="margin:0")
+                i.bi.bi-box-seam(style="flex-shrink:0")
+                span El armado y despacho se gestiona desde
+                  a(href="/api/inventory?tab=sale")  Inventario
+                  | .
+            else
+              p(style="color:#94a3b8;font-size:0.875rem;text-align:center;margin:0") Sin acciones disponibles
           .card.shadow-sm
             .card-header.bg-light
               strong Acciones
