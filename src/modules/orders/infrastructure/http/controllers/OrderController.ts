@@ -310,6 +310,17 @@ export class OrderController {
         id,
         request.user?.id || "unknown",
       );
+
+      emitRoleNotification("INVENTORY", {
+        kind: "PURCHASE_CONFIRMED",
+        title: "Nuevo pedido para recepción",
+        message: `La orden #${id.slice(-6).toUpperCase()} fue confirmada por Comercial. Ingresará un nuevo pedido en Recepción y auditoría.`,
+        link: `/api/orders/${id}`,
+        entityId: id,
+        entityType: "PURCHASE_ORDER",
+        createdAt: new Date().toISOString(),
+      });
+
       if (isFormRequest(req)) return res.redirect(`/api/orders/${id}`);
       return res.status(200).json({ message: "Orden de compra confirmada" });
     } catch (error: any) {
@@ -329,6 +340,16 @@ export class OrderController {
         id,
         request.user?.id || "unknown",
       );
+
+      emitRoleNotification("COMMERCIAL", {
+        kind: "PURCHASE_APPROVED",
+        title: "Compra autorizada",
+        message: `La orden #${id.slice(-6).toUpperCase()} fue autorizada. Estén atentos al mail del proveedor confirmando disponibilidad de productos.`,
+        link: `/api/orders/${id}`,
+        entityId: id,
+        entityType: "PURCHASE_ORDER",
+        createdAt: new Date().toISOString(),
+      });
 
       if (isFormRequest(req)) {
         return res.redirect(
@@ -462,6 +483,17 @@ export class OrderController {
         id,
         request.user?.id || "unknown",
       );
+
+      emitRoleNotification("INVENTORY", {
+        kind: "SALE_PAYMENT_CONFIRMED",
+        title: "Nuevo pedido para preparar",
+        message: `La orden #${id.slice(-6).toUpperCase()} ya tiene el cobro verificado. Hay un nuevo pedido para armar y despachar.`,
+        link: `/api/orders/${id}`,
+        entityId: id,
+        entityType: "SALE_ORDER",
+        createdAt: new Date().toISOString(),
+      });
+
       if (isFormRequest(req)) {
         return res.redirect(
           this.getFormSuccessRedirect(req, `/api/orders/${id}`),
@@ -585,6 +617,16 @@ export class OrderController {
         auditItems,
         request.user?.id || "unknown",
       );
+
+      emitRoleNotification("FINANCE", {
+        kind: "PURCHASE_AUDITED",
+        title: "Nuevo pago a proveedor",
+        message: `La orden #${id.slice(-6).toUpperCase()} fue auditada. Hay un nuevo pago a efectuar al proveedor.`,
+        link: "/api/transactions?type=PAYMENT",
+        entityId: id,
+        entityType: "PURCHASE_ORDER",
+        createdAt: new Date().toISOString(),
+      });
 
       if (isFormRequest(req)) {
         return res.redirect(
