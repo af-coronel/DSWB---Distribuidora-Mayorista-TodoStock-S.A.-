@@ -19,18 +19,16 @@ export class AuthController {
 
   async login(req: Request, res: Response) {
     try {
-      const { email, passwordHash } = req.body;
+      const { email, password } = req.body;
 
-      // Pequeña validación de entrada
-      if (!email || !passwordHash) {
+      if (!email || !password) {
         return res.status(400).json({
           error: true,
           message: "Debe ingresar un email y contraseña válidos",
         });
       }
 
-      // Llamamos a nuestra lógica de negocio (Caso de Uso)
-      const response = await this.loginUserUseCase.execute(email, passwordHash);
+      const response = await this.loginUserUseCase.execute(email, password);
       if (
         req.headers["content-type"]?.includes(
           "application/x-www-form-urlencoded",

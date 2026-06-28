@@ -14,14 +14,14 @@ export interface LoginResponse {
 export class LoginUser {
   constructor(private readonly userRepository: IUserRepository) {}
 
-  async execute(email: string, passwordHash: string): Promise<LoginResponse> {
+  async execute(email: string, password: string): Promise<LoginResponse> {
     const user = await this.userRepository.findByEmail(email);
 
     if (!user) {
       throw new Error("Credenciales inválidas");
     }
 
-    if (user.passwordHash !== passwordHash) {
+    if (user.passwordHash !== password) {
       throw new Error("Credenciales inválidas");
     }
 
