@@ -31,7 +31,10 @@ const vendorController = new VendorController(
   activatePartnerUseCase,
 );
 
-router.use(authenticate, authorizeRoles(["ADMIN", "COMMERCIAL", "VENDOR", "CLIENT"]));
+router.use(
+  authenticate,
+  authorizeRoles(["ADMIN", "COMMERCIAL", "VENDOR", "CLIENT"]),
+);
 
 // --- DEFINICIÓN DE ENDPOINTS PROTEGIDOS ---
 
@@ -73,15 +76,18 @@ router.post(
 );
 
 // Borrar/Desactivar un proveedor: Requiere ser ADMIN estricto
-router.delete("/:cuit", authenticate, authorizeRoles(["ADMIN"]), (req, res) =>
-  vendorController.deleteSoft(req, res),
+router.delete(
+  "/:cuit",
+  authenticate,
+  authorizeRoles(["ADMIN", "COMMERCIAL"]),
+  (req, res) => vendorController.deleteSoft(req, res),
 );
 
 // Desactivar un proveedor (PATCH semántico)
 router.patch(
   "/:cuit/deactivate",
   authenticate,
-  authorizeRoles(["ADMIN"]),
+  authorizeRoles(["ADMIN", "COMMERCIAL"]),
   (req, res) => vendorController.deleteSoft(req, res),
 );
 
@@ -89,7 +95,7 @@ router.patch(
 router.patch(
   "/:cuit/activate",
   authenticate,
-  authorizeRoles(["ADMIN"]),
+  authorizeRoles(["ADMIN", "COMMERCIAL"]),
   (req, res) => vendorController.activate(req, res),
 );
 

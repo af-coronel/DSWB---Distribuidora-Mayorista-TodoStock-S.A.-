@@ -54,10 +54,27 @@ export class TransactionController {
       const transactions = await this.getAllTransactionsUseCase.execute(type);
 
       if (isHtmlRequest) {
+        const pageSize = 15;
+        const totalItems = transactions.length;
+        const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+        const parsedPage = Number(req.query.page);
+        const requestedPage =
+          Number.isInteger(parsedPage) && parsedPage > 0 ? parsedPage : 1;
+        const currentPage = Math.min(requestedPage, totalPages);
+        const startIndex = (currentPage - 1) * pageSize;
+        const paginatedTransactions = transactions.slice(
+          startIndex,
+          startIndex + pageSize,
+        );
+
         return res.render("transactions/list", {
           activeTab: "transactions",
-          transactions,
+          transactions: paginatedTransactions,
           activeType: type || "PAYMENT",
+          currentPage,
+          totalPages,
+          totalItems,
+          pageSize,
           statusLabel: STATUS_LABEL,
           statusBadge: STATUS_BADGE,
           typeLabel: TYPE_LABEL,

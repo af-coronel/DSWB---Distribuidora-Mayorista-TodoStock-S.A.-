@@ -48,6 +48,16 @@ block content
                         button.btn.btn-sm.btn-success(type='submit') Marcar como recibida
                     else if order.status === 'RECEIVED'
                       a.btn.btn-sm.btn-warning(href=`/api/orders/purchase/${order.id}/audit?return_to=/api/inventory?tab=purchase`) Auditar orden
+        if totalPages > 1
+          nav.mt-4(aria-label="Paginación de inventario compra")
+            ul.pagination.justify-content-center.mb-0
+              li.page-item(class=currentPage === 1 ? 'disabled' : '')
+                a.page-link(href=`/api/inventory?tab=purchase&page=${currentPage - 1}`) Anterior
+              - for (let page = 1; page <= totalPages; page++)
+                li.page-item(class=page === currentPage ? 'active' : '')
+                  a.page-link(href=`/api/inventory?tab=purchase&page=${page}`)= page
+              li.page-item(class=currentPage === totalPages ? 'disabled' : '')
+                a.page-link(href=`/api/inventory?tab=purchase&page=${currentPage + 1}`) Siguiente
       else
         .alert.alert-info No hay compras pendientes de recepción o auditoría.
 
@@ -81,6 +91,16 @@ block content
                     else if order.status === 'DISPATCHING'
                       form(action=`/api/orders/sale/${order.id}/deliver`, method='POST')
                         button.btn.btn-sm.btn-success(type='submit') Confirmar entrega
+        if totalPages > 1
+          nav.mt-4(aria-label="Paginación de inventario venta")
+            ul.pagination.justify-content-center.mb-0
+              li.page-item(class=currentPage === 1 ? 'disabled' : '')
+                a.page-link(href=`/api/inventory?tab=sale&page=${currentPage - 1}`) Anterior
+              - for (let page = 1; page <= totalPages; page++)
+                li.page-item(class=page === currentPage ? 'active' : '')
+                  a.page-link(href=`/api/inventory?tab=sale&page=${page}`)= page
+              li.page-item(class=currentPage === totalPages ? 'disabled' : '')
+                a.page-link(href=`/api/inventory?tab=sale&page=${currentPage + 1}`) Siguiente
       else
         .alert.alert-info No hay ventas pendientes de armado o despacho.
 
@@ -111,5 +131,15 @@ block content
                   else
                     span.text-muted Sin vencimiento
                 td= new Date(lot.created_at).toLocaleDateString('es-AR')
+        if totalPages > 1
+          nav.mt-4(aria-label="Paginación de inventario stock")
+            ul.pagination.justify-content-center.mb-0
+              li.page-item(class=currentPage === 1 ? 'disabled' : '')
+                a.page-link(href=`/api/inventory?tab=stock&page=${currentPage - 1}`) Anterior
+              - for (let page = 1; page <= totalPages; page++)
+                li.page-item(class=page === currentPage ? 'active' : '')
+                  a.page-link(href=`/api/inventory?tab=stock&page=${page}`)= page
+              li.page-item(class=currentPage === totalPages ? 'disabled' : '')
+                a.page-link(href=`/api/inventory?tab=stock&page=${currentPage + 1}`) Siguiente
       else
         .alert.alert-info Aún no hay lotes de inventario registrados.

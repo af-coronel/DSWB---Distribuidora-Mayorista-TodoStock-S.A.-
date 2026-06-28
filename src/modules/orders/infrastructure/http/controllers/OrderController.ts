@@ -21,7 +21,7 @@ import type { CreateSaleOrderItemInput } from "../../../application/use-cases/Cr
 import type { OrderType } from "../../../domain/index.js";
 
 type AuthenticatedRequest = Request & {
-  user?: { id?: string };
+  user?: { id?: string; role?: string };
 };
 
 const STATUS_LABEL: Record<string, string> = {
@@ -216,15 +216,19 @@ export class OrderController {
 
   async renderDetail(req: Request, res: Response) {
     try {
+      const request = req as AuthenticatedRequest;
       const { id } = req.params as { id: string };
       const order = await this.getOrderByIdUseCase.execute(id);
       const partners = await this.getAllPartnersUseCase.execute();
       const partner = partners.find((p) => p.cuit === order.partner_cuit);
+      const role = request.user?.role;
+      const canAccessFinance = role === "ADMIN" || role === "FINANCE";
 
       return res.render("orders/detail", {
         activeTab: "orders",
         order,
         partnerName: partner?.legal_name || order.partner_cuit,
+        canAccessFinance,
         statusLabel: STATUS_LABEL[order.status] || order.status,
         statusBadge: STATUS_BADGE[order.status] || "secondary",
         flashError: (req.query.error as string) || undefined,
@@ -625,10 +629,24 @@ export class OrderController {
       const orders = await this.getAllOrdersUseCase.execute(orderType);
 
       if (isHtmlRequest) {
+        const pageSize = 15;
+        const totalItems = orders.length;
+        const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+        const parsedPage = Number(req.query.page);
+        const requestedPage =
+          Number.isInteger(parsedPage) && parsedPage > 0 ? parsedPage : 1;
+        const currentPage = Math.min(requestedPage, totalPages);
+        const startIndex = (currentPage - 1) * pageSize;
+        const paginatedOrders = orders.slice(startIndex, startIndex + pageSize);
+
         return res.render("orders/list", {
           activeTab: "orders",
-          orders,
+          orders: paginatedOrders,
           activeOrderType: orderType || "PURCHASE",
+          currentPage,
+          totalPages,
+          totalItems,
+          pageSize,
           statusLabel: STATUS_LABEL,
           statusBadge: STATUS_BADGE,
         });

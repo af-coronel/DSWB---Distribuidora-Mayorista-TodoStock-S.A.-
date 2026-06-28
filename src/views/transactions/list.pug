@@ -36,5 +36,15 @@ block content
               td= new Date(tx.created_at).toLocaleDateString('es-AR')
               td
                 a.btn.btn-sm.btn-outline-secondary(href=`/api/transactions/${tx.id}`) Ver detalle
+      if totalPages > 1
+        nav.mt-4(aria-label="Paginación de transacciones")
+          ul.pagination.justify-content-center.mb-0
+            li.page-item(class=currentPage === 1 ? 'disabled' : '')
+              a.page-link(href=`/api/transactions?type=${activeType}&page=${currentPage - 1}`) Anterior
+            - for (let page = 1; page <= totalPages; page++)
+              li.page-item(class=page === currentPage ? 'active' : '')
+                a.page-link(href=`/api/transactions?type=${activeType}&page=${page}`)= page
+            li.page-item(class=currentPage === totalPages ? 'disabled' : '')
+              a.page-link(href=`/api/transactions?type=${activeType}&page=${currentPage + 1}`) Siguiente
     else
       .alert.alert-info Aún no hay transacciones registradas.
