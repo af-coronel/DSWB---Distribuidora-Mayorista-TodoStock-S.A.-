@@ -192,9 +192,26 @@ export class VendorController {
         partner.type.includes("VENDOR"),
       );
       if (req.headers.accept?.includes("text/html")) {
+        const pageSize = 15;
+        const totalItems = onlyVendors.length;
+        const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+        const parsedPage = Number(req.query.page);
+        const requestedPage =
+          Number.isInteger(parsedPage) && parsedPage > 0 ? parsedPage : 1;
+        const currentPage = Math.min(requestedPage, totalPages);
+        const startIndex = (currentPage - 1) * pageSize;
+        const paginatedVendors = onlyVendors.slice(
+          startIndex,
+          startIndex + pageSize,
+        );
+
         return res.render("partners/list", {
-          partners: onlyVendors,
+          partners: paginatedVendors,
           activeTab: "vendors", // Identificador para la pestaña
+          currentPage,
+          totalPages,
+          totalItems,
+          pageSize,
           successMessage:
             req.query.created === "1"
               ? "Proveedor registrado correctamente."
@@ -318,7 +335,9 @@ export class VendorController {
               });
             }
           } catch {
-            return res.redirect(`/api/vendors/${cuit}?error=${encodeURIComponent(error.message)}`);
+            return res.redirect(
+              `/api/vendors/${cuit}?error=${encodeURIComponent(error.message)}`,
+            );
           }
         }
       }

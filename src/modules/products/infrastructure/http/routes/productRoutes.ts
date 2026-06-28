@@ -33,6 +33,8 @@ const productController = new ProductController(
   updateProductUseCase,
 );
 
+router.use(authenticate, authorizeRoles(["ADMIN", "COMMERCIAL", "VENDOR", "CLIENT"]));
+
 router.get("/new", authenticate, (req, res) =>
   productController.renderCreateForm(req, res),
 );
@@ -40,7 +42,7 @@ router.get("/new", authenticate, (req, res) =>
 router.post(
   "/",
   authenticate,
-  authorizeRoles(["ADMIN", "VENDOR"]),
+  authorizeRoles(["ADMIN", "COMMERCIAL", "VENDOR"]),
   (req, res) => productController.create(req, res),
 );
 
@@ -51,7 +53,7 @@ router.get("/:vendor_cuit/:name/edit", authenticate, (req, res) =>
 router.post(
   "/:vendor_cuit/:name/edit",
   authenticate,
-  authorizeRoles(["ADMIN", "VENDOR"]),
+  authorizeRoles(["ADMIN", "COMMERCIAL", "VENDOR"]),
   (req, res) => productController.update(req, res),
 );
 

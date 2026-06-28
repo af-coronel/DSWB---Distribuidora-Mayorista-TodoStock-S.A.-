@@ -186,9 +186,26 @@ export class ClientController {
       );
       // Si el cliente pide HTML (Navegador)
       if (req.headers.accept?.includes("text/html")) {
+        const pageSize = 15;
+        const totalItems = onlyClients.length;
+        const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+        const parsedPage = Number(req.query.page);
+        const requestedPage =
+          Number.isInteger(parsedPage) && parsedPage > 0 ? parsedPage : 1;
+        const currentPage = Math.min(requestedPage, totalPages);
+        const startIndex = (currentPage - 1) * pageSize;
+        const paginatedClients = onlyClients.slice(
+          startIndex,
+          startIndex + pageSize,
+        );
+
         return res.render("partners/list", {
-          partners: onlyClients,
+          partners: paginatedClients,
           activeTab: "clients",
+          currentPage,
+          totalPages,
+          totalItems,
+          pageSize,
           successMessage:
             req.query.created === "1"
               ? "Cliente registrado correctamente."
@@ -304,7 +321,8 @@ export class ClientController {
 
               if (
                 partner.customer_data &&
-                typeof currentClient.customer_data?.payment_terms !== "undefined"
+                typeof currentClient.customer_data?.payment_terms !==
+                  "undefined"
               ) {
                 partner.customer_data.payment_terms =
                   currentClient.customer_data.payment_terms;
@@ -317,7 +335,9 @@ export class ClientController {
               });
             }
           } catch {
-            return res.redirect(`/api/clients/${cuit}?error=${encodeURIComponent(error.message)}`);
+            return res.redirect(
+              `/api/clients/${cuit}?error=${encodeURIComponent(error.message)}`,
+            );
           }
         }
       }

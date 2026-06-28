@@ -61,6 +61,7 @@ export const authenticate = async (
     }
 
     req.user = user;
+    res.locals.currentUser = user;
 
     next();
   } catch (error) {

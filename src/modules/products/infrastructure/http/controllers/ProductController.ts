@@ -135,10 +135,14 @@ export class ProductController {
       const customerPriceNum = Number(customer_price);
 
       if (!vendor_price || isNaN(vendorPriceNum) || vendorPriceNum < 0) {
-        throw new Error("El precio proveedor debe ser un número válido mayor o igual a cero.");
+        throw new Error(
+          "El precio proveedor debe ser un número válido mayor o igual a cero.",
+        );
       }
       if (!customer_price || isNaN(customerPriceNum) || customerPriceNum < 0) {
-        throw new Error("El precio cliente debe ser un número válido mayor o igual a cero.");
+        throw new Error(
+          "El precio cliente debe ser un número válido mayor o igual a cero.",
+        );
       }
 
       const newProduct: IProduct = {
@@ -234,11 +238,23 @@ export class ProductController {
       const updatedVendorPrice = Number(req.body.vendor_price);
       const updatedCustomerPrice = Number(req.body.customer_price);
 
-      if (!req.body.vendor_price || isNaN(updatedVendorPrice) || updatedVendorPrice < 0) {
-        throw new Error("El precio proveedor debe ser un número válido mayor o igual a cero.");
+      if (
+        !req.body.vendor_price ||
+        isNaN(updatedVendorPrice) ||
+        updatedVendorPrice < 0
+      ) {
+        throw new Error(
+          "El precio proveedor debe ser un número válido mayor o igual a cero.",
+        );
       }
-      if (!req.body.customer_price || isNaN(updatedCustomerPrice) || updatedCustomerPrice < 0) {
-        throw new Error("El precio cliente debe ser un número válido mayor o igual a cero.");
+      if (
+        !req.body.customer_price ||
+        isNaN(updatedCustomerPrice) ||
+        updatedCustomerPrice < 0
+      ) {
+        throw new Error(
+          "El precio cliente debe ser un número válido mayor o igual a cero.",
+        );
       }
 
       await this.updateProductUseCase.execute(
@@ -302,7 +318,10 @@ export class ProductController {
     try {
       const products = await this.getAllProductsUseCase.execute();
 
-      if (req.headers.accept?.includes("text/html") || req.headers["hx-request"] === "true") {
+      if (
+        req.headers.accept?.includes("text/html") ||
+        req.headers["hx-request"] === "true"
+      ) {
         const productsView = await this.enrichProductsWithVendorName(products);
         const viewMode = this.getListViewMode(req.query.view);
         const searchTerm =
@@ -320,7 +339,7 @@ export class ProductController {
 
           return matchesView && matchesSearch;
         });
-        const pageSize = 20;
+        const pageSize = 15;
         const totalItems = filteredProducts.length;
         const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
         const currentPage = Math.min(

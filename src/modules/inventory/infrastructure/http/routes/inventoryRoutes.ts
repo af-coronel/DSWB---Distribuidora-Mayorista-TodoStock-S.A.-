@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { authenticate } from "../../../../auth/infrastructure/http/middleware/authMiddleware.js";
+import { authorizeRoles } from "../../../../auth/infrastructure/http/middleware/roleMiddleware.js";
 import { GetAllInventoryLots } from "../../../application/index.js";
 import { GetAllProducts } from "../../../../products/application/index.js";
 import { GetAllOrders } from "../../../../orders/application/index.js";
@@ -23,6 +24,8 @@ const inventoryController = new InventoryController(
   new GetAllOrders(orderRepository),
   new GetAllPartners(partnerRepository),
 );
+
+router.use(authenticate, authorizeRoles(["ADMIN", "INVENTORY"]));
 
 router.get("/", authenticate, (req, res) =>
   inventoryController.getAll(req, res),

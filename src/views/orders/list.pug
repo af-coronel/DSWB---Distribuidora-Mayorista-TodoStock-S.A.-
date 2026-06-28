@@ -1,45 +1,58 @@
 extends ../layout
 
 block content
-  .container.mt-5
-    .d-flex.justify-content-between.align-items-center.mb-3
-      h2 Órdenes
-      .d-flex.gap-2
-        a.btn.btn-outline-primary(href="/api/orders/purchase/new")
-          i.bi.bi-plus-circle.me-1
-          | Nueva Compra
-        a.btn.btn-outline-success(href="/api/orders/sale/new")
-          i.bi.bi-plus-circle.me-1
-          | Nueva Venta
+  .d-flex.flex-column.min-vh-100
+    
+    .flex-grow-1.container.mt-5
+      .d-flex.justify-content-between.align-items-center.mb-3
+        h2 Órdenes
+        .d-flex.gap-2
+          a.btn.btn-outline-primary(href="/api/orders/purchase/new")
+            i.bi.bi-plus-circle.me-1
+            | Nueva Compra
+          a.btn.btn-outline-success(href="/api/orders/sale/new")
+            i.bi.bi-plus-circle.me-1
+            | Nueva Venta
 
-    ul.nav.nav-pills.mb-3
-      li.nav-item
-        a.nav-link(class=activeOrderType === 'PURCHASE' ? 'active' : '', href="/api/orders?type=PURCHASE") Compras
-      li.nav-item
-        a.nav-link(class=activeOrderType === 'SALE' ? 'active' : '', href="/api/orders?type=SALE") Ventas
+      ul.nav.nav-pills.mb-3
+        li.nav-item
+          a.nav-link(class=activeOrderType === 'PURCHASE' ? 'active' : '', href="/api/orders?type=PURCHASE") Compras
+        li.nav-item
+          a.nav-link(class=activeOrderType === 'SALE' ? 'active' : '', href="/api/orders?type=SALE") Ventas
 
-    if orders && orders.length > 0
-      table.table.table-striped.table-hover
-        thead.table-dark
-          tr
-            th Estado
-            th Socio (CUIT)
-            th Ítems
-            th Total
-            th Fecha creación
-            th
-        tbody
-          each order in orders
-            - const badge = statusBadge[order.status] || 'neutral'
-            - const label = statusLabel[order.status] || order.status
+      if orders && orders.length > 0
+        table.table.table-striped.table-hover
+          thead.table-dark
             tr
-              td
-                span.status-pill(class=`status-${badge}`) #{label}
-              td= order.partner_cuit
-              td= order.items.length
-              td= formatCurrency(order.total_amount)
-              td= new Date(order.created_at).toLocaleDateString('es-AR')
-              td
-                a.btn.btn-sm.btn-outline-secondary(href=`/api/orders/${order.id}`) Ver detalle
-    else
-      .alert.alert-info Aún no hay órdenes registradas.
+              th Estado
+              th Socio (CUIT)
+              th Ítems
+              th Total
+              th Fecha creación
+              th
+          tbody
+            each order in orders
+              - const badge = statusBadge[order.status] || 'neutral'
+              - const label = statusLabel[order.status] || order.status
+              tr
+                td
+                  span.status-pill(class=`status-${badge}`) #{label}
+                td= order.partner_cuit
+                td= order.items.length
+                td= formatCurrency(order.total_amount)
+                td= new Date(order.created_at).toLocaleDateString('es-AR')
+                td
+                  a.btn.btn-sm.btn-outline-secondary(href=`/api/orders/${order.id}`) Ver detalle
+      else
+        .alert.alert-info Aún no hay órdenes registradas.
+
+    if orders && orders.length > 0 && totalPages > 1
+      nav.mt-4.pb-5(aria-label="Paginación de órdenes")
+        ul.pagination.justify-content-center.m-0
+          li.page-item(class=currentPage === 1 ? 'disabled' : '')
+            a.page-link(href=`/api/orders?type=${activeOrderType}&page=${currentPage - 1}`) Anterior
+          - for (let page = 1; page <= totalPages; page++)
+            li.page-item(class=page === currentPage ? 'active' : '')
+              a.page-link(href=`/api/orders?type=${activeOrderType}&page=${page}`)= page
+          li.page-item(class=currentPage === totalPages ? 'disabled' : '')
+            a.page-link(href=`/api/orders?type=${activeOrderType}&page=${currentPage + 1}`) Siguiente

@@ -2,6 +2,7 @@ extends ../layout
 
 block content
   .container.mt-5
+    - const isInventoryProfile = currentRole === 'INVENTORY'
     .d-flex.justify-content-between.align-items-center.mb-3
       h2 Inventario
 
@@ -11,13 +12,18 @@ block content
         = flashError
         button.btn-close(type="button", data-bs-dismiss="alert", aria-label="Cerrar")
 
-    ul.nav.nav-pills.mb-4
-      li.nav-item
-        a.nav-link(class=inventoryTab === 'purchase' ? 'active' : '', href='/api/inventory?tab=purchase') Recepción y auditoría
-      li.nav-item
-        a.nav-link(class=inventoryTab === 'sale' ? 'active' : '', href='/api/inventory?tab=sale') Armado y despacho
-      li.nav-item
-        a.nav-link(class=inventoryTab === 'stock' ? 'active' : '', href='/api/inventory?tab=stock') Stock total
+    if !isInventoryProfile
+      ul.nav.nav-pills.mb-4
+        li.nav-item
+          a.nav-link(class=inventoryTab === 'purchase' ? 'active' : '', href='/api/inventory?tab=purchase') Recepción y auditoría
+        li.nav-item
+          a.nav-link(class=inventoryTab === 'sale' ? 'active' : '', href='/api/inventory?tab=sale') Armado y despacho
+        li.nav-item
+          a.nav-link(class=inventoryTab === 'stock' ? 'active' : '', href='/api/inventory?tab=stock') Stock total
+    else
+      .alert.alert-info.d-flex.align-items-center.gap-2.mb-4
+        i.bi.bi-info-circle-fill
+        span Usá el menú lateral para cambiar entre Recepción y auditoría, Armado y despacho, o Stock total.
 
     if inventoryTab === 'purchase'
       if purchaseTasks && purchaseTasks.length > 0
@@ -48,6 +54,16 @@ block content
                         button.btn.btn-sm.btn-success(type='submit') Marcar como recibida
                     else if order.status === 'RECEIVED'
                       a.btn.btn-sm.btn-warning(href=`/api/orders/purchase/${order.id}/audit?return_to=/api/inventory?tab=purchase`) Auditar orden
+        if totalPages > 1
+          nav.mt-4(aria-label="Paginación de inventario compra")
+            ul.pagination.justify-content-center.mb-0
+              li.page-item(class=currentPage === 1 ? 'disabled' : '')
+                a.page-link(href=`/api/inventory?tab=purchase&page=${currentPage - 1}`) Anterior
+              - for (let page = 1; page <= totalPages; page++)
+                li.page-item(class=page === currentPage ? 'active' : '')
+                  a.page-link(href=`/api/inventory?tab=purchase&page=${page}`)= page
+              li.page-item(class=currentPage === totalPages ? 'disabled' : '')
+                a.page-link(href=`/api/inventory?tab=purchase&page=${currentPage + 1}`) Siguiente
       else
         .alert.alert-info No hay compras pendientes de recepción o auditoría.
 
@@ -81,6 +97,16 @@ block content
                     else if order.status === 'DISPATCHING'
                       form(action=`/api/orders/sale/${order.id}/deliver`, method='POST')
                         button.btn.btn-sm.btn-success(type='submit') Confirmar entrega
+        if totalPages > 1
+          nav.mt-4(aria-label="Paginación de inventario venta")
+            ul.pagination.justify-content-center.mb-0
+              li.page-item(class=currentPage === 1 ? 'disabled' : '')
+                a.page-link(href=`/api/inventory?tab=sale&page=${currentPage - 1}`) Anterior
+              - for (let page = 1; page <= totalPages; page++)
+                li.page-item(class=page === currentPage ? 'active' : '')
+                  a.page-link(href=`/api/inventory?tab=sale&page=${page}`)= page
+              li.page-item(class=currentPage === totalPages ? 'disabled' : '')
+                a.page-link(href=`/api/inventory?tab=sale&page=${currentPage + 1}`) Siguiente
       else
         .alert.alert-info No hay ventas pendientes de armado o despacho.
 
@@ -111,5 +137,15 @@ block content
                   else
                     span.text-muted Sin vencimiento
                 td= new Date(lot.created_at).toLocaleDateString('es-AR')
+        if totalPages > 1
+          nav.mt-4(aria-label="Paginación de inventario stock")
+            ul.pagination.justify-content-center.mb-0
+              li.page-item(class=currentPage === 1 ? 'disabled' : '')
+                a.page-link(href=`/api/inventory?tab=stock&page=${currentPage - 1}`) Anterior
+              - for (let page = 1; page <= totalPages; page++)
+                li.page-item(class=page === currentPage ? 'active' : '')
+                  a.page-link(href=`/api/inventory?tab=stock&page=${page}`)= page
+              li.page-item(class=currentPage === totalPages ? 'disabled' : '')
+                a.page-link(href=`/api/inventory?tab=stock&page=${currentPage + 1}`) Siguiente
       else
         .alert.alert-info Aún no hay lotes de inventario registrados.

@@ -134,6 +134,10 @@ html(lang="es")
       }
   body
     if activeTab
+      - const currentRole = currentUser && currentUser.role ? currentUser.role : null
+      - const canAccessCommercial = currentRole === 'ADMIN' || currentRole === 'COMMERCIAL' || currentRole === 'VENDOR' || currentRole === 'CLIENT'
+      - const canAccessInventory = currentRole === 'ADMIN' || currentRole === 'INVENTORY'
+      - const canAccessFinance = currentRole === 'ADMIN' || currentRole === 'FINANCE'
       .d-flex
         nav.sidebar.bg-dark.d-flex.flex-column.p-3
           .sidebar-header.d-flex.align-items-center.justify-content-between.mb-4
@@ -144,30 +148,55 @@ html(lang="es")
               i#toggle-icon.bi.bi-chevron-left
 
           ul.nav.nav-pills.flex-column.gap-1.flex-grow-1
-            li.nav-item
-              a.nav-link(class=activeTab === 'clients' ? 'active' : '', href="/api/clients", title="Clientes")
-                i.bi.bi-people-fill.flex-shrink-0
-                span.sidebar-text.ms-2 Clientes
-            li.nav-item
-              a.nav-link(class=activeTab === 'vendors' ? 'active' : '', href="/api/vendors", title="Proveedores")
-                i.bi.bi-truck.flex-shrink-0
-                span.sidebar-text.ms-2 Proveedores
-            li.nav-item
-              a.nav-link(class=activeTab === 'products' ? 'active' : '', href="/api/products", title="Productos")
-                i.bi.bi-box-seam.flex-shrink-0
-                span.sidebar-text.ms-2 Productos
-            li.nav-item
-              a.nav-link(class=activeTab === 'orders' ? 'active' : '', href="/api/orders?type=PURCHASE", title="Órdenes")
-                i.bi.bi-cart-check.flex-shrink-0
-                span.sidebar-text.ms-2 Órdenes
-            li.nav-item
-              a.nav-link(class=activeTab === 'inventory' ? 'active' : '', href="/api/inventory", title="Inventario")
-                i.bi.bi-archive.flex-shrink-0
-                span.sidebar-text.ms-2 Inventario
-            li.nav-item
-              a.nav-link(class=activeTab === 'transactions' ? 'active' : '', href="/api/transactions?type=PAYMENT", title="Finanzas")
-                i.bi.bi-cash-coin.flex-shrink-0
-                span.sidebar-text.ms-2 Finanzas
+            if canAccessCommercial
+              li.nav-item
+                a.nav-link(class=activeTab === 'clients' ? 'active' : '', href="/api/clients", title="Clientes")
+                  i.bi.bi-people-fill.flex-shrink-0
+                  span.sidebar-text.ms-2 Clientes
+              li.nav-item
+                a.nav-link(class=activeTab === 'vendors' ? 'active' : '', href="/api/vendors", title="Proveedores")
+                  i.bi.bi-truck.flex-shrink-0
+                  span.sidebar-text.ms-2 Proveedores
+              li.nav-item
+                a.nav-link(class=activeTab === 'products' ? 'active' : '', href="/api/products", title="Productos")
+                  i.bi.bi-box-seam.flex-shrink-0
+                  span.sidebar-text.ms-2 Productos
+              li.nav-item
+                a.nav-link(class=activeTab === 'orders' ? 'active' : '', href="/api/orders?type=PURCHASE", title="Órdenes")
+                  i.bi.bi-cart-check.flex-shrink-0
+                  span.sidebar-text.ms-2 Órdenes
+            if canAccessInventory
+              li.nav-item
+                a.nav-link(class=activeTab === 'inventory' ? 'active' : '', href="/api/inventory", title="Inventario")
+                  i.bi.bi-archive.flex-shrink-0
+                  span.sidebar-text.ms-2 Inventario
+              if currentRole === 'INVENTORY'
+                li.nav-item.ms-3
+                  a.nav-link(class=activeTab === 'inventory' && inventoryTab === 'purchase' ? 'active' : '', href="/api/inventory?tab=purchase", title="Recepción y auditoría")
+                    i.bi.bi-arrow-down-left-circle.flex-shrink-0
+                    span.sidebar-text.ms-2 Recepción y auditoría
+                li.nav-item.ms-3
+                  a.nav-link(class=activeTab === 'inventory' && inventoryTab === 'sale' ? 'active' : '', href="/api/inventory?tab=sale", title="Armado y despacho")
+                    i.bi.bi-arrow-up-right-circle.flex-shrink-0
+                    span.sidebar-text.ms-2 Armado y despacho
+                li.nav-item.ms-3
+                  a.nav-link(class=activeTab === 'inventory' && inventoryTab === 'stock' ? 'active' : '', href="/api/inventory?tab=stock", title="Stock total")
+                    i.bi.bi-box-seam.flex-shrink-0
+                    span.sidebar-text.ms-2 Stock total
+            if canAccessFinance
+              li.nav-item
+                a.nav-link(class=activeTab === 'transactions' ? 'active' : '', href="/api/transactions?type=PAYMENT", title="Finanzas")
+                  i.bi.bi-cash-coin.flex-shrink-0
+                  span.sidebar-text.ms-2 Finanzas
+              if currentRole === 'FINANCE'
+                li.nav-item.ms-3
+                  a.nav-link(class=activeTab === 'transactions' && activeType === 'PAYMENT' ? 'active' : '', href="/api/transactions?type=PAYMENT", title="Órdenes de Pago")
+                    i.bi.bi-credit-card.flex-shrink-0
+                    span.sidebar-text.ms-2 Órdenes de Pago
+                li.nav-item.ms-3
+                  a.nav-link(class=activeTab === 'transactions' && activeType === 'COLLECTION' ? 'active' : '', href="/api/transactions?type=COLLECTION", title="Órdenes de Cobro")
+                    i.bi.bi-cash-stack.flex-shrink-0
+                    span.sidebar-text.ms-2 Órdenes de Cobro
 
           .mt-auto
             form(action="/api/auth/logout", method="POST")

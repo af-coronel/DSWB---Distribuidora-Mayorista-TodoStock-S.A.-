@@ -36,13 +36,18 @@ const clientController = new ClientController(
   activatePartnerUseCase,
 );
 
+router.use(
+  authenticate,
+  authorizeRoles(["ADMIN", "COMMERCIAL", "VENDOR", "CLIENT"]),
+);
+
 // --- DEFINICIÓN DE ENDPOINTS ---
 
 // Crear un cliente: Requiere estar logueado Y ser ADMIN o CLIENT
 router.post(
   "/",
   authenticate,
-  authorizeRoles(["ADMIN", "CLIENT"]),
+  authorizeRoles(["ADMIN", "COMMERCIAL", "CLIENT"]),
   (req, res) => clientController.create(req, res),
 );
 
@@ -67,27 +72,30 @@ router.get("/", authenticate, (req, res) => clientController.getAll(req, res));
 router.put(
   "/:cuit",
   authenticate,
-  authorizeRoles(["ADMIN", "CLIENT"]),
+  authorizeRoles(["ADMIN", "COMMERCIAL", "CLIENT"]),
   (req, res) => clientController.update(req, res),
 );
 
 router.post(
   "/:cuit/edit",
   authenticate,
-  authorizeRoles(["ADMIN", "CLIENT"]),
+  authorizeRoles(["ADMIN", "COMMERCIAL", "CLIENT"]),
   (req, res) => clientController.update(req, res),
 );
 
 // Borrar/Desactivar un cliente: Requiere ser ADMIN estricto
-router.delete("/:cuit", authenticate, authorizeRoles(["ADMIN"]), (req, res) =>
-  clientController.deleteSoft(req, res),
+router.delete(
+  "/:cuit",
+  authenticate,
+  authorizeRoles(["ADMIN", "COMMERCIAL"]),
+  (req, res) => clientController.deleteSoft(req, res),
 );
 
 // Desactivar un cliente (PATCH semántico)
 router.patch(
   "/:cuit/deactivate",
   authenticate,
-  authorizeRoles(["ADMIN"]),
+  authorizeRoles(["ADMIN", "COMMERCIAL"]),
   (req, res) => clientController.deleteSoft(req, res),
 );
 
@@ -95,7 +103,7 @@ router.patch(
 router.patch(
   "/:cuit/activate",
   authenticate,
-  authorizeRoles(["ADMIN"]),
+  authorizeRoles(["ADMIN", "COMMERCIAL"]),
   (req, res) => clientController.activate(req, res),
 );
 

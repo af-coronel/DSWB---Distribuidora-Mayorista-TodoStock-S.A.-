@@ -4,6 +4,10 @@ import type { GetAllProducts } from "../../../../products/application/index.js";
 import type { GetAllOrders } from "../../../../orders/application/index.js";
 import type { GetAllPartners } from "../../../../business-partner/application/index.js";
 
+type AuthenticatedRequest = Request & {
+  user?: { role?: string };
+};
+
 const ORDER_STATUS_LABEL: Record<string, string> = {
   TO_VERIFY_BUDGET: "A verificar presupuesto",
   PENDING_BUDGET: "Presupuesto pendiente",
@@ -44,6 +48,7 @@ export class InventoryController {
 
   async getAll(req: Request, res: Response) {
     try {
+      const request = req as AuthenticatedRequest;
       const lots = await this.getAllInventoryLotsUseCase.execute();
 
       if (req.headers.accept?.includes("text/html")) {
@@ -76,14 +81,48 @@ export class InventoryController {
             ? req.query.tab
             : "purchase";
 
+        const pageSize = 15;
+        const parsedPage = Number(req.query.page);
+        const requestedPage =
+          Number.isInteger(parsedPage) && parsedPage > 0 ? parsedPage : 1;
+
+        const sourceItems =
+          activeTab === "purchase"
+            ? purchaseTasks
+            : activeTab === "sale"
+              ? saleTasks
+              : lots;
+
+        const totalItems = sourceItems.length;
+        const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+        const currentPage = Math.min(requestedPage, totalPages);
+        const startIndex = (currentPage - 1) * pageSize;
+        const endIndex = startIndex + pageSize;
+
+        const paginatedPurchaseTasks =
+          activeTab === "purchase"
+            ? purchaseTasks.slice(startIndex, endIndex)
+            : purchaseTasks;
+        const paginatedSaleTasks =
+          activeTab === "sale"
+            ? saleTasks.slice(startIndex, endIndex)
+            : saleTasks;
+        const paginatedLots =
+          activeTab === "stock" ? lots.slice(startIndex, endIndex) : lots;
+
         return res.render("inventory/list", {
           activeTab: "inventory",
           inventoryTab: activeTab,
-          lots,
+          currentRole: request.user?.role,
+          lots: paginatedLots,
           productMap,
           partnerMap,
-          purchaseTasks,
-          saleTasks,
+          purchaseTasks: paginatedPurchaseTasks,
+          saleTasks: paginatedSaleTasks,
+          currentPage,
+          totalPages,
+          totalItems,
+          pageSize,
           statusLabel: ORDER_STATUS_LABEL,
           statusBadge: ORDER_STATUS_BADGE,
           flashError: (req.query.error as string) || undefined,
