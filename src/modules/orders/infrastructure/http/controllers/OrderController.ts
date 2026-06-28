@@ -19,6 +19,7 @@ import type { GetAvailableStockByProduct } from "../../../../inventory/applicati
 import type { CreatePurchaseOrderItemInput } from "../../../application/use-cases/CreatePurchaseOrder.js";
 import type { CreateSaleOrderItemInput } from "../../../application/use-cases/CreateSaleOrder.js";
 import type { OrderType } from "../../../domain/index.js";
+import { emitRoleNotification } from "../../../../../core/realtime/socketServer.js";
 
 type AuthenticatedRequest = Request & {
   user?: { id?: string; role?: string };
@@ -256,6 +257,22 @@ export class OrderController {
         notes,
       );
 
+      emitRoleNotification("FINANCE", {
+        kind: "ORDER_CREATED",
+        title:
+          orders.length === 1
+            ? "Nueva orden de compra"
+            : "Nuevas órdenes de compra",
+        message:
+          orders.length === 1
+            ? `Se generó una orden de compra y requiere verificación presupuestaria.`
+            : `Se generaron ${orders.length} órdenes de compra y requieren verificación presupuestaria.`,
+        link: "/api/transactions?type=PAYMENT",
+        entityId: orders.length === 1 ? orders[0]?.id : undefined,
+        entityType: "PURCHASE_ORDER",
+        createdAt: new Date().toISOString(),
+      });
+
       if (isFormRequest(req)) return res.redirect("/api/orders?type=PURCHASE");
       return res
         .status(201)
@@ -401,6 +418,17 @@ export class OrderController {
         scheduled_date ? new Date(scheduled_date) : undefined,
         notes,
       );
+
+      emitRoleNotification("FINANCE", {
+        kind: "ORDER_CREATED",
+        title: "Nueva orden de venta",
+        message:
+          "Se generó una orden de venta y requiere gestión financiera de cobro.",
+        link: "/api/transactions?type=COLLECTION",
+        entityId: order.id,
+        entityType: "SALE_ORDER",
+        createdAt: new Date().toISOString(),
+      });
 
       if (isFormRequest(req)) return res.redirect(`/api/orders/${order.id}`);
       return res
