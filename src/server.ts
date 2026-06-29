@@ -80,3 +80,5 @@ connectToDatabase()
     console.error("Error al conectar a MongoDB:", error);
     process.exit(1);
   });
+
+export default app;
