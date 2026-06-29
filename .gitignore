@@ -3,3 +3,6 @@ node_modules/
 dist/
 GLOSARIO.md
 test-results/
+coverage/
+qa-dashboard/
+.qa/
