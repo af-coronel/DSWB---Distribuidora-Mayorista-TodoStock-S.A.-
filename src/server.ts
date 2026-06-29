@@ -68,17 +68,15 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
 app.use(errorHandler);
 
-initializeSocketServer(httpServer);
+connectToDatabase().catch((error) => {
+  console.error("Error al conectar a MongoDB:", error);
+});
 
-connectToDatabase()
-  .then(() => {
-    httpServer.listen(PORT, () => {
-      console.log(`Servidor ejecutándose en http://localhost:${PORT}`);
-    });
-  })
-  .catch((error) => {
-    console.error("Error al conectar a MongoDB:", error);
-    process.exit(1);
+if (process.env.NODE_ENV !== "production") {
+  initializeSocketServer(httpServer);
+  httpServer.listen(PORT, () => {
+    console.log(`Servidor ejecutándose en http://localhost:${PORT}`);
   });
+}
 
 export default app;
