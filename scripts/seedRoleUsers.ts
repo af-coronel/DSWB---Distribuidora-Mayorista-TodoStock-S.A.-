@@ -1,4 +1,5 @@
 import "dotenv/config";
+import bcrypt from "bcrypt";
 import mongoose from "mongoose";
 import { UserModel } from "../src/modules/auth/infrastructure/persistence/UserModel.js";
 
@@ -9,7 +10,7 @@ type SeedUser = {
   username: string;
   email: string;
   passwordHash: string;
-  role: "COMMERCIAL" | "INVENTORY" | "FINANCE";
+  role: "COMMERCIAL" | "INVENTORY" | "FINANCE" | "ADMIN";
 };
 
 const users: SeedUser[] = [
@@ -19,6 +20,13 @@ const users: SeedUser[] = [
     email: "comercial@todostock.local",
     passwordHash: "Comercial123!",
     role: "COMMERCIAL",
+  },
+  {
+    id: "user-admin-002",
+    username: "admin",
+    email: "admin@todostock.local",
+    passwordHash: "Admin123!",
+    role: "ADMIN",
   },
   {
     id: "user-inventory-001",
@@ -47,7 +55,11 @@ async function seedRoleUsers(): Promise<void> {
   await mongoose.connect(uri);
   console.log("Conectado. Creando/actualizando usuarios por rol...\n");
 
+  const salt = await bcrypt.genSalt(10);
+
   for (const user of users) {
+    const passwordHash = await bcrypt.hash(user.passwordHash, salt);
+
     await UserModel.findOneAndUpdate(
       { email: user.email },
       {
@@ -55,7 +67,7 @@ async function seedRoleUsers(): Promise<void> {
           id: user.id,
           username: user.username,
           email: user.email,
-          passwordHash: user.passwordHash,
+          passwordHash,
           role: user.role,
           active: true,
           updated_at: seedDate,
