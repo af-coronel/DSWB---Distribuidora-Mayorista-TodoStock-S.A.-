@@ -45,6 +45,12 @@
   "exclude": [
     "node_modules",
     "dist",
-    "scripts"
+    "scripts",
+    "e2e",
+    "coverage",
+    "qa-dashboard",
+    ".qa",
+    "vitest.config.ts",
+    "playwright.config.ts"
   ]
 }
